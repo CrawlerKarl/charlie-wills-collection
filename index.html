@@ -40,18 +40,17 @@ main{padding:18px 0 40px}
 .sl{font-size:0.72rem;color:var(--t3);text-transform:uppercase;letter-spacing:0.05em}
 .sv{font-size:1.5rem;font-weight:800;margin-top:2px}
 .sc.gn .sv{color:var(--teal)}.sc.cy .sv{color:var(--cyn)}
-/* about */
-.min-about{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);padding:12px 14px;margin-bottom:12px}
-.min-about>summary{cursor:pointer;font-weight:700;font-size:1.04rem;color:var(--t1);list-style:none;display:flex;align-items:center;gap:9px}
-.min-about>summary::-webkit-details-marker{display:none}
-.min-about>summary::before{content:'\25B8';color:var(--teal);transition:transform .2s}
-.min-about[open]>summary::before{transform:rotate(90deg)}
-.min-about-body{margin-top:10px;font-size:0.96rem;line-height:1.62;color:var(--t2)}
-.min-about-body p{margin:0 0 10px}
-.min-about-body a{color:#2dd4bf}
-.min-article{margin:14px 0 2px}
-.min-article img{width:100%;max-width:520px;border-radius:10px;border:1px solid var(--bdr);display:block;cursor:zoom-in}
-.min-article figcaption{font-size:0.84rem;line-height:1.5;color:var(--t3);margin-top:7px;max-width:520px}
+/* story (always visible, newspaper photo prominent at top) */
+.cw-story{background:var(--card);border:1px solid var(--bdr);border-radius:14px;padding:18px;margin-bottom:14px;display:grid;grid-template-columns:340px 1fr;gap:22px;align-items:start}
+.cw-story-photo{margin:0}
+.cw-story-photo a{display:block}
+.cw-story-photo img{width:auto;max-width:100%;max-height:430px;border-radius:10px;border:1px solid var(--bdr);display:block;cursor:zoom-in;margin:0 auto}
+.cw-story-photo figcaption{font-size:0.8rem;line-height:1.5;color:var(--t3);margin-top:8px}
+.cw-story-text h2{font-size:1.35rem;font-weight:800;margin:0 0 9px;line-height:1.2}
+.cw-story-text p{font-size:0.95rem;line-height:1.62;color:var(--t2);margin:0 0 10px}
+.cw-story-text p:last-child{margin-bottom:0}
+.cw-story-text a{color:#2dd4bf}
+@media(max-width:760px){.cw-story{grid-template-columns:1fr;gap:14px;padding:15px}.cw-story-photo img{max-width:100%;max-height:380px}}
 /* filter bar */
 .pf-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
 .pf-in{flex:1 1 200px;min-width:160px;background:var(--inp);border:1px solid var(--bdr);border-radius:var(--r-sm);color:var(--t1);font-size:0.9rem;padding:9px 11px;min-height:40px}
@@ -85,7 +84,7 @@ main{padding:18px 0 40px}
 .gtile-img{width:100%;height:100%;object-fit:cover;display:block}
 .gtile-badges{position:absolute;top:8px;left:8px;display:flex;gap:5px}
 .gtile-body{padding:13px 15px 15px;display:flex;flex-direction:column;gap:3px}
-.gtile-name{font-size:1.2rem;line-height:1.3;font-weight:700}
+.gtile-name{font-size:1.15rem;line-height:1.28;font-weight:700;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .gtile-sub{font-size:0.95rem;line-height:1.4;color:var(--t2)}
 .min-tile-flavor{font-size:0.92rem;line-height:1.5;color:var(--t2);font-style:italic;margin-top:9px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .min-sub-badge{font-size:0.68rem;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;background:rgba(0,0,0,0.55);color:#cbd5e1;padding:2px 7px;border-radius:6px}
@@ -139,7 +138,7 @@ main{padding:18px 0 40px}
 .min-field .mf-v{flex:1;color:var(--t1);min-width:0;overflow-wrap:anywhere}
 .min-mindat{color:#2dd4bf;text-decoration:underline dotted}
 .modal .badges{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
-@media(max-width:600px){.min-stage{aspect-ratio:1/1;max-height:62vh}.modal{padding:14px 15px 20px}.hdr-title{font-size:1.4rem}}
+@media(max-width:600px){.min-stage{aspect-ratio:1/1;max-height:62vh}.modal{padding:14px 15px 20px}.hdr-title{font-size:1.4rem}.mgrid{grid-template-columns:repeat(2,1fr);gap:11px}.mgrid .gtile-name{font-size:0.92rem}.mgrid .gtile-sub{font-size:0.76rem}.mgrid .min-tile-flavor{display:none}.mgrid .gtile-body{padding:9px 10px}}
 /* footer */
 .site-ftr{border-top:1px solid var(--bdr);padding:22px 0 34px;margin-top:20px;color:var(--t3);font-size:0.84rem}
 .site-ftr .wrap{display:flex;flex-direction:column;gap:5px}
@@ -185,9 +184,9 @@ function speciesMatch(m,sel){var sp=m.species||[];for(var i=0;i<sel.length;i++){
 
 /* ------------------------------------------------------------------ state */
 var S={q:'',sort:'idDesc',view:'grid',lvl:0,f:{subtype:[],provenance:[],species:[],state:[]}};
-var LEVELS=[300,150,98,74];
+var LEVELS=[300,200,150,110];
 try{S.view=localStorage.getItem('cwView')||'grid';}catch(e){}
-try{S.lvl=parseInt(localStorage.getItem('cwLvl'),10)||0;}catch(e){}
+try{var _lv=parseInt(localStorage.getItem('cwLvl'),10);S.lvl=isNaN(_lv)?1:_lv;}catch(e){S.lvl=1;}
 
 /* ------------------------------------------------------------------ filtering */
 function filtered(){
@@ -274,7 +273,7 @@ function clearFilters(){S.q='';S.f={subtype:[],provenance:[],species:[],state:[]
 document.addEventListener('click',function(e){if(!e.target.closest('.pubms'))document.querySelectorAll('.pubms.open').forEach(function(x){x.classList.remove('open');});});
 
 /* ------------------------------------------------------------------ render */
-function applyGridSize(){var g=document.querySelector('.mgrid');document.documentElement.style.setProperty('--min-grid-w',LEVELS[S.lvl]+'px');if(g)g.classList.toggle('compact',S.lvl>=1);var inc=document.getElementById('gs-inc'),dec=document.getElementById('gs-dec');if(inc)inc.disabled=(S.lvl<=0);if(dec)dec.disabled=(S.lvl>=LEVELS.length-1);}
+function applyGridSize(){var g=document.querySelector('.mgrid');document.documentElement.style.setProperty('--min-grid-w',LEVELS[S.lvl]+'px');if(g)g.classList.toggle('compact',S.lvl>=2);var inc=document.getElementById('gs-inc'),dec=document.getElementById('gs-dec');if(inc)inc.disabled=(S.lvl<=0);if(dec)dec.disabled=(S.lvl>=LEVELS.length-1);}
 function setGridSize(d){S.lvl=Math.max(0,Math.min(LEVELS.length-1,S.lvl-d));try{localStorage.setItem('cwLvl',S.lvl);}catch(e){}applyGridSize();}
 function setView(v){S.view=v;try{localStorage.setItem('cwView',v);}catch(e){}renderContent();syncViewBtns();}
 function syncViewBtns(){var g=document.getElementById('cv-grid'),t=document.getElementById('cv-table');if(!g)return;g.className='vtbtn'+(S.view==='grid'?' on':'');t.className='vtbtn'+(S.view==='table'?' on':'');var sz=document.getElementById('gs-grp');if(sz)sz.style.display=S.view==='grid'?'':'none';}
@@ -288,16 +287,17 @@ function renderContent(){
     el.innerHTML='<div style="overflow-x:auto"><table class="min-table"><thead><tr><th>Specimen</th><th>Type</th><th>Locality</th><th>Size</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
   }else{
     var tiles=M.map(function(m){var h=hero(m);var src=h?img(h,400):PLACEHOLDER;return '<div class="gtile" onclick="showMineral(\''+m.id+'\')"><div class="gtile-imgwrap"><img class="gtile-img" src="'+esc(src)+'" loading="lazy" decoding="async" alt="'+esc(title(m))+'" onerror="this.onerror=null;this.src=\''+PLACEHOLDER+'\'"><div class="gtile-badges"><span class="min-sub-badge">'+esc(subLabel(m.subtype))+'</span>'+(m.provenance==='Charlie Wills'?'<span class="min-cw-badge" title="Charlie Wills collection">CW</span>':'')+'</div></div><div class="gtile-body"><div class="gtile-name">'+esc(title(m))+'</div><div class="gtile-sub">'+esc(locStr(m.locality))+'</div>'+(m.flavor?'<div class="min-tile-flavor">'+esc(m.flavor)+'</div>':'')+'</div></div>';}).join('');
-    el.innerHTML='<div class="mgrid'+(S.lvl>=1?' compact':'')+'" role="list">'+tiles+'</div>';applyGridSize();
+    el.innerHTML='<div class="mgrid'+(S.lvl>=2?' compact':'')+'" role="list">'+tiles+'</div>';applyGridSize();
   }
 }
-function aboutHTML(){
-  return '<details class="min-about"><summary>About the Charlie Wills Collection</summary><div class="min-about-body">'
+function storyHTML(){
+  return '<section class="cw-story">'
+    +'<figure class="cw-story-photo"><a href="images/minerals/charlie_wills_1957_article.jpg" target="_blank" rel="noopener" title="Open full size"><img src="images/minerals/charlie_wills_1957_article.jpg" loading="eager" alt="1957 Detroit Times feature ‘Rock Hound An Expert Now’ — Charles V. Wills showing rock specimens to his grandson Thomas J. Herman"></a><figcaption>📰 “‘Rock Hound’ An Expert Now,” <em>Detroit Times</em>, 1957 (by Margaret Russell) — Charlie Wills, then 85, showing specimens to his grandson Thomas J. Herman. Tap to enlarge.</figcaption></figure>'
+    +'<div class="cw-story-text"><h2>A lifelong rock hound</h2>'
     +'<p>This collection was gathered by <strong>Charles V. “Charlie” Wills</strong>, a mining electrician of Michigan’s Copper Country and the copper camps of Arizona. Born in Ishpeming and raised in <strong>Calumet</strong>, he trained as an electrician for the copper mines, then around 1900 traveled by buckboard to pre-statehood Arizona, married in 1901, and worked for Phelps Dodge in <strong>Bisbee</strong> — where he also held his own mining claims, including one in <strong>Durango, Mexico</strong>.</p>'
     +'<p>He became so respected a collector that miners would halt a shaft and call him in to extract a large crystal. He donated his main collection to his alma mater, the Michigan College of Mines (now Michigan Technological University); it is held today in the <a href="https://museum.mtu.edu/" target="_blank" rel="noopener">A.E. Seaman Mineral Museum</a>, listed among its <a href="https://museum.mtu.edu/sites/default/files/2019-11/Past-Major-Acquisitions_0.pdf" target="_blank" rel="noopener">major past acquisitions</a> — the Smithsonian had sought it too. The specimens shown here are the smaller pieces Charlie gave his wife, <strong>Anna</strong>.</p>'
-    +'<p>Charlie was the <strong>step-grandfather of Thomas J. “Tom” Herman</strong> — he was Anna’s second husband, and Anna was Tom’s grandmother. Tom is the boy in the 1957 newspaper feature below. Years later <strong>Tom passed these pieces on as a gift</strong> to a family friend, who keeps them today and shares them here in Charlie’s memory.</p>'
-    +'<figure class="min-article"><a href="images/minerals/charlie_wills_1957_article.jpg" target="_blank" rel="noopener" title="Open full size"><img src="images/minerals/charlie_wills_1957_article.jpg" loading="lazy" alt="1957 Detroit Times feature ‘Rock Hound An Expert Now’ — Charles V. Wills showing rock specimens to his grandson Thomas J. Herman"></a><figcaption>📰 “‘Rock Hound’ An Expert Now,” <em>Detroit Times</em>, 1957 (by Margaret Russell) — Charlie Wills, then 85, showing specimens to his grandson Thomas J. Herman. Tap to enlarge.</figcaption></figure>'
-    +'</div></details>';
+    +'<p>Charlie was the <strong>step-grandfather of Thomas J. “Tom” Herman</strong> — he was Anna’s second husband, and Anna was Tom’s grandmother. Tom is the boy in the photograph. Years later <strong>Tom passed these pieces on as a gift</strong> to a family friend, who keeps them today and shares them here in Charlie’s memory.</p>'
+    +'</div></section>';
 }
 function render(){
   var root=document.getElementById('min-root');if(!root)return;
@@ -305,7 +305,7 @@ function render(){
   if(!M.length){root.innerHTML='<div class="empty">Loading specimens…</div>';if((window._retry=(window._retry||0)+1)<15)setTimeout(render,250);return;}
   var nCW=M.filter(function(m){return m.provenance==='Charlie Wills';}).length;
   var sum='<div class="sg"><div class="sc gn"><div class="sl">Specimens</div><div class="sv">'+M.length+'</div></div><div class="sc cy"><div class="sl">From Charlie’s collection</div><div class="sv">'+nCW+'</div></div></div>';
-  root.innerHTML=sum+aboutHTML()+filterBarHTML()
+  root.innerHTML=storyHTML()+sum+filterBarHTML()
     +'<div class="tc-hd"><span class="tt">Specimens</span><span class="tn" id="min-count">'+M.length+' specimens</span>'
     +'<div class="vt-grp"><span id="gs-grp" style="display:flex;gap:5px"><button class="vtbtn" id="gs-dec" onclick="setGridSize(-1)" title="Smaller tiles" aria-label="Smaller tiles">−</button><button class="vtbtn" id="gs-inc" onclick="setGridSize(1)" title="Larger tiles" aria-label="Larger tiles">+</button></span>'
     +'<button class="vtbtn" id="cv-grid" onclick="setView(\'grid\')" title="Gallery" aria-label="Gallery view">▦</button><button class="vtbtn" id="cv-table" onclick="setView(\'table\')" title="Table" aria-label="Table view">☰</button></div></div>'
