@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<!--
+  The Charlie Wills Collection — public standalone viewer.
+  Read-only memorial showcase. Loads only the sanitized minerals data
+  (safe specimen fields + approved, metadata-stripped photos). No editing,
+  no valuations, no private data.
+-->
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="description" content="The Charlie Wills Collection — a memorial showcase of minerals, rocks, and fossils gathered in Michigan's Copper Country and the mines of Arizona.">
+<meta name="theme-color" content="#090d14">
+<title>The Charlie Wills Collection</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M8 4h16l5 8-13 16L3 12z' fill='%2314b8a6'/%3E%3Cpath d='M8 4h16l5 8H3z' fill='%232dd4bf'/%3E%3C/svg%3E">
+<style>
+:root{--bg:#090d14;--card:#10151f;--card2:#171e2c;--inp:#0c1018;--bdr:rgba(255,255,255,0.08);--bdr2:rgba(255,255,255,0.04);--gold:#f59e0b;--red:#ef4444;--grn:#4ade80;--cyn:#06b6d4;--teal:#14b8a6;--t1:#f1f5f9;--t2:#b0bec5;--t3:#94a3b8;--r:10px;--r-sm:7px;--min-grid-w:300px;--maxw:1120px}
+[data-theme="light"]{--bg:#f6f7f9;--card:#ffffff;--card2:#f1f5f9;--inp:#e2e8f0;--bdr:#d3dae4;--bdr2:rgba(15,23,42,0.05);--gold:#d97706;--red:#dc2626;--grn:#16a34a;--t1:#0f172a;--t2:#334155;--t3:#516079}
+*{box-sizing:border-box}
+html{-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--t1);font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;-webkit-font-smoothing:antialiased;line-height:1.5}
+a{color:#2dd4bf}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 16px}
+/* header */
+.site-hdr{border-bottom:1px solid var(--bdr);background:linear-gradient(180deg,rgba(20,184,166,0.06),transparent);padding:26px 0 20px}
+.site-hdr .wrap{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.hdr-mark{width:44px;height:44px;flex:0 0 auto;border-radius:12px;background:linear-gradient(135deg,#14b8a6,#0d9488);display:flex;align-items:center;justify-content:center}
+.hdr-mark svg{width:26px;height:26px}
+.hdr-txt{flex:1;min-width:0}
+.hdr-kicker{font-size:0.68rem;letter-spacing:1.4px;text-transform:uppercase;color:var(--teal);font-weight:700;margin:0}
+.hdr-title{font-size:1.7rem;font-weight:800;letter-spacing:-0.01em;margin:2px 0 3px;line-height:1.15}
+.hdr-sub{font-size:0.92rem;color:var(--t2);margin:0}
+.theme-btn{margin-left:auto;background:var(--card2);border:1px solid var(--bdr);color:var(--t2);width:40px;height:40px;border-radius:10px;cursor:pointer;font-size:1.05rem;display:flex;align-items:center;justify-content:center}
+.theme-btn:hover{border-color:var(--gold);color:var(--gold)}
+main{padding:18px 0 40px}
+/* stats */
+.sg{display:flex;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+.sc{flex:1;min-width:120px;background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);padding:12px 14px}
+.sl{font-size:0.72rem;color:var(--t3);text-transform:uppercase;letter-spacing:0.05em}
+.sv{font-size:1.5rem;font-weight:800;margin-top:2px}
+.sc.gn .sv{color:var(--teal)}.sc.cy .sv{color:var(--cyn)}
+/* about */
+.min-about{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);padding:12px 14px;margin-bottom:12px}
+.min-about>summary{cursor:pointer;font-weight:700;font-size:1.04rem;color:var(--t1);list-style:none;display:flex;align-items:center;gap:9px}
+.min-about>summary::-webkit-details-marker{display:none}
+.min-about>summary::before{content:'\25B8';color:var(--teal);transition:transform .2s}
+.min-about[open]>summary::before{transform:rotate(90deg)}
+.min-about-body{margin-top:10px;font-size:0.96rem;line-height:1.62;color:var(--t2)}
+.min-about-body p{margin:0 0 10px}
+.min-about-body a{color:#2dd4bf}
+.min-article{margin:14px 0 2px}
+.min-article img{width:100%;max-width:520px;border-radius:10px;border:1px solid var(--bdr);display:block;cursor:zoom-in}
+.min-article figcaption{font-size:0.84rem;line-height:1.5;color:var(--t3);margin-top:7px;max-width:520px}
+/* filter bar */
+.pf-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+.pf-in{flex:1 1 200px;min-width:160px;background:var(--inp);border:1px solid var(--bdr);border-radius:var(--r-sm);color:var(--t1);font-size:0.9rem;padding:9px 11px;min-height:40px}
+.pf-in:focus{outline:none;border-color:var(--gold)}
+.pubms{position:relative}
+.pubms-trig{background:var(--card2);border:1px solid var(--bdr);color:var(--t1);font-size:0.86rem;padding:9px 12px;border-radius:var(--r-sm);cursor:pointer;min-height:40px;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.pubms-trig:hover{border-color:var(--gold)}
+.pubms-trig .cnt{background:var(--teal);color:#04201c;font-size:0.66rem;font-weight:800;border-radius:8px;padding:0 6px;line-height:1.5}
+.pubms-drop{display:none;position:absolute;z-index:40;top:calc(100% + 5px);left:0;min-width:230px;max-height:320px;overflow:auto;background:var(--card);border:1px solid var(--bdr);border-radius:10px;box-shadow:0 12px 32px rgba(0,0,0,0.4);padding:6px}
+.pubms.open .pubms-drop{display:block}
+.pubms-opt{display:flex;align-items:center;gap:9px;padding:8px 9px;border-radius:7px;cursor:pointer;font-size:0.86rem}
+.pubms-opt:hover{background:var(--card2)}
+.pubms-opt input{accent-color:var(--gold);width:15px;height:15px}
+.pubms-opt .oc{margin-left:auto;color:var(--t3);font-size:0.76rem}
+.pf-sel{background:var(--card2);border:1px solid var(--bdr);color:var(--t1);font-size:0.86rem;padding:9px 30px 9px 12px;border-radius:var(--r-sm);cursor:pointer;min-height:40px;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 4.5l3.5 3.5 3.5-3.5' fill='none' stroke='%2394a3b8' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
+.pf-clear{background:transparent;border:1px solid var(--bdr);color:var(--t2);font-size:0.84rem;padding:9px 13px;border-radius:var(--r-sm);cursor:pointer;min-height:40px}
+.pf-clear:hover{border-color:var(--red);color:var(--red)}
+/* toolbar (count + view) */
+.tc-hd{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.tc-hd .tt{font-size:1.05rem;font-weight:700}
+.tc-hd .tn{font-size:0.8rem;color:var(--t3)}
+.vt-grp{margin-left:auto;display:flex;gap:5px}
+.vtbtn{background:var(--card2);border:1px solid var(--bdr);color:var(--t2);width:40px;height:40px;border-radius:9px;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center}
+.vtbtn.on{border-color:var(--gold);color:var(--gold)}
+.vtbtn:disabled{opacity:.4;cursor:default}
+/* grid tiles */
+.mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,var(--min-grid-w,300px)),1fr));gap:16px}
+.gtile{background:var(--card);border:1px solid var(--bdr);border-radius:14px;overflow:hidden;cursor:pointer;transition:border-color .15s,transform .15s;display:flex;flex-direction:column}
+.gtile:hover{border-color:var(--gold);transform:translateY(-2px)}
+.gtile-imgwrap{position:relative;aspect-ratio:4/3;background:var(--card2);overflow:hidden}
+.gtile-img{width:100%;height:100%;object-fit:cover;display:block}
+.gtile-badges{position:absolute;top:8px;left:8px;display:flex;gap:5px}
+.gtile-body{padding:13px 15px 15px;display:flex;flex-direction:column;gap:3px}
+.gtile-name{font-size:1.2rem;line-height:1.3;font-weight:700}
+.gtile-sub{font-size:0.95rem;line-height:1.4;color:var(--t2)}
+.min-tile-flavor{font-size:0.92rem;line-height:1.5;color:var(--t2);font-style:italic;margin-top:9px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.min-sub-badge{font-size:0.68rem;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;background:rgba(0,0,0,0.55);color:#cbd5e1;padding:2px 7px;border-radius:6px}
+.min-cw-badge{font-size:0.68rem;font-weight:700;letter-spacing:0.03em;background:rgba(20,184,166,0.9);color:#04201c;padding:2px 7px;border-radius:6px}
+.mgrid.compact{gap:11px}
+.mgrid.compact .gtile-body{padding:9px 11px}
+.mgrid.compact .gtile-name{font-size:0.95rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mgrid.compact .gtile-sub{font-size:0.76rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mgrid.compact .min-tile-flavor{display:none}
+/* table */
+.min-table{width:100%;border-collapse:collapse;font-size:0.86rem}
+.min-table th{text-align:left;color:var(--t3);font-weight:500;font-size:0.72rem;padding:7px 9px;border-bottom:1px solid var(--bdr);white-space:nowrap}
+.min-table td{padding:9px;border-bottom:1px solid var(--bdr2);vertical-align:top}
+.min-table tr.cl{cursor:pointer}.min-table tr.cl:hover{background:var(--card2)}
+.empty{text-align:center;padding:40px 20px;color:var(--t3)}
+/* modal */
+.modal-bg{position:fixed;inset:0;background:rgba(4,7,12,0.72);backdrop-filter:blur(3px);display:flex;align-items:flex-start;justify-content:center;padding:20px 12px;overflow-y:auto;z-index:100;opacity:0;transition:opacity .16s}
+.modal-bg.vis{opacity:1}
+.hidden{display:none}
+.modal{background:var(--card);border:1px solid var(--bdr);border-radius:16px;max-width:680px;width:100%;padding:18px 20px 24px;position:relative;box-shadow:0 24px 60px rgba(0,0,0,0.5)}
+.modal-close{position:sticky;float:right;top:0;z-index:10;background:var(--card2);border:1px solid var(--bdr);color:var(--t1);width:38px;height:38px;border-radius:10px;font-size:1.3rem;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.modal-close:hover{border-color:var(--gold);color:var(--gold)}
+.modal h2{font-size:1.5rem;line-height:1.28;margin:10px 0 2px;padding-right:46px}
+.min-stage{position:relative;width:100%;aspect-ratio:4/3;max-height:min(56vh,540px);overflow:hidden;border-radius:10px;background:var(--card2);touch-action:pan-y;user-select:none}
+.min-track{display:flex;width:100%;height:100%;transform:translateX(-100%)}
+.min-track.min-single{transform:translateX(0)}
+.min-track.min-anim{transition:transform .34s cubic-bezier(.22,.61,.36,1)}
+.min-slide{flex:0 0 100%;width:100%;height:100%;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.min-slide-img{max-width:100%;max-height:100%;width:auto;height:auto;display:block;-webkit-user-drag:none}
+@media(prefers-reduced-motion:reduce){.min-track.min-anim{transition:none}}
+.min-nav{position:absolute;top:50%;transform:translateY(-50%);width:40px;height:40px;border-radius:50%;border:none;background:rgba(0,0,0,0.45);color:#fff;font-size:1.6rem;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:3;padding:0}
+.min-nav::after{content:'';position:absolute;inset:-6px}
+.min-nav:hover,.min-nav:active{background:var(--gold);color:#1a1205}
+.min-nav-prev{left:6px}.min-nav-next{right:6px}
+.min-photo-pos{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.6);color:#fff;font-size:0.74rem;font-weight:600;padding:3px 11px;border-radius:11px;z-index:3;pointer-events:none}
+.min-fullsize{position:absolute;bottom:8px;right:8px;width:30px;height:30px;border-radius:7px;background:rgba(0,0,0,0.5);color:#fff;font-size:0.95rem;display:flex;align-items:center;justify-content:center;text-decoration:none;z-index:3}
+.min-fullsize:hover{background:var(--gold);color:#1a1205}
+.min-fullsize::after{content:'';position:absolute;inset:-8px}
+.min-stage.min-multi .min-slide-img{cursor:pointer}
+.min-thumbs{display:flex;gap:6px;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;margin-top:8px;-webkit-overflow-scrolling:touch;scrollbar-width:thin;scroll-behavior:smooth;padding-bottom:2px}
+.min-thumbs::-webkit-scrollbar{height:5px}.min-thumbs::-webkit-scrollbar-thumb{background:var(--bdr);border-radius:3px}
+.min-thumb{flex:0 0 auto;width:56px;height:42px;object-fit:cover;border-radius:5px;border:1px solid var(--bdr);cursor:pointer}
+.min-thumb.on{border-color:var(--gold)}
+.min-rocknav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:14px 0 4px;padding:11px 0;border-top:1px solid var(--bdr);border-bottom:1px solid var(--bdr)}
+.min-rock-btn{background:var(--card2);border:1px solid var(--bdr);color:var(--t1);font-size:0.95rem;font-weight:600;padding:9px 14px;border-radius:10px;cursor:pointer;min-height:44px}
+.min-rock-btn:hover{border-color:var(--gold);color:var(--gold)}
+.min-rock-pos{font-size:0.92rem;font-weight:700;color:var(--t2);white-space:nowrap}
+.min-flavor{font-style:italic;font-size:1.06rem;line-height:1.62;color:var(--t2);border-left:3px solid var(--teal);padding:9px 0 9px 15px;margin:8px 0 17px}
+.min-field{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--bdr2);font-size:1rem}
+.min-field .mf-k{flex:0 0 106px;color:var(--t3);font-size:0.9rem}
+.min-field .mf-v{flex:1;color:var(--t1);min-width:0;overflow-wrap:anywhere}
+.min-mindat{color:#2dd4bf;text-decoration:underline dotted}
+.modal .badges{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+@media(max-width:600px){.min-stage{aspect-ratio:1/1;max-height:62vh}.modal{padding:14px 15px 20px}.hdr-title{font-size:1.4rem}}
+/* footer */
+.site-ftr{border-top:1px solid var(--bdr);padding:22px 0 34px;margin-top:20px;color:var(--t3);font-size:0.84rem}
+.site-ftr .wrap{display:flex;flex-direction:column;gap:5px}
+.site-ftr strong{color:var(--t2)}
+</style>
+</head>
+<body>
+<header class="site-hdr">
+  <div class="wrap">
+    <div class="hdr-mark"><svg viewBox="0 0 32 32"><path d="M8 4h16l5 8-13 16L3 12z" fill="#04201c" opacity=".25"/><path d="M8 4h16l5 8-13 16L3 12z" fill="none" stroke="#04201c" stroke-width="1.5"/><path d="M8 4h16l5 8H3z" fill="#eafffb" opacity=".85"/></svg></div>
+    <div class="hdr-txt">
+      <p class="hdr-kicker">A memorial collection</p>
+      <h1 class="hdr-title">The Charlie Wills Collection</h1>
+      <p class="hdr-sub">Minerals, rocks &amp; fossils from Michigan's Copper Country and the mines of Arizona</p>
+    </div>
+    <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle light / dark" aria-label="Toggle theme">◑</button>
+  </div>
+</header>
+<main><div class="wrap"><div id="min-root"></div></div></main>
+<footer class="site-ftr"><div class="wrap">
+  <div>In memory of <strong>Charles V. “Charlie” Wills</strong> — a lifelong rock hound of Calumet, Michigan and Bisbee, Arizona.</div>
+  <div>Shown here for viewing only. Photos &amp; specimen notes © the family.</div>
+</div></footer>
+<div id="modal-wrap" class="hidden"></div>
+
+<script src="minerals.public.js" defer></script>
+<script defer>
+/* ------------------------------------------------------------------ helpers */
+function esc(s){return s==null?'':String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+var PLACEHOLDER="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='90'%3E%3Crect width='120' height='90' fill='%23171e2c'/%3E%3Cpath d='M35 30h50l14 22-38 40-40-40z' fill='none' stroke='%232dd4bf' stroke-width='2' opacity='.5'/%3E%3C/svg%3E";
+function minData(){return window.MINERALS||[];}
+function img(ph,size){return 'images/minerals/'+ph.f+'_'+size+'.jpg';}
+function hero(m){var ph=(m.photos||[]);return ph.filter(function(x){return x.hero;})[0]||ph[0]||null;}
+function mindat(sp){return 'https://www.mindat.org/search.php?search='+encodeURIComponent(sp);}
+function locStr(loc){if(!loc)return 'Locality unknown';var p=[loc.mine,loc.district,loc.state,loc.country].filter(Boolean);return p.length?p.join(', '):'Locality unknown';}
+function title(m){return m.name||(m.species&&m.species[0])||m.id;}
+function subLabel(t){return ({mineral:'Mineral',rock:'Rock',fossil:'Fossil',cut_stone:'Cut stone',meteorite:'Meteorite'})[t]||t||'';}
+function provOf(m){return m.provenance||'(untagged)';}
+function stateOf(m){return (m.locality&&m.locality.state)||'(unknown)';}
+function photosOf(m){return (m.photos&&m.photos.length)?m.photos:(hero(m)?[hero(m)]:[]);}
+function heroIdx(m){var P=photosOf(m);for(var i=0;i<P.length;i++){if(P[i]&&P[i].hero)return i;}return 0;}
+function speciesMatch(m,sel){var sp=m.species||[];for(var i=0;i<sel.length;i++){if(sp.indexOf(sel[i])>=0)return true;}return false;}
+
+/* ------------------------------------------------------------------ state */
+var S={q:'',sort:'idDesc',view:'grid',lvl:0,f:{subtype:[],provenance:[],species:[],state:[]}};
+var LEVELS=[300,150,98,74];
+try{S.view=localStorage.getItem('cwView')||'grid';}catch(e){}
+try{S.lvl=parseInt(localStorage.getItem('cwLvl'),10)||0;}catch(e){}
+
+/* ------------------------------------------------------------------ filtering */
+function filtered(){
+  var f=S.f,q=(S.q||'').trim().toLowerCase();
+  var out=minData().filter(function(m){
+    if(f.subtype.length&&f.subtype.indexOf(m.subtype)<0)return false;
+    if(f.provenance.length&&f.provenance.indexOf(provOf(m))<0)return false;
+    if(f.state.length&&f.state.indexOf(stateOf(m))<0)return false;
+    if(f.species.length&&!speciesMatch(m,f.species))return false;
+    if(q){var b=m._b||(m._b=((m.name||'')+' '+((m.species||[]).join(' '))+' '+locStr(m.locality)+' '+(m.flavor||'')+' '+(m.id||'')).toLowerCase());if(b.indexOf(q)<0)return false;}
+    return true;
+  });
+  var s=S.sort;
+  out.sort(function(a,b){
+    if(s==='name')return String(title(a)).localeCompare(String(title(b)));
+    if(s==='species')return String((a.species&&a.species[0])||'').localeCompare(String((b.species&&b.species[0])||''))||(a.id<b.id?-1:1);
+    if(s==='subtype')return String(a.subtype||'').localeCompare(String(b.subtype||''))||(a.id<b.id?-1:1);
+    if(s==='idDesc')return a.id<b.id?1:(a.id>b.id?-1:0);
+    return a.id<b.id?-1:(a.id>b.id?1:0);
+  });
+  return out;
+}
+function computeCounts(){
+  var f=S.f,R={subtype:{},provenance:{},species:{},state:{}};
+  function mSub(m){return !f.subtype.length||f.subtype.indexOf(m.subtype)>=0;}
+  function mProv(m){return !f.provenance.length||f.provenance.indexOf(provOf(m))>=0;}
+  function mState(m){return !f.state.length||f.state.indexOf(stateOf(m))>=0;}
+  function mSpec(m){return !f.species.length||speciesMatch(m,f.species);}
+  minData().forEach(function(m){
+    if(m.subtype&&mProv(m)&&mState(m)&&mSpec(m))R.subtype[m.subtype]=(R.subtype[m.subtype]||0)+1;
+    if(mSub(m)&&mState(m)&&mSpec(m)){var pv=provOf(m);R.provenance[pv]=(R.provenance[pv]||0)+1;}
+    if(mSub(m)&&mProv(m)&&mSpec(m)){var sv=stateOf(m);R.state[sv]=(R.state[sv]||0)+1;}
+    if(mSub(m)&&mProv(m)&&mState(m)){(m.species||[]).forEach(function(x){R.species[x]=(R.species[x]||0)+1;});}
+  });
+  return R;
+}
+var PROP2KEY={sub:'subtype',prov:'provenance',species:'species',state:'state'};
+function optionsFor(prop){
+  var C=computeCounts(),data=minData(),key=PROP2KEY[prop],out=[];
+  if(prop==='sub'){var order=['mineral','rock','fossil','cut_stone','meteorite'],pres={};data.forEach(function(m){if(m.subtype)pres[m.subtype]=1;});order.filter(function(k){return pres[k];}).forEach(function(k){out.push([k,subLabel(k),C.subtype[k]||0]);});}
+  else if(prop==='prov'){[['Charlie Wills','Charlie Wills'],['Own','From the family'],['(untagged)','Untagged']].forEach(function(o){if((C.provenance[o[0]]||0)>0||S.f.provenance.indexOf(o[0])>=0)out.push([o[0],o[1],C.provenance[o[0]]||0]);});}
+  else if(prop==='species'){var sp={};data.forEach(function(m){(m.species||[]).forEach(function(x){sp[x]=1;});});Object.keys(sp).forEach(function(x){out.push([x,x,C.species[x]||0]);});out.sort(function(a,b){return b[2]-a[2]||String(a[0]).localeCompare(String(b[0]));});}
+  else if(prop==='state'){var stt={};data.forEach(function(m){stt[stateOf(m)]=1;});Object.keys(stt).forEach(function(s){out.push([s,(s==='(unknown)'?'Unknown':s),C.state[s]||0]);});out.sort(function(a,b){if(a[0]==='(unknown)')return 1;if(b[0]==='(unknown)')return -1;return b[2]-a[2]||String(a[0]).localeCompare(String(b[0]));});}
+  return out;
+}
+function filtersActive(){var f=S.f;return !!((S.q||'').trim()||f.subtype.length||f.provenance.length||f.species.length||f.state.length);}
+
+/* ------------------------------------------------------------------ filter UI */
+function msLabel(prop,label){var sel=S.f[PROP2KEY[prop]].length;return esc(label)+(sel?' <span class="cnt">'+sel+'</span>':'');}
+function msHTML(prop,label){
+  return '<div class="pubms" data-prop="'+prop+'"><button class="pubms-trig" onclick="toggleMs(this)" type="button">'+msLabel(prop,label)+' ▾</button><div class="pubms-drop">'+msOptsHTML(prop)+'</div></div>';
+}
+function msOptsHTML(prop){
+  var key=PROP2KEY[prop],sel=S.f[key];
+  return optionsFor(prop).map(function(o){var on=sel.indexOf(o[0])>=0;return '<label class="pubms-opt"><input type="checkbox" '+(on?'checked':'')+' onchange="msPick(\''+prop+'\',this)" value="'+esc(o[0])+'"><span>'+esc(o[1])+'</span><span class="oc">'+o[2]+'</span></label>';}).join('')||'<div style="padding:8px;color:var(--t3);font-size:0.82rem">None</div>';
+}
+function toggleMs(btn){var box=btn.parentNode,open=box.classList.contains('open');document.querySelectorAll('.pubms.open').forEach(function(x){x.classList.remove('open');});if(!open)box.classList.add('open');}
+function msPick(prop,cb){
+  var key=PROP2KEY[prop],arr=S.f[key],v=cb.value,i=arr.indexOf(v);
+  if(cb.checked){if(i<0)arr.push(v);}else if(i>=0)arr.splice(i,1);
+  renderContent();refreshFilterBar();
+}
+function refreshFilterBar(){
+  ['sub','prov','species','state'].forEach(function(prop){
+    var box=document.querySelector('.pubms[data-prop="'+prop+'"]');if(!box)return;
+    var trig=box.querySelector('.pubms-trig'),lbl={sub:'Type',prov:'Source',species:'Mineral',state:'Locality'}[prop];
+    trig.innerHTML=msLabel(prop,lbl)+' ▾';
+    box.querySelector('.pubms-drop').innerHTML=msOptsHTML(prop);
+  });
+  var c=document.getElementById('pf-clear');if(c)c.style.display=filtersActive()?'':'none';
+}
+function filterBarHTML(){
+  var sorts=[['idDesc','Newest'],['id','Catalog #'],['name','Name A–Z'],['species','Mineral'],['subtype','Type']];
+  var so=sorts.map(function(s){return '<option value="'+s[0]+'"'+(S.sort===s[0]?' selected':'')+'>'+s[1]+'</option>';}).join('');
+  return '<div class="pf-bar">'
+    +'<input class="pf-in" id="pf-search" type="search" placeholder="Search name, mineral, locality…" aria-label="Search" oninput="onSearch(this.value)" value="'+esc(S.q)+'">'
+    +msHTML('sub','Type')+msHTML('prov','Source')+msHTML('species','Mineral')+msHTML('state','Locality')
+    +'<select class="pf-sel" aria-label="Sort" onchange="S.sort=this.value;renderContent()">'+so+'</select>'
+    +'<button class="pf-clear" id="pf-clear" onclick="clearFilters()" style="display:'+(filtersActive()?'':'none')+'">Clear</button>'
+    +'</div>';
+}
+function onSearch(v){S.q=v;renderContent();var c=document.getElementById('pf-clear');if(c)c.style.display=filtersActive()?'':'none';}
+function clearFilters(){S.q='';S.f={subtype:[],provenance:[],species:[],state:[]};var s=document.getElementById('pf-search');if(s)s.value='';renderContent();refreshFilterBar();}
+document.addEventListener('click',function(e){if(!e.target.closest('.pubms'))document.querySelectorAll('.pubms.open').forEach(function(x){x.classList.remove('open');});});
+
+/* ------------------------------------------------------------------ render */
+function applyGridSize(){var g=document.querySelector('.mgrid');document.documentElement.style.setProperty('--min-grid-w',LEVELS[S.lvl]+'px');if(g)g.classList.toggle('compact',S.lvl>=1);var inc=document.getElementById('gs-inc'),dec=document.getElementById('gs-dec');if(inc)inc.disabled=(S.lvl<=0);if(dec)dec.disabled=(S.lvl>=LEVELS.length-1);}
+function setGridSize(d){S.lvl=Math.max(0,Math.min(LEVELS.length-1,S.lvl-d));try{localStorage.setItem('cwLvl',S.lvl);}catch(e){}applyGridSize();}
+function setView(v){S.view=v;try{localStorage.setItem('cwView',v);}catch(e){}renderContent();syncViewBtns();}
+function syncViewBtns(){var g=document.getElementById('cv-grid'),t=document.getElementById('cv-table');if(!g)return;g.className='vtbtn'+(S.view==='grid'?' on':'');t.className='vtbtn'+(S.view==='table'?' on':'');var sz=document.getElementById('gs-grp');if(sz)sz.style.display=S.view==='grid'?'':'none';}
+function renderContent(){
+  var el=document.getElementById('min-content');if(!el)return;
+  var M=filtered(),total=minData().length,cnt=document.getElementById('min-count');
+  if(cnt)cnt.textContent=(M.length===total?total+' specimens':M.length+' of '+total);
+  if(!M.length){el.innerHTML='<div class="empty">🔍 No specimens match your search or filters.</div>';return;}
+  if(S.view==='table'){
+    var rows=M.map(function(m){return '<tr class="cl" onclick="showMineral(\''+m.id+'\')"><td><strong>'+esc(title(m))+'</strong><div style="color:var(--t3);font-size:0.72rem">'+esc(m.id)+(m.provenance==='Charlie Wills'?' · CW':'')+'</div></td><td>'+esc(subLabel(m.subtype))+'</td><td>'+esc(locStr(m.locality))+'</td><td>'+esc(m.size||'—')+'</td></tr>';}).join('');
+    el.innerHTML='<div style="overflow-x:auto"><table class="min-table"><thead><tr><th>Specimen</th><th>Type</th><th>Locality</th><th>Size</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+  }else{
+    var tiles=M.map(function(m){var h=hero(m);var src=h?img(h,400):PLACEHOLDER;return '<div class="gtile" onclick="showMineral(\''+m.id+'\')"><div class="gtile-imgwrap"><img class="gtile-img" src="'+esc(src)+'" loading="lazy" decoding="async" alt="'+esc(title(m))+'" onerror="this.onerror=null;this.src=\''+PLACEHOLDER+'\'"><div class="gtile-badges"><span class="min-sub-badge">'+esc(subLabel(m.subtype))+'</span>'+(m.provenance==='Charlie Wills'?'<span class="min-cw-badge" title="Charlie Wills collection">CW</span>':'')+'</div></div><div class="gtile-body"><div class="gtile-name">'+esc(title(m))+'</div><div class="gtile-sub">'+esc(locStr(m.locality))+'</div>'+(m.flavor?'<div class="min-tile-flavor">'+esc(m.flavor)+'</div>':'')+'</div></div>';}).join('');
+    el.innerHTML='<div class="mgrid'+(S.lvl>=1?' compact':'')+'" role="list">'+tiles+'</div>';applyGridSize();
+  }
+}
+function aboutHTML(){
+  return '<details class="min-about"><summary>About the Charlie Wills Collection</summary><div class="min-about-body">'
+    +'<p>This collection was gathered by <strong>Charles V. “Charlie” Wills</strong>, a mining electrician of Michigan’s Copper Country and the copper camps of Arizona. Born in Ishpeming and raised in <strong>Calumet</strong>, he trained as an electrician for the copper mines, then around 1900 traveled by buckboard to pre-statehood Arizona, married in 1901, and worked for Phelps Dodge in <strong>Bisbee</strong> — where he also held his own mining claims, including one in <strong>Durango, Mexico</strong>.</p>'
+    +'<p>He became so respected a collector that miners would halt a shaft and call him in to extract a large crystal. He donated his main collection to his alma mater, the Michigan College of Mines (now Michigan Technological University); it is held today in the <a href="https://museum.mtu.edu/" target="_blank" rel="noopener">A.E. Seaman Mineral Museum</a>, listed among its <a href="https://museum.mtu.edu/sites/default/files/2019-11/Past-Major-Acquisitions_0.pdf" target="_blank" rel="noopener">major past acquisitions</a> — the Smithsonian had sought it too. The specimens shown here are the smaller pieces Charlie gave his wife, <strong>Anna</strong>.</p>'
+    +'<p>Charlie was the <strong>step-grandfather of Thomas J. “Tom” Herman</strong> — he was Anna’s second husband, and Anna was Tom’s grandmother. Tom is the boy in the 1957 newspaper feature below. Years later <strong>Tom passed these pieces on as a gift</strong> to a family friend, who keeps them today and shares them here in Charlie’s memory.</p>'
+    +'<figure class="min-article"><a href="images/minerals/charlie_wills_1957_article.jpg" target="_blank" rel="noopener" title="Open full size"><img src="images/minerals/charlie_wills_1957_article.jpg" loading="lazy" alt="1957 Detroit Times feature ‘Rock Hound An Expert Now’ — Charles V. Wills showing rock specimens to his grandson Thomas J. Herman"></a><figcaption>📰 “‘Rock Hound’ An Expert Now,” <em>Detroit Times</em>, 1957 (by Margaret Russell) — Charlie Wills, then 85, showing specimens to his grandson Thomas J. Herman. Tap to enlarge.</figcaption></figure>'
+    +'</div></details>';
+}
+function render(){
+  var root=document.getElementById('min-root');if(!root)return;
+  var M=minData();
+  if(!M.length){root.innerHTML='<div class="empty">Loading specimens…</div>';if((window._retry=(window._retry||0)+1)<15)setTimeout(render,250);return;}
+  var nCW=M.filter(function(m){return m.provenance==='Charlie Wills';}).length;
+  var sum='<div class="sg"><div class="sc gn"><div class="sl">Specimens</div><div class="sv">'+M.length+'</div></div><div class="sc cy"><div class="sl">From Charlie’s collection</div><div class="sv">'+nCW+'</div></div></div>';
+  root.innerHTML=sum+aboutHTML()+filterBarHTML()
+    +'<div class="tc-hd"><span class="tt">Specimens</span><span class="tn" id="min-count">'+M.length+' specimens</span>'
+    +'<div class="vt-grp"><span id="gs-grp" style="display:flex;gap:5px"><button class="vtbtn" id="gs-dec" onclick="setGridSize(-1)" title="Smaller tiles" aria-label="Smaller tiles">−</button><button class="vtbtn" id="gs-inc" onclick="setGridSize(1)" title="Larger tiles" aria-label="Larger tiles">+</button></span>'
+    +'<button class="vtbtn" id="cv-grid" onclick="setView(\'grid\')" title="Gallery" aria-label="Gallery view">▦</button><button class="vtbtn" id="cv-table" onclick="setView(\'table\')" title="Table" aria-label="Table view">☰</button></div></div>'
+    +'<div id="min-content"></div>';
+  renderContent();syncViewBtns();refreshFilterBar();
+}
+
+/* ------------------------------------------------------------------ modal + carousel */
+function curM(){var ids=window._navIds||[];return minData().find(function(x){return x.id===ids[window._navIdx||0];});}
+function slideHTML(p){return '<div class="min-slide"><img class="min-slide-img" src="'+esc(img(p,1280))+'" alt="" onerror="this.onerror=null;this.src=\''+PLACEHOLDER+'\'"></div>';}
+function modalBody(m){
+  var P=photosOf(m);var pi=Math.min(Math.max(window._photoIdx||0,0),Math.max(P.length-1,0));var cur=P[pi];
+  var heroZoom=cur?img(cur,(cur.hero?2560:1280)):'';
+  var multi=P.length>1,N=P.length;
+  var slides=multi?(slideHTML(P[(pi-1+N)%N])+slideHTML(cur)+slideHTML(P[(pi+1)%N])):(cur?slideHTML(cur):'<div class="min-slide"><img class="min-slide-img" src="'+PLACEHOLDER+'" alt=""></div>');
+  var arrows=multi?'<button class="min-nav min-nav-prev" onclick="event.stopPropagation();photoNav(-1)" aria-label="Previous photo">‹</button><button class="min-nav min-nav-next" onclick="event.stopPropagation();photoNav(1)" aria-label="Next photo">›</button>':'';
+  var pos=multi?'<span class="min-photo-pos">📷 '+(pi+1)+' / '+P.length+'</span>':'';
+  var full=heroZoom?'<a class="min-fullsize" href="'+esc(heroZoom)+'" target="_blank" rel="noopener" title="Open full size" onclick="event.stopPropagation()">⤢</a>':'';
+  var thumbs=multi?'<div class="min-thumbs">'+P.map(function(p,i){return '<img class="min-thumb'+(i===pi?' on':'')+'" src="'+esc(img(p,200))+'" loading="lazy" alt="" onclick="photoShow('+i+')" onerror="if(!this._fb){this._fb=1;this.src=\''+img(p,1280)+'\'}else{this.style.display=\'none\'}">';}).join('')+'</div>':'';
+  var n=(window._navIds||[]).length;
+  var rocknav=n>1?'<div class="min-rocknav"><button class="min-rock-btn" onclick="navRock(-1)" aria-label="Previous">‹ Prev</button><span class="min-rock-pos">'+((window._navIdx||0)+1)+' / '+n+'</span><button class="min-rock-btn" onclick="navRock(1)" aria-label="Next">Next ›</button></div>':'';
+  var species=(m.species||[]).map(function(sp){return '<a class="min-mindat" href="'+esc(mindat(sp))+'" target="_blank" rel="noopener">'+esc(sp)+'</a>';}).join(', ');
+  function field(k,vv){if(vv==null||vv===''||vv==='—')return '';return '<div class="min-field"><span class="mf-k">'+k+'</span><span class="mf-v">'+vv+'</span></div>';}
+  var fields=field('Species',species)+field('Locality',esc(locStr(m.locality)))+field('Size',esc(m.size))+field('Color',esc(m.color))+field('Habit',esc(m.habit))+field('Fluorescence',esc(m.fluorescence))+field('Catalog #',esc(m.catalog_no||m.id));
+  return '<button class="modal-close" onclick="closeModal()" aria-label="Close">×</button>'
+    +'<div class="min-stage'+(multi?' min-multi':'')+'"><div class="min-track'+(multi?'':' min-single')+'">'+slides+'</div>'+arrows+pos+full+'</div>'
+    +thumbs+rocknav
+    +'<h2>'+esc(title(m))+'</h2>'
+    +'<div class="badges"><span class="min-sub-badge" style="background:rgba(20,184,166,0.15);color:#2dd4bf">'+esc(subLabel(m.subtype))+'</span>'+(m.provenance?'<span class="min-cw-badge">'+esc(m.provenance==='Charlie Wills'?'Charlie Wills collection':'From the family')+'</span>':'')+'</div>'
+    +(m.flavor?'<div class="min-flavor">'+esc(m.flavor)+'</div>':'')
+    +fields;
+}
+function track(){return document.querySelector('#cw-modal .min-track');}
+function setSlideImg(sl,p){var im=sl&&sl.querySelector('img');if(im&&p)im.src=img(p,1280);}
+function scrollActiveThumb(){var box=document.getElementById('cw-modal');if(!box)return;var strip=box.querySelector('.min-thumbs');if(!strip)return;var act=strip.querySelector('.min-thumb.on');if(!act)return;var sr=strip.getBoundingClientRect(),ar=act.getBoundingClientRect();if(!sr.width)return;strip.scrollLeft+=(ar.left-sr.left)-(strip.clientWidth/2)+(ar.width/2);}
+function syncPhotoChrome(i){var box=document.getElementById('cw-modal');if(!box)return;var m=curM();if(!m)return;var P=photosOf(m);var pos=box.querySelector('.min-photo-pos');if(pos)pos.textContent='📷 '+(i+1)+' / '+P.length;var fs=box.querySelector('.min-fullsize');if(fs&&P[i])fs.setAttribute('href',img(P[i],(P[i].hero?2560:1280)));var ts=box.querySelectorAll('.min-thumb');for(var k=0;k<ts.length;k++)ts[k].classList.toggle('on',k===i);scrollActiveThumb();}
+function animateTo(dir,target){var m=curM();if(!m)return;var P=photosOf(m),N=P.length;if(N<2||window._anim)return;var tk=track();target=((target%N)+N)%N;if(!tk||tk.children.length<3){window._photoIdx=target;syncPhotoChrome(target);return;}if(target===(window._photoIdx||0))return;var s=tk.children;if(dir>0)setSlideImg(s[2],P[target]);else setSlideImg(s[0],P[target]);window._anim=true;tk.classList.add('min-anim');void tk.offsetWidth;tk.style.transform=dir>0?'translateX(-200%)':'translateX(0)';var fin=function(){if(!window._anim)return;tk.removeEventListener('transitionend',fin);clearTimeout(window._animT);window._photoIdx=target;tk.classList.remove('min-anim');if(dir>0)tk.appendChild(tk.children[0]);else tk.insertBefore(tk.children[2],tk.children[0]);tk.style.transform='translateX(-100%)';var c=tk.children;setSlideImg(c[0],P[((target-1)%N+N)%N]);setSlideImg(c[2],P[(target+1)%N]);syncPhotoChrome(target);window._anim=false;};tk.addEventListener('transitionend',fin);window._animT=setTimeout(fin,440);}
+function photoShow(i){var m=curM();if(!m)return;var N=photosOf(m).length;if(N<2)return;var cur=window._photoIdx||0;if(i===cur)return;animateTo(i>cur?1:-1,i);}
+function photoNav(d){var m=curM();if(!m)return;if(photosOf(m).length<2)return;animateTo(d>0?1:-1,(window._photoIdx||0)+d);}
+function bindStage(){var stage=document.querySelector('#cw-modal .min-stage');if(!stage)return;var tk=stage.querySelector('.min-track');if(!tk)return;var m=curM();var N=m?photosOf(m).length:0;scrollActiveThumb();stage.addEventListener('click',function(e){if(N<2)return;if(e.target.closest&&e.target.closest('.min-nav,.min-fullsize'))return;if(Date.now()-(window._swiping||0)<400)return;photoNav(1);});if(N<2)return;var x0=0,y0=0,t0=0,W=1,drag=false,horiz=null;stage.addEventListener('touchstart',function(e){if(window._anim)return;var t=e.changedTouches[0];x0=t.clientX;y0=t.clientY;t0=Date.now();W=stage.clientWidth||1;drag=true;horiz=null;tk.classList.remove('min-anim');},{passive:true});stage.addEventListener('touchmove',function(e){if(!drag||window._anim)return;var t=e.changedTouches[0];var dx=t.clientX-x0,dy=t.clientY-y0;if(horiz===null){if(Math.abs(dx)<6&&Math.abs(dy)<6)return;horiz=Math.abs(dx)>Math.abs(dy);}if(!horiz)return;tk.style.transform='translateX('+(-100+(dx/W)*100)+'%)';},{passive:true});stage.addEventListener('touchend',function(e){if(!drag)return;drag=false;if(window._anim)return;var t=e.changedTouches[0];var dx=t.clientX-x0,dy=t.clientY-y0;if(horiz&&Date.now()-t0<900&&Math.abs(dx)>Math.max(40,W*0.16)&&Math.abs(dx)>Math.abs(dy)){window._swiping=Date.now();animateTo(dx<0?1:-1,(window._photoIdx||0)+(dx<0?1:-1));}else if(horiz){tk.classList.add('min-anim');tk.style.transform='translateX(-100%)';}},{passive:true});}
+function fill(){var m=curM(),box=document.getElementById('cw-modal');if(!m||!box)return;clearTimeout(window._animT);window._anim=false;window._photoIdx=heroIdx(m);box.innerHTML=modalBody(m);box.scrollTop=0;bindStage();}
+function navRock(d){var ids=window._navIds||[],n=ids.length;if(n<2)return;window._navIdx=((window._navIdx||0)+d+n)%n;fill();}
+function showMineral(id){var M=minData(),ids=M.map(function(x){return x.id;}),idx=ids.indexOf(id);if(idx<0)return;var m=M[idx],wrap=document.getElementById('modal-wrap');if(!wrap)return;window._navIds=ids;window._navIdx=idx;window._photoIdx=heroIdx(m);wrap.innerHTML='<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal" id="cw-modal">'+modalBody(m)+'</div></div>';wrap.classList.remove('hidden');var bg=wrap.querySelector('.modal-bg');requestAnimationFrame(function(){if(bg)bg.classList.add('vis');});bindStage();if(!window._keyBound){window._keyBound=1;document.addEventListener('keydown',function(e){if(!document.getElementById('cw-modal'))return;if(e.key==='ArrowLeft'){if(e.shiftKey)navRock(-1);else photoNav(-1);}else if(e.key==='ArrowRight'){if(e.shiftKey)navRock(1);else photoNav(1);}else if(e.key==='Escape')closeModal();});}}
+function closeModal(){var w=document.getElementById('modal-wrap');if(!w)return;var bg=w.querySelector('.modal-bg');if(bg)bg.classList.remove('vis');setTimeout(function(){w.classList.add('hidden');w.innerHTML='';},160);}
+
+/* ------------------------------------------------------------------ theme + boot */
+function toggleTheme(){var d=document.documentElement.getAttribute('data-theme')==='light'?'dark':'light';document.documentElement.setAttribute('data-theme',d);document.querySelector('meta[name=theme-color]').setAttribute('content',d==='light'?'#f6f7f9':'#090d14');try{localStorage.setItem('cwTheme',d);}catch(e){}}
+(function(){try{var t=localStorage.getItem('cwTheme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}})();
+if(document.readyState!=='loading')render();else document.addEventListener('DOMContentLoaded',render);
+</script>
+</body>
+</html>
