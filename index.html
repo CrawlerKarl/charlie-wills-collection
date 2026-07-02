@@ -72,7 +72,8 @@ main{padding:18px 0 40px}
 .tc-hd{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
 .tc-hd .tt{font-size:1.05rem;font-weight:700}
 .tc-hd .tn{font-size:0.8rem;color:var(--t3)}
-.vt-grp{margin-left:auto;display:flex;gap:5px}
+.vt-grp{margin-left:auto;display:flex;gap:5px;flex-shrink:0}
+#gs-grp{display:flex;gap:5px;flex-shrink:0}
 .vtbtn{background:var(--card2);border:1px solid var(--bdr);color:var(--t2);width:40px;height:40px;border-radius:9px;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center}
 .vtbtn.on{border-color:var(--gold);color:var(--gold)}
 .vtbtn:disabled{opacity:.4;cursor:default}
@@ -139,7 +140,7 @@ main{padding:18px 0 40px}
 .min-field .mf-v{flex:1;color:var(--t1);min-width:0;overflow-wrap:anywhere}
 .min-mindat{color:#2dd4bf;text-decoration:underline dotted}
 .modal .badges{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
-@media(max-width:600px){.min-stage{aspect-ratio:1/1;max-height:62vh}.modal{padding:14px 15px 20px}.hdr-title{font-size:1.4rem}.mgrid{grid-template-columns:repeat(2,1fr);gap:11px}.mgrid .gtile-name{font-size:0.92rem}.mgrid .gtile-sub{font-size:0.76rem}.mgrid .min-tile-flavor{display:none}.mgrid .gtile-body{padding:9px 10px}.modal-close{width:54px;height:54px;font-size:2rem;border-radius:13px}.modal h2{padding-right:64px}}
+@media(max-width:600px){.min-stage{aspect-ratio:1/1;max-height:62vh}.modal{padding:14px 15px 20px}.hdr-title{font-size:1.4rem}.mgrid{grid-template-columns:repeat(2,1fr);gap:11px}.mgrid .gtile-name{font-size:0.92rem}.mgrid .gtile-sub{font-size:0.76rem}.mgrid .min-tile-flavor{display:none}.mgrid .gtile-body{padding:9px 10px}.modal-close{width:54px;height:54px;font-size:2rem;border-radius:13px}.modal h2{padding-right:64px}.tc-hd .tt{display:none}.vt-grp{flex-shrink:0}#gs-grp{flex-shrink:0}.pf-in{flex-basis:100%}.pubms-trig{padding:8px 10px;font-size:0.82rem}.pf-sel{padding:8px 24px 8px 10px;font-size:0.82rem}}
 /* footer */
 .site-ftr{border-top:1px solid var(--bdr);padding:22px 0 34px;margin-top:20px;color:var(--t3);font-size:0.84rem}
 .site-ftr .wrap{display:flex;flex-direction:column;gap:5px}
@@ -308,7 +309,7 @@ function render(){
   var sum='<div class="sg"><div class="sc gn"><div class="sl">Specimens</div><div class="sv">'+M.length+'</div></div><div class="sc cy"><div class="sl">From Charlie’s collection</div><div class="sv">'+nCW+'</div></div></div>';
   root.innerHTML=storyHTML()+sum+filterBarHTML()
     +'<div class="tc-hd"><span class="tt">Specimens</span><span class="tn" id="min-count">'+M.length+' specimens</span>'
-    +'<div class="vt-grp"><span id="gs-grp" style="display:flex;gap:5px"><button class="vtbtn" id="gs-dec" onclick="setGridSize(-1)" title="Smaller tiles" aria-label="Smaller tiles">−</button><button class="vtbtn" id="gs-inc" onclick="setGridSize(1)" title="Larger tiles" aria-label="Larger tiles">+</button></span>'
+    +'<div class="vt-grp"><span id="gs-grp"><button class="vtbtn" id="gs-dec" onclick="setGridSize(-1)" title="Smaller tiles" aria-label="Smaller tiles">−</button><button class="vtbtn" id="gs-inc" onclick="setGridSize(1)" title="Larger tiles" aria-label="Larger tiles">+</button></span>'
     +'<button class="vtbtn" id="cv-grid" onclick="setView(\'grid\')" title="Gallery" aria-label="Gallery view">▦</button><button class="vtbtn" id="cv-table" onclick="setView(\'table\')" title="Table" aria-label="Table view">☰</button></div></div>'
     +'<div id="min-content"></div>';
   renderContent();syncViewBtns();refreshFilterBar();
