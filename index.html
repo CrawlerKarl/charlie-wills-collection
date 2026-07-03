@@ -308,9 +308,7 @@ function render(){
   var root=document.getElementById('min-root');if(!root)return;
   var M=minData();
   if(!M.length){root.innerHTML='<div class="empty">Loading specimens…</div>';if((window._retry=(window._retry||0)+1)<15)setTimeout(render,250);return;}
-  var nCW=M.filter(function(m){return m.provenance==='Charlie Wills';}).length;
-  var sum='<div class="sg"><div class="sc gn"><div class="sl">Specimens</div><div class="sv">'+M.length+'</div></div><div class="sc cy"><div class="sl">From Charlie’s collection</div><div class="sv">'+nCW+'</div></div></div>';
-  root.innerHTML=storyHTML()+sum+filterBarHTML()
+  root.innerHTML=storyHTML()+filterBarHTML()
     +'<div class="tc-hd"><span class="tt">Specimens</span><span class="tn" id="min-count">'+M.length+' specimens</span>'
     +'<div class="vt-grp"><span id="gs-grp"><button class="vtbtn" id="gs-dec" onclick="setGridSize(-1)" title="Smaller tiles" aria-label="Smaller tiles">−</button><button class="vtbtn" id="gs-inc" onclick="setGridSize(1)" title="Larger tiles" aria-label="Larger tiles">+</button></span>'
     +'<button class="vtbtn" id="cv-grid" onclick="setView(\'grid\')" title="Gallery" aria-label="Gallery view">▦</button><button class="vtbtn" id="cv-table" onclick="setView(\'table\')" title="Table" aria-label="Table view">☰</button></div></div>'
