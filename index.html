@@ -255,7 +255,7 @@ function msPick(prop,cb){
   renderContent();refreshFilterBar();
 }
 function refreshFilterBar(){
-  ['sub','prov','species','state'].forEach(function(prop){
+  ['sub','species','state'].forEach(function(prop){
     var box=document.querySelector('.pubms[data-prop="'+prop+'"]');if(!box)return;
     var trig=box.querySelector('.pubms-trig'),lbl={sub:'Type',prov:'Source',species:'Mineral',state:'Locality'}[prop];
     trig.innerHTML=msLabel(prop,lbl)+' ▾';
@@ -268,7 +268,7 @@ function filterBarHTML(){
   var so=sorts.map(function(s){return '<option value="'+s[0]+'"'+(S.sort===s[0]?' selected':'')+'>'+s[1]+'</option>';}).join('');
   return '<div class="pf-bar">'
     +'<input class="pf-in" id="pf-search" type="search" placeholder="Search name, mineral, locality…" aria-label="Search" oninput="onSearch(this.value)" value="'+esc(S.q)+'">'
-    +msHTML('sub','Type')+msHTML('prov','Source')+msHTML('species','Mineral')+msHTML('state','Locality')
+    +msHTML('sub','Type')+msHTML('species','Mineral')+msHTML('state','Locality')
     +'<select class="pf-sel" aria-label="Sort" onchange="S.sort=this.value;renderContent()">'+so+'</select>'
     +'<button class="pf-clear" id="pf-clear" onclick="clearFilters()" style="display:'+(filtersActive()?'':'none')+'">Clear</button>'
     +'</div>';
