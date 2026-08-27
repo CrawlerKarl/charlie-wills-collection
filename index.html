@@ -132,6 +132,29 @@ main{padding:18px 0 40px}
 .min-thumbs::-webkit-scrollbar{height:5px}.min-thumbs::-webkit-scrollbar-thumb{background:var(--bdr);border-radius:3px}
 .min-thumb{flex:0 0 auto;width:56px;height:42px;object-fit:cover;border-radius:5px;border:1px solid var(--bdr);cursor:pointer}
 .min-thumb.on{border-color:var(--gold)}
+/* Rocks photo zoom (wheel/pinch). State: window._zm={s,tx,ty}. At s==1 one-finger drag = swipe
+   (unchanged); at s>1 one-finger drag pans; two fingers always pinch. Touch handlers are
+   passive:false on start/move so pinch/pan can preventDefault; vertical scroll at s==1 is preserved
+   by not calling preventDefault there. */
+.min-slide-img{will-change:transform;transform-origin:50% 50%}
+.min-stage.min-zoomed{touch-action:none}
+.min-stage.min-zoomed .min-slide-img{cursor:grab}
+.min-stage.min-zoomed .min-slide-img:active{cursor:grabbing}
+/* 360° spin mode — auto-rotating drag-to-scrub frame sequence */
+.min-spin-layer{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:var(--card2);z-index:1}
+.min-stage:not(.min-spin-on) .min-spin-layer{display:none}
+.modal.fs-on .min-spin-layer{background:#000}
+.min-spin-img{max-width:100%;max-height:100%;width:auto;height:auto;-webkit-user-drag:none;will-change:transform;transform-origin:50% 50%}
+.min-spin-chip{position:absolute;top:8px;left:8px;z-index:3;background:rgba(0,0,0,0.65);color:#fff;border:none;border-radius:11px;padding:5px 11px;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;min-height:28px}
+.min-spin-chip::after{content:'';position:absolute;inset:-8px}
+.min-spin-chip.min-spin-live{background:rgba(245,158,11,0.88);color:#1a1205}
+.min-spin-chip:hover{background:var(--gold);color:#1a1205}
+.min-stage.min-spin-on{cursor:ew-resize}
+.min-stage.min-spin-on .min-photo-pos{display:none}
+.min-spin-thumbwrap{position:relative;flex:0 0 auto;display:inline-block;line-height:0}
+.min-spin-thumbtag{position:absolute;bottom:3px;left:3px;background:rgba(0,0,0,0.72);color:#fff;font-size:0.55rem;font-weight:800;padding:1px 4px;border-radius:4px;pointer-events:none;line-height:1.3}
+.min-spin-badge{background:rgba(245,158,11,0.92);color:#1a1205;font-size:0.62rem;font-weight:800;padding:2px 6px;border-radius:6px}
+[data-theme="light"] .min-spin-badge{background:#d97706;color:#fff}
 .min-rocknav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:14px 0 4px;padding:11px 0;border-top:1px solid var(--bdr);border-bottom:1px solid var(--bdr)}
 .min-rock-btn{background:var(--card2);border:1px solid var(--bdr);color:var(--t1);font-size:0.95rem;font-weight:600;padding:9px 14px;border-radius:10px;cursor:pointer;min-height:44px}
 .min-rock-btn:hover{border-color:var(--gold);color:var(--gold)}
@@ -162,6 +185,24 @@ body.cw-fs-on{overflow:hidden}
 .site-ftr{border-top:1px solid var(--bdr);padding:22px 0 34px;margin-top:20px;color:var(--t3);font-size:0.84rem}
 .site-ftr .wrap{display:flex;flex-direction:column;gap:5px}
 .site-ftr strong{color:var(--t2)}
+
+/* Locality map + imagery (region block) */
+.min-locmap{margin:2px 0 12px}
+.min-locmap svg{display:block;width:100%;height:auto;border-radius:8px;background:rgba(10,16,28,0.5);border:1px solid var(--bdr2);cursor:zoom-in;overflow:hidden}
+.min-locmap.min-map-zoomed svg{cursor:zoom-out}
+.min-map-land{fill:#334663;stroke:#4a5f80;stroke-width:0.6}
+.min-map-g{transition:transform 0.5s cubic-bezier(.22,.9,.32,1);will-change:transform}
+.min-map-zoomed .min-map-g{transform:scale(3.4)}
+.min-map-pin{fill:var(--gold,#f59e0b);stroke:#0b1220;stroke-width:3;paint-order:stroke}
+.min-map-halo{fill:none;stroke:var(--gold,#f59e0b);stroke-width:2.5;opacity:0;transform-box:fill-box;transform-origin:center;animation:minPinPulse 2.8s ease-out infinite;will-change:transform,opacity}
+@keyframes minPinPulse{0%{transform:scale(0.5);opacity:0.8}75%{transform:scale(2.4);opacity:0}100%{transform:scale(2.4);opacity:0}}
+.min-map-cap{display:flex;align-items:baseline;gap:8px;margin-top:7px;font-size:0.8rem;color:var(--t2)}
+.min-map-cap .mmc-loc{min-width:0;overflow-wrap:anywhere}
+.mmc-approx{color:var(--t3);font-size:0.72rem}
+@media(prefers-reduced-motion:reduce){.min-map-halo{animation:none}.min-map-g{transition:none}}
+.min-locimg{margin:0 0 12px;padding:0}
+.min-locimg img{width:100%;max-height:340px;object-fit:cover;border-radius:8px;display:block}
+.min-locimg figcaption{margin-top:5px;font-size:0.72rem;color:var(--t3);line-height:1.4}
 </style>
 </head>
 <body>
@@ -183,6 +224,8 @@ body.cw-fs-on{overflow:hidden}
 </div></footer>
 <div id="modal-wrap" class="hidden"></div>
 
+<script src="world_map.js" defer></script>
+<script src="mineral_coords.js" defer></script>
 <script src="minerals.public.js" defer></script>
 <script defer>
 /* ------------------------------------------------------------------ helpers */
@@ -306,7 +349,7 @@ function renderContent(){
     var rows=M.map(function(m){return '<tr class="cl" onclick="showMineral(\''+m.id+'\')"><td><strong>'+esc(title(m))+'</strong><div style="color:var(--t3);font-size:0.72rem">'+esc(m.id)+(m.provenance==='Charlie Wills'?' · CW':'')+'</div></td><td>'+esc(subLabel(m.subtype))+'</td><td>'+esc(locStr(m.locality))+'</td><td>'+esc(m.size||'—')+'</td></tr>';}).join('');
     el.innerHTML='<div style="overflow-x:auto"><table class="min-table"><thead><tr><th>Specimen</th><th>Type</th><th>Locality</th><th>Size</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
   }else{
-    var tiles=M.map(function(m){var h=hero(m);var src=h?img(h,400):PLACEHOLDER;return '<div class="gtile" onclick="showMineral(\''+m.id+'\')"><div class="gtile-imgwrap"><img class="gtile-img" src="'+esc(src)+'" loading="lazy" decoding="async" alt="'+esc(title(m))+'" onerror="this.onerror=null;this.src=\''+PLACEHOLDER+'\'"><div class="gtile-badges"><span class="min-sub-badge">'+esc(subLabel(m.subtype))+'</span>'+(m.provenance==='Charlie Wills'?'<span class="min-cw-badge" title="Charlie Wills collection">CW</span>':'')+'</div></div><div class="gtile-body"><div class="gtile-name">'+esc(title(m))+'</div><div class="gtile-sub">'+esc(locStr(m.locality))+'</div>'+(m.flavor?'<div class="min-tile-flavor">'+esc(m.flavor)+'</div>':'')+'</div></div>';}).join('');
+    var tiles=M.map(function(m){var h=hero(m);var src=h?img(h,400):PLACEHOLDER;return '<div class="gtile" onclick="showMineral(\''+m.id+'\')"><div class="gtile-imgwrap"><img class="gtile-img" src="'+esc(src)+'" loading="lazy" decoding="async" alt="'+esc(title(m))+'" onerror="this.onerror=null;this.src=\''+PLACEHOLDER+'\'"><div class="gtile-badges"><span class="min-sub-badge">'+esc(subLabel(m.subtype))+'</span>'+(m.provenance==='Charlie Wills'?'<span class="min-cw-badge" title="Charlie Wills collection">CW</span>':'')+(m.spin?'<span class="min-spin-badge" title="Has a 360° spin">360°</span>':'')+'</div></div><div class="gtile-body"><div class="gtile-name">'+esc(title(m))+'</div><div class="gtile-sub">'+esc(locStr(m.locality))+'</div>'+(m.flavor?'<div class="min-tile-flavor">'+esc(m.flavor)+'</div>':'')+'</div></div>';}).join('');
     el.innerHTML='<div class="mgrid'+(S.lvl>=2?' compact':'')+'" role="list">'+tiles+'</div>';applyGridSize();
   }
 }
@@ -342,37 +385,140 @@ function modalBody(m){
   var arrows=multi?'<button class="min-nav min-nav-prev" onclick="event.stopPropagation();photoNav(-1)" aria-label="Previous photo">‹</button><button class="min-nav min-nav-next" onclick="event.stopPropagation();photoNav(1)" aria-label="Next photo">›</button>':'';
   var pos=multi?'<span class="min-photo-pos">📷 '+(pi+1)+' / '+P.length+'</span>':'';
   var full=P.length?'<button class="min-fullsize" title="Fullscreen — swipe to browse photos" aria-label="Fullscreen" onclick="event.stopPropagation();enterFullscreen()">⤢</button>':'';
-  var thumbs=multi?'<div class="min-thumbs">'+P.map(function(p,i){return '<img class="min-thumb'+(i===pi?' on':'')+'" src="'+esc(img(p,200))+'" loading="lazy" alt="" onclick="photoShow('+i+')" onerror="if(!this._fb){this._fb=1;this.src=\''+img(p,1280)+'\'}else{this.style.display=\'none\'}">';}).join('')+'</div>':'';
+  var spinChip=m.spin?'<button class="min-spin-chip" title="Play the 360° spin" onclick="event.stopPropagation();spinChipClick()">360°</button>':'';
+  var spinThumb=m.spin?'<span class="min-spin-thumbwrap" onclick="spinEnter()" title="360° spin — drag to rotate"><img class="min-thumb min-spin-thumb" src="images/minerals/'+esc(m.spin.stem)+'01_200.jpg" loading="lazy" alt="360° spin"><span class="min-spin-thumbtag">360°</span></span>':'';
+  var thumbs=(multi||m.spin)?'<div class="min-thumbs">'+spinThumb+P.map(function(p,i){return '<img class="min-thumb'+(i===pi?' on':'')+'" src="'+esc(img(p,200))+'" loading="lazy" alt="" onclick="photoShow('+i+')" onerror="if(!this._fb){this._fb=1;this.src=\''+img(p,1280)+'\'}else{this.style.display=\'none\'}">';}).join('')+'</div>':'';
   var n=(window._navIds||[]).length;
   var rocknav=n>1?'<div class="min-rocknav"><button class="min-rock-btn" onclick="navRock(-1)" aria-label="Previous">‹ Prev</button><span class="min-rock-pos">'+((window._navIdx||0)+1)+' / '+n+'</span><button class="min-rock-btn" onclick="navRock(1)" aria-label="Next">Next ›</button></div>':'';
   var species=(m.species||[]).map(function(sp){return '<a class="min-mindat" href="'+esc(mindat(sp))+'" target="_blank" rel="noopener">'+esc(sp)+'</a>';}).join(', ');
   function field(k,vv){if(vv==null||vv===''||vv==='—')return '';return '<div class="min-field"><span class="mf-k">'+k+'</span><span class="mf-v">'+vv+'</span></div>';}
   var fields=field('Species',species)+field('Locality',esc(locStr(m.locality)))+field('Size',esc(m.size))+field('Color',esc(m.color))+field('Habit',esc(m.habit))+field('Fluorescence',esc(m.fluorescence))+field('Catalog #',esc(m.catalog_no||m.id));
   return '<button class="modal-close" onclick="fsAwareClose()" aria-label="Close">×</button>'
-    +'<div class="min-stage'+(multi?' min-multi':'')+'"><div class="min-track'+(multi?'':' min-single')+'">'+slides+'</div>'+arrows+pos+full+'</div>'
+    +'<div class="min-stage'+(multi?' min-multi':'')+'"><div class="min-track'+(multi?'':' min-single')+'">'+slides+'</div>'+arrows+pos+spinChip+full+'</div>'
     +thumbs+rocknav
     +'<h2>'+esc(title(m))+'</h2>'
     +'<div class="badges"><span class="min-sub-badge" style="background:rgba(20,184,166,0.15);color:#2dd4bf">'+esc(subLabel(m.subtype))+'</span>'+(m.provenance?'<span class="min-cw-badge">'+esc(m.provenance==='Charlie Wills'?'Charlie Wills collection':'From the family')+'</span>':'')+'</div>'
     +(m.flavor?'<div class="min-flavor">'+esc(m.flavor)+'</div>':'')
     +fields
     +(m.label_text?'<div class="min-label"><div class="min-label-h">&#127991; Charlie&rsquo;s label</div><div class="min-label-body">'+esc(m.label_text)+'</div><div class="min-label-note">Transcribed exactly as written &mdash; spelling and all.</div></div>':'')
-    +(m.region_history?'<div class="min-region"><div class="min-region-h">&#9968; The mine &amp; the region</div><div class="min-region-body">'+esc(m.region_history)+'</div></div>':'');
+    +(function(){var mp=mapHTML(m);var li=locImgHTML(m);if(!m.region_history&&!mp&&!li)return'';return'<div class="min-region"><div class="min-region-h">&#9968; The mine &amp; the region</div>'+li+mp+(m.region_history?'<div class="min-region-body">'+esc(m.region_history)+'</div>':'')+'</div>';})();
 }
 function track(){return document.querySelector('#cw-modal .min-track');}
-function setSlideImg(sl,p){var im=sl&&sl.querySelector('img');if(im&&p)im.src=img(p,1280);}
+function setSlideImg(sl,p){var im=sl&&sl.querySelector('img');if(im&&p){im._hi=0;im.style.transform='';im.src=img(p,1280);}}
 function scrollActiveThumb(){var box=document.getElementById('cw-modal');if(!box)return;var strip=box.querySelector('.min-thumbs');if(!strip)return;var act=strip.querySelector('.min-thumb.on');if(!act)return;var sr=strip.getBoundingClientRect(),ar=act.getBoundingClientRect();if(!sr.width)return;strip.scrollLeft+=(ar.left-sr.left)-(strip.clientWidth/2)+(ar.width/2);}
-function syncPhotoChrome(i){var box=document.getElementById('cw-modal');if(!box)return;var m=curM();if(!m)return;var P=photosOf(m);var pos=box.querySelector('.min-photo-pos');if(pos)pos.textContent='📷 '+(i+1)+' / '+P.length;var fs=box.querySelector('.min-fullsize');if(fs&&P[i])fs.setAttribute('href',img(P[i],(P[i].hero?2560:1280)));var ts=box.querySelectorAll('.min-thumb');for(var k=0;k<ts.length;k++)ts[k].classList.toggle('on',k===i);scrollActiveThumb();}
-function animateTo(dir,target){var m=curM();if(!m)return;var P=photosOf(m),N=P.length;if(N<2||window._anim)return;var tk=track();target=((target%N)+N)%N;if(!tk||tk.children.length<3){window._photoIdx=target;syncPhotoChrome(target);return;}if(target===(window._photoIdx||0))return;var s=tk.children;if(dir>0)setSlideImg(s[2],P[target]);else setSlideImg(s[0],P[target]);window._anim=true;tk.classList.add('min-anim');void tk.offsetWidth;tk.style.transform=dir>0?'translateX(-200%)':'translateX(0)';var fin=function(){if(!window._anim)return;tk.removeEventListener('transitionend',fin);clearTimeout(window._animT);window._photoIdx=target;tk.classList.remove('min-anim');if(dir>0)tk.appendChild(tk.children[0]);else tk.insertBefore(tk.children[2],tk.children[0]);tk.style.transform='translateX(-100%)';var c=tk.children;setSlideImg(c[0],P[((target-1)%N+N)%N]);setSlideImg(c[2],P[(target+1)%N]);syncPhotoChrome(target);window._anim=false;};tk.addEventListener('transitionend',fin);window._animT=setTimeout(fin,440);}
-function photoShow(i){var m=curM();if(!m)return;var N=photosOf(m).length;if(N<2)return;var cur=window._photoIdx||0;if(i===cur)return;animateTo(i>cur?1:-1,i);}
-function photoNav(d){var m=curM();if(!m)return;if(photosOf(m).length<2)return;animateTo(d>0?1:-1,(window._photoIdx||0)+d);}
-function bindStage(){var stage=document.querySelector('#cw-modal .min-stage');if(!stage)return;var tk=stage.querySelector('.min-track');if(!tk)return;var m=curM();var N=m?photosOf(m).length:0;scrollActiveThumb();stage.addEventListener('click',function(e){if(N<2)return;if(e.target.closest&&e.target.closest('.min-nav,.min-fullsize'))return;if(Date.now()-(window._swiping||0)<400)return;photoNav(1);});if(N<2)return;var x0=0,y0=0,t0=0,W=1,drag=false,horiz=null;stage.addEventListener('touchstart',function(e){if(window._anim)return;var t=e.changedTouches[0];x0=t.clientX;y0=t.clientY;t0=Date.now();W=stage.clientWidth||1;drag=true;horiz=null;tk.classList.remove('min-anim');},{passive:true});stage.addEventListener('touchmove',function(e){if(!drag||window._anim)return;var t=e.changedTouches[0];var dx=t.clientX-x0,dy=t.clientY-y0;if(horiz===null){if(Math.abs(dx)<6&&Math.abs(dy)<6)return;horiz=Math.abs(dx)>Math.abs(dy);}if(!horiz)return;tk.style.transform='translateX('+(-100+(dx/W)*100)+'%)';},{passive:true});stage.addEventListener('touchend',function(e){if(!drag)return;drag=false;if(window._anim)return;var t=e.changedTouches[0];var dx=t.clientX-x0,dy=t.clientY-y0;if(horiz&&Date.now()-t0<900&&Math.abs(dx)>Math.max(40,W*0.16)&&Math.abs(dx)>Math.abs(dy)){window._swiping=Date.now();animateTo(dx<0?1:-1,(window._photoIdx||0)+(dx<0?1:-1));}else if(horiz){tk.classList.add('min-anim');tk.style.transform='translateX(-100%)';}},{passive:true});}
+function syncPhotoChrome(i){var box=document.getElementById('cw-modal');if(!box)return;var m=curM();if(!m)return;var P=photosOf(m);var pos=box.querySelector('.min-photo-pos');if(pos)pos.textContent='📷 '+(i+1)+' / '+P.length;var ts=box.querySelectorAll('.min-thumb');for(var k=0;k<ts.length;k++)ts[k].classList.toggle('on',k===i);scrollActiveThumb();}
+function animateTo(dir,target){var m=curM();if(!m)return;var P=photosOf(m),N=P.length;if(N<2||window._anim)return;if(window._zm&&window._zm.s>1)zmReset();var tk=track();target=((target%N)+N)%N;if(!tk||tk.children.length<3){window._photoIdx=target;syncPhotoChrome(target);return;}if(target===(window._photoIdx||0))return;var s=tk.children;if(dir>0)setSlideImg(s[2],P[target]);else setSlideImg(s[0],P[target]);window._anim=true;tk.classList.add('min-anim');void tk.offsetWidth;tk.style.transform=dir>0?'translateX(-200%)':'translateX(0)';var fin=function(){if(!window._anim)return;tk.removeEventListener('transitionend',fin);clearTimeout(window._animT);window._photoIdx=target;tk.classList.remove('min-anim');if(dir>0)tk.appendChild(tk.children[0]);else tk.insertBefore(tk.children[2],tk.children[0]);tk.style.transform='translateX(-100%)';var c=tk.children;setSlideImg(c[0],P[((target-1)%N+N)%N]);setSlideImg(c[2],P[(target+1)%N]);syncPhotoChrome(target);window._anim=false;};tk.addEventListener('transitionend',fin);window._animT=setTimeout(fin,440);}
+function photoShow(i){var m=curM();if(!m)return;if(window._spin&&window._spin.on)spinExit();var N=photosOf(m).length;if(N<2)return;var cur=window._photoIdx||0;if(i===cur)return;animateTo(i>cur?1:-1,i);}
+function photoNav(d){var m=curM();if(!m)return;if(window._spin&&window._spin.on){spinExit();return;}if(photosOf(m).length<2)return;animateTo(d>0?1:-1,(window._photoIdx||0)+d);}
+/* ---- Rocks photo zoom (wheel / pinch) ----
+   State: window._zm={s,tx,ty} (scale + pan in px, transform-origin center). Gesture arbitration:
+   at s==1 one-finger horizontal drag = swipe-to-advance (unchanged); at s>1 one-finger drag = pan
+   and swipe/click-advance are suppressed; two fingers ALWAYS pinch. Touch handlers are passive:false
+   so pinch/pan can preventDefault; vertical scroll at s==1 is preserved by NOT calling preventDefault. */
+function zmImg(){var S=window._spin;if(S&&S.on){var sp=spinLayer();if(sp)return sp;}var tk=track();if(!tk)return null;var s=tk.children.length>=3?tk.children[1]:tk.children[0];return s?s.querySelector('img'):null;}
+function zmApply(){var z=window._zm;var im=zmImg();if(!z||!im)return;im.style.transform=z.s>1?'translate('+z.tx.toFixed(1)+'px,'+z.ty.toFixed(1)+'px) scale('+z.s.toFixed(3)+')':'';}
+function zmClamp(){var z=window._zm;var im=zmImg();var st=document.querySelector('#cw-modal .min-stage');if(!z||!im||!st)return;var mx=Math.max(0,(im.clientWidth*z.s-st.clientWidth)/2),my=Math.max(0,(im.clientHeight*z.s-st.clientHeight)/2);z.tx=Math.min(mx,Math.max(-mx,z.tx));z.ty=Math.min(my,Math.max(-my,z.ty));}
+function zmReset(){window._zm={s:1,tx:0,ty:0};window._zmDrag=null;var box=document.getElementById('cw-modal');if(!box)return;var st=box.querySelector('.min-stage');if(st){st.style.touchAction='';st.classList.remove('min-zoomed');}var ims=box.querySelectorAll('.min-slide-img');for(var i=0;i<ims.length;i++)ims[i].style.transform='';}
+function zmTo(ns,cx,cy){var z=window._zm||(window._zm={s:1,tx:0,ty:0});ns=Math.min(6,Math.max(1,ns));if(Math.abs(ns-z.s)<0.001)return;var k=ns/z.s;z.tx=cx-(cx-z.tx)*k;z.ty=cy-(cy-z.ty)*k;z.s=ns;if(ns<=1.001){z.s=1;z.tx=0;z.ty=0;}var st=document.querySelector('#cw-modal .min-stage');if(st){st.style.touchAction=z.s>1?'none':'';st.classList.toggle('min-zoomed',z.s>1);}zmClamp();zmApply();if(z.s>1.6)zmHiRes();}
+function zmHiRes(){if(window._spin&&window._spin.on)return;var m=curM();if(!m)return;var p=photosOf(m)[window._photoIdx||0];if(!p||!p.hero)return;var im=zmImg();if(!im||im._hi)return;im._hi=1;var url=img(p,2560);var pre=new Image();pre.onload=function(){if(im.isConnected&&im._hi)im.src=url;};pre.src=url;}
+/* ---- 360° spin mode ----
+   m.spin = { stem:"RM-0048_s", frames:N }; frames live at images/minerals/{stem}{NN}_1024.jpg.
+   Renders in a .min-spin-layer overlay above the photo track: auto-rotates once all frames are
+   decoded, one-finger/mouse drag scrubs the rotation at scale 1, pinch/wheel zoom freezes the
+   frame and pans (composes with zm*). Arrows/thumbs EXIT spin into the normal carousel; the 360°
+   chip is the loading indicator + play/pause + re-entry. */
+function spinURL(m,i){return 'images/minerals/'+m.spin.stem+('0'+(i+1)).slice(-2)+'_1024.jpg';}
+function spinSt(){return window._spin||(window._spin={on:false,i:0,imgs:null,loaded:0,playing:false,userPaused:false,t:null,rt:null});}
+function spinN(){var m=curM();return (m&&m.spin)?m.spin.frames:0;}
+function spinLayer(){var st=document.querySelector('#cw-modal .min-stage');return st?st.querySelector('.min-spin-img'):null;}
+function spinStop(){var S=spinSt();if(S.t){clearInterval(S.t);S.t=null;}if(S.rt){clearTimeout(S.rt);S.rt=null;}S.playing=false;}
+function spinReset(){spinStop();window._spin=null;}
+function spinShow(i){var m=curM();if(!m||!m.spin)return;var S=spinSt();var N=m.spin.frames;S.i=((i%N)+N)%N;var im=spinLayer();if(im){var pre=S.imgs&&S.imgs[S.i];im.src=(pre&&pre.complete&&pre.naturalWidth)?pre.src:spinURL(m,S.i);}}
+function spinTick(){var box=document.getElementById('cw-modal');var wrap=document.getElementById('modal-wrap');var S=spinSt();if(!box||!S.on||(wrap&&wrap.classList.contains('hidden'))){spinStop();return;}if(!S.playing)return;if(window._zm&&window._zm.s>1)return;spinShow(S.i+1);}
+function spinPlay(){var m=curM();if(!m||!m.spin)return;var S=spinSt();if(S.t)clearInterval(S.t);var iv=Math.max(60,Math.min(110,Math.round(2600/m.spin.frames)));S.playing=true;S.t=setInterval(spinTick,iv);spinChipUpdate();}
+function spinPause(resumeMs){var S=spinSt();S.playing=false;if(S.rt){clearTimeout(S.rt);S.rt=null;}spinChipUpdate();if(resumeMs)S.rt=setTimeout(function(){var S2=spinSt();if(S2.on&&!S2.userPaused&&!S2.playing&&S2.loaded>=spinN()&&!(window._zm&&window._zm.s>1))spinPlay();},resumeMs);}
+function spinChipUpdate(){var box=document.getElementById('cw-modal');if(!box)return;var ch=box.querySelector('.min-spin-chip');if(!ch)return;var S=window._spin;var N=spinN();if(!S||!S.on){ch.textContent='360°';ch.title='Play the 360° spin';ch.classList.remove('min-spin-live');return;}ch.classList.add('min-spin-live');if(S.loaded<N){ch.textContent='360° · '+Math.round(S.loaded/Math.max(N,1)*100)+'%';ch.title='Loading spin frames…';}else{ch.textContent=S.playing?'360° ❚❚':'360° ▶';ch.title=S.playing?'Pause the spin — drag the rock to rotate it':'Resume the spin';}}
+function spinPreload(){var m=curM();if(!m||!m.spin)return;var S=spinSt();if(S.imgs)return;var N=m.spin.frames;S.imgs=[];S.loaded=0;for(var i=0;i<N;i++)(function(){var im=new Image();im.onload=im.onerror=function(){S.loaded++;spinChipUpdate();if(S.loaded>=N&&S.on&&!S.playing&&!S.userPaused)spinPlay();};im.src=spinURL(m,S.imgs.length);S.imgs.push(im);})();}
+function spinEnter(){var m=curM();if(!m||!m.spin)return;var stage=document.querySelector('#cw-modal .min-stage');if(!stage)return;var S=spinSt();S.on=true;S.userPaused=false;stage.classList.add('min-spin-on');if(!stage.querySelector('.min-spin-layer')){var layer=document.createElement('div');layer.className='min-spin-layer';layer.innerHTML='<img class="min-spin-img" alt="360° spin">';var tr=stage.querySelector('.min-track');stage.insertBefore(layer,tr?tr.nextSibling:stage.firstChild);}
+if(window._zm&&window._zm.s>1)zmReset();spinShow(S.i||0);spinPreload();if(S.loaded>=m.spin.frames&&!S.playing)spinPlay();spinChipUpdate();var ths=document.querySelectorAll('#cw-modal .min-thumb');for(var k=0;k<ths.length;k++)ths[k].classList.remove('on');var sth=document.querySelector('#cw-modal .min-spin-thumb');if(sth)sth.classList.add('on');}
+function spinExit(){var S=window._spin;if(!S||!S.on)return;spinStop();S.on=false;var stage=document.querySelector('#cw-modal .min-stage');if(stage)stage.classList.remove('min-spin-on');var sth=document.querySelector('#cw-modal .min-spin-thumb');if(sth)sth.classList.remove('on');if(window._zm&&window._zm.s>1)zmReset();spinChipUpdate();syncPhotoChrome(window._photoIdx||0);}
+function spinChipClick(){var m=curM();if(!m||!m.spin)return;var S=spinSt();if(!S.on){spinEnter();return;}if(S.loaded<m.spin.frames)return;if(S.playing){S.userPaused=true;spinPause();}else{S.userPaused=false;spinPlay();}}
+/* Locality map + imagery in the region block — data rides mineral_coords.js (public-id-filtered
+   by the builder). mapHTML mirrors the private base viewer; locImgHTML shows a photo of the
+   mine/area (or a generated terrain map) with its caption incl. any required photo credit. */
+function mapHTML(m){
+  var W=window.WORLD_MAP,C=window.MINERAL_COORDS&&window.MINERAL_COORDS[m.id];
+  if(!W||!W.d||!C||C.lat==null||C.lon==null)return '';
+  var x=Math.round(((C.lon+180)/360*1000)*10)/10, y=Math.round(((W.latTop-C.lat)/W.latSpan*500)*10)/10;
+  if(y<-10||y>510)return '';
+  var bandH=300, yTop=Math.round(Math.max(0,Math.min(500-bandH,y-bandH/2)));
+  var approx=(C.p==='state'||C.p==='country')?' <span class="mmc-approx">&#8776; '+esc(C.p==='state'?'state/province':'country')+'-level</span>':'';
+  return '<div class="min-locmap">'
+    +'<svg viewBox="0 '+yTop+' 1000 '+bandH+'" role="img" aria-label="World map showing '+esc(C.l)+'" onclick="this.parentNode.classList.toggle(\'min-map-zoomed\')">'
+    +'<g class="min-map-g" style="transform-box:view-box;transform-origin:'+x+'px '+y+'px"><path class="min-map-land" d="'+W.d+'"/></g>'
+    +'<circle class="min-map-halo" cx="'+x+'" cy="'+y+'" r="9"/>'
+    +'<circle class="min-map-pin" cx="'+x+'" cy="'+y+'" r="9"/>'
+    +'</svg>'
+    +'<div class="min-map-cap"><span class="mmc-loc">&#128205; '+esc(C.l)+approx+'</span></div>'
+    +'</div>';
+}
+function locImgHTML(m){
+  var C=window.MINERAL_COORDS&&window.MINERAL_COORDS[m.id];
+  if(!C||!C.i)return '';
+  var kindLbl=C.ik==='mine'?'The mine':C.ik==='town'?'The town':C.ik==='map'?'Locality map':'The area';
+  return '<figure class="min-locimg"><img src="images/localities/'+esc(C.i)+'_800.jpg" loading="lazy" decoding="async" alt="'+esc(kindLbl)+' — '+esc(C.l||'')+'" onerror="this.parentElement.style.display=\'none\'"><figcaption>'+esc(C.cap||'')+'</figcaption></figure>';
+}
+function bindStage(){var stage=document.querySelector('#cw-modal .min-stage');if(!stage)return;var tk=stage.querySelector('.min-track');if(!tk)return;var m=curM();var N=m?photosOf(m).length:0;
+scrollActiveThumb();zmReset();spinReset();
+if(!window._zmWin){window._zmWin=1;window.addEventListener('mousemove',function(e){var sd=window._spinDrag;if(sd){var S=window._spin;if(S&&S.on&&(!window._zm||window._zm.s<=1)){var dx=e.clientX-sd.x;var fr=Math.round(dx/sd.W*sd.N);if(fr!==sd.last){sd.last=fr;sd.moved=1;spinShow(sd.i-fr);}}return;}var d=window._zmDrag,z=window._zm;if(!d||!z||z.s<=1)return;z.tx+=e.clientX-d.x;z.ty+=e.clientY-d.y;d.x=e.clientX;d.y=e.clientY;d.moved=1;zmClamp();zmApply();});window.addEventListener('mouseup',function(){var sd=window._spinDrag;if(sd){window._spinDrag=null;if(sd.moved)window._swiping=Date.now();var S=window._spin;if(S&&S.on&&!S.userPaused)spinPause(2200);return;}var d=window._zmDrag;window._zmDrag=null;if(d&&d.moved)window._swiping=Date.now();});}
+stage.addEventListener('click',function(e){if(window._spin&&window._spin.on)return;if(N<2)return;if(window._zm&&window._zm.s>1)return;if(e.target.closest&&e.target.closest('.min-nav,.min-fullsize'))return;if(Date.now()-(window._swiping||0)<400)return;photoNav(1);});
+stage.addEventListener('wheel',function(e){e.preventDefault();var r=stage.getBoundingClientRect();var z=window._zm||{s:1};zmTo(z.s*Math.exp(-e.deltaY*0.0022),e.clientX-r.left-r.width/2,e.clientY-r.top-r.height/2);},{passive:false});
+stage.addEventListener('mousedown',function(e){if(e.target.closest&&e.target.closest('.min-nav,.min-fullsize,.min-spin-chip'))return;var z=window._zm;var S=window._spin;if(S&&S.on&&(!z||z.s<=1)){spinPause();window._spinDrag={x:e.clientX,W:stage.clientWidth||1,N:spinN()||1,i:spinSt().i,last:0,moved:0};e.preventDefault();return;}if(!z||z.s<=1)return;window._zmDrag={x:e.clientX,y:e.clientY,moved:0};e.preventDefault();});
+stage.addEventListener('gesturestart',function(e){e.preventDefault();});
+stage.addEventListener('gesturechange',function(e){e.preventDefault();});
+var x0=0,y0=0,t0=0,W=1,dragging=false,horiz=null,pinch=null,panT=null,spinT=null;
+function touchDist(e){var a=e.touches[0],b=e.touches[1];return Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY)||1;}
+function touchMid(e){var a=e.touches[0],b=e.touches[1];var r=stage.getBoundingClientRect();return{x:(a.clientX+b.clientX)/2-r.left-r.width/2,y:(a.clientY+b.clientY)/2-r.top-r.height/2};}
+stage.addEventListener('touchstart',function(e){
+ if(e.touches.length>=2){var z=window._zm||(window._zm={s:1,tx:0,ty:0});pinch={d:touchDist(e),s:z.s};dragging=false;horiz=null;panT=null;spinT=null;if(e.cancelable)e.preventDefault();tk.classList.remove('min-anim');tk.style.transform=tk.classList.contains('min-single')?'translateX(0)':'translateX(-100%)';return;}
+ var z=window._zm;var t=e.changedTouches[0];
+ if(z&&z.s>1){panT={x:t.clientX,y:t.clientY};return;}
+ var Ss=window._spin;
+ if(Ss&&Ss.on){spinT={x:t.clientX,y:t.clientY,i:Ss.i,W:stage.clientWidth||1,N:spinN()||1,h:null};dragging=false;return;}
+ if(window._anim||N<2)return;
+ x0=t.clientX;y0=t.clientY;t0=Date.now();W=stage.clientWidth||1;dragging=true;horiz=null;tk.classList.remove('min-anim');
+},{passive:false});
+stage.addEventListener('touchmove',function(e){
+ if(pinch&&e.touches.length>=2){var mp=touchMid(e);zmTo(pinch.s*(touchDist(e)/pinch.d),mp.x,mp.y);if(e.cancelable)e.preventDefault();return;}
+ var z=window._zm;
+ if(panT&&z&&z.s>1){var tp=e.touches[0];z.tx+=tp.clientX-panT.x;z.ty+=tp.clientY-panT.y;panT={x:tp.clientX,y:tp.clientY};zmClamp();zmApply();if(e.cancelable)e.preventDefault();return;}
+ if(spinT){var S2=window._spin;if(!S2||!S2.on){spinT=null;}else{var tt=e.touches[0];var sdx=tt.clientX-spinT.x,sdy=tt.clientY-spinT.y;if(spinT.h===null){if(Math.abs(sdx)<6&&Math.abs(sdy)<6)return;spinT.h=Math.abs(sdx)>Math.abs(sdy);if(spinT.h&&S2.playing)spinPause();}if(!spinT.h)return;spinShow(spinT.i-Math.round(sdx/spinT.W*spinT.N));if(e.cancelable)e.preventDefault();return;}}
+ if(!dragging||window._anim)return;
+ var t=e.changedTouches[0];var dx=t.clientX-x0,dy=t.clientY-y0;
+ if(horiz===null){if(Math.abs(dx)<6&&Math.abs(dy)<6)return;horiz=Math.abs(dx)>Math.abs(dy);}
+ if(!horiz)return;
+ tk.style.transform='translateX('+(-100+(dx/W)*100)+'%)';
+},{passive:false});
+function tEnd(e){
+ if(pinch){if(e.touches.length<2){var z=window._zm;pinch=null;window._swiping=Date.now();if(z&&z.s>1&&e.touches.length===1){var tp=e.touches[0];panT={x:tp.clientX,y:tp.clientY};}}return;}
+ if(panT){if(e.touches.length===0){panT=null;window._swiping=Date.now();}else{var tp=e.touches[0];panT={x:tp.clientX,y:tp.clientY};}return;}
+ if(spinT){if(e.touches.length===0){var wasH=spinT.h;spinT=null;if(wasH){window._swiping=Date.now();var S3=window._spin;if(S3&&S3.on&&!S3.userPaused)spinPause(2200);}}else{var tp3=e.touches[0];spinT.x=tp3.clientX;spinT.y=tp3.clientY;spinT.i=(window._spin||{i:0}).i;}return;}
+ if(!dragging)return;dragging=false;if(window._anim)return;
+ var t=e.changedTouches[0];var dx=t.clientX-x0,dy=t.clientY-y0;
+ if(horiz&&Date.now()-t0<900&&Math.abs(dx)>Math.max(40,W*0.16)&&Math.abs(dx)>Math.abs(dy)){window._swiping=Date.now();animateTo(dx<0?1:-1,(window._photoIdx||0)+(dx<0?1:-1));}
+ else if(horiz){tk.classList.add('min-anim');tk.style.transform='translateX(-100%)';}
+}
+stage.addEventListener('touchend',tEnd,{passive:true});
+stage.addEventListener('touchcancel',tEnd,{passive:true});
+if(m&&m.spin)spinEnter();
+}
 function fill(){var m=curM(),box=document.getElementById('cw-modal');if(!m||!box)return;clearTimeout(window._animT);window._anim=false;window._photoIdx=heroIdx(m);box.innerHTML=modalBody(m);box.scrollTop=0;bindStage();}
 function navRock(d){var ids=window._navIds||[],n=ids.length;if(n<2)return;window._navIdx=((window._navIdx||0)+d+n)%n;fill();}
 function showMineral(id){var M=minData(),ids=M.map(function(x){return x.id;}),idx=ids.indexOf(id);if(idx<0)return;var m=M[idx],wrap=document.getElementById('modal-wrap');if(!wrap)return;window._navIds=ids;window._navIdx=idx;window._photoIdx=heroIdx(m);wrap.innerHTML='<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal" id="cw-modal">'+modalBody(m)+'</div></div>';wrap.classList.remove('hidden');var bg=wrap.querySelector('.modal-bg');requestAnimationFrame(function(){if(bg)bg.classList.add('vis');});bindStage();if(!window._keyBound){window._keyBound=1;document.addEventListener('keydown',function(e){if(!document.getElementById('cw-modal'))return;if(e.key==='ArrowLeft'){if(e.shiftKey)navRock(-1);else photoNav(-1);}else if(e.key==='ArrowRight'){if(e.shiftKey)navRock(1);else photoNav(1);}else if(e.key==='Escape'){if(isFullscreen())exitFullscreen();else closeModal();}});}}
 function closeModal(){document.body.classList.remove('cw-fs-on');var w=document.getElementById('modal-wrap');if(!w)return;var bg=w.querySelector('.modal-bg');if(bg)bg.classList.remove('vis');setTimeout(function(){w.classList.add('hidden');w.innerHTML='';},160);}
 function isFullscreen(){return document.body.classList.contains('cw-fs-on');}
-function enterFullscreen(){var b=document.getElementById('cw-modal');if(!b)return;b.classList.add('fs-on');document.body.classList.add('cw-fs-on');}
-function exitFullscreen(){var b=document.getElementById('cw-modal');if(b)b.classList.remove('fs-on');document.body.classList.remove('cw-fs-on');}
+function enterFullscreen(){var b=document.getElementById('cw-modal');if(!b)return;b.classList.add('fs-on');document.body.classList.add('cw-fs-on');zmReset();}
+function exitFullscreen(){var b=document.getElementById('cw-modal');if(b)b.classList.remove('fs-on');document.body.classList.remove('cw-fs-on');zmReset();}
 function fsAwareClose(){if(isFullscreen())exitFullscreen();else closeModal();}
 
 /* ------------------------------------------------------------------ theme + boot */
