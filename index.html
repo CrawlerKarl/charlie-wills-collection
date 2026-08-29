@@ -55,6 +55,11 @@ main{padding:18px 0 40px}
 .pf-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
 .pf-in{flex:1 1 200px;min-width:160px;background:var(--inp);border:1px solid var(--bdr);border-radius:var(--r-sm);color:var(--t1);font-size:1.02rem;padding:12px 14px;min-height:48px}
 .pf-in:focus{outline:none;border-color:var(--gold)}
+.pf-search-wrap{position:relative;flex:1 1 200px;min-width:160px;display:flex}
+.pf-search-wrap .pf-in{flex:1;width:100%;min-width:0;padding-right:38px}
+.pf-in::-webkit-search-cancel-button{display:none}
+.pf-x{position:absolute;right:5px;top:50%;transform:translateY(-50%);width:30px;height:30px;border:none;border-radius:8px;background:var(--card2);color:var(--t2);font-size:1.25rem;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.pf-x:hover{color:var(--gold)}
 .pubms{position:relative}
 .pubms-trig{background:var(--card2);border:1px solid var(--bdr);color:var(--t1);font-size:1rem;padding:11px 15px;border-radius:var(--r-sm);cursor:pointer;min-height:48px;display:flex;align-items:center;gap:6px;white-space:nowrap}
 .pubms-trig:hover{border-color:var(--gold)}
@@ -311,7 +316,7 @@ function heroIdx(m){var P=photosOf(m);for(var i=0;i<P.length;i++){if(P[i]&&P[i].
 function speciesMatch(m,sel){var sp=m.species||[];for(var i=0;i<sel.length;i++){if(sp.indexOf(sel[i])>=0)return true;}return false;}
 
 /* ------------------------------------------------------------------ state */
-var S={q:'',sort:'idDesc',view:'grid',lvl:0,f:{subtype:[],provenance:[],species:[],state:[]}};
+var S={q:'',sort:'idDesc',view:'grid',lvl:0,spin:'',f:{subtype:[],provenance:[],species:[],state:[]}};
 var LEVELS=[300,200,150,110];
 var MOB_COLS=[1,2,3,4];
 try{S.view=localStorage.getItem('cwView')||'grid';}catch(e){}
@@ -325,6 +330,8 @@ function filtered(){
     if(f.provenance.length&&f.provenance.indexOf(provOf(m))<0)return false;
     if(f.state.length&&f.state.indexOf(stateOf(m))<0)return false;
     if(f.species.length&&!speciesMatch(m,f.species))return false;
+    if(S.spin==='yes'&&!m.spin)return false;
+    if(S.spin==='no'&&m.spin)return false;
     if(q){var b=m._b||(m._b=((m.name||'')+' '+((m.species||[]).join(' '))+' '+locStr(m.locality)+' '+(m.flavor||'')+' '+(m.label_text||'')+' '+(m.id||'')).toLowerCase());if(b.indexOf(q)<0)return false;}
     return true;
   });
@@ -361,7 +368,7 @@ function optionsFor(prop){
   else if(prop==='state'){var stt={};data.forEach(function(m){stt[stateOf(m)]=1;});Object.keys(stt).forEach(function(s){out.push([s,(s==='(unknown)'?'Unknown':s),C.state[s]||0]);});out.sort(function(a,b){if(a[0]==='(unknown)')return 1;if(b[0]==='(unknown)')return -1;return b[2]-a[2]||String(a[0]).localeCompare(String(b[0]));});}
   return out;
 }
-function filtersActive(){var f=S.f;return !!((S.q||'').trim()||f.subtype.length||f.provenance.length||f.species.length||f.state.length);}
+function filtersActive(){var f=S.f;return !!((S.q||'').trim()||S.spin||f.subtype.length||f.provenance.length||f.species.length||f.state.length);}
 
 /* ------------------------------------------------------------------ filter UI */
 function msLabel(prop,label){var sel=S.f[PROP2KEY[prop]].length;return esc(label)+(sel?' <span class="cnt">'+sel+'</span>':'');}
@@ -390,15 +397,19 @@ function refreshFilterBar(){
 function filterBarHTML(){
   var sorts=[['idDesc','Newest'],['id','Catalog #'],['name','Name A–Z'],['species','Mineral'],['subtype','Type']];
   var so=sorts.map(function(s){return '<option value="'+s[0]+'"'+(S.sort===s[0]?' selected':'')+'>'+s[1]+'</option>';}).join('');
+  var spins=[['','360°: all'],['yes','Has 360° spin'],['no','No 360° spin']];
+  var spo=spins.map(function(o){return '<option value="'+o[0]+'"'+(S.spin===o[0]?' selected':'')+'>'+o[1]+'</option>';}).join('');
   return '<div class="pf-bar">'
-    +'<input class="pf-in" id="pf-search" type="search" placeholder="Search name, mineral, locality…" aria-label="Search" oninput="onSearch(this.value)" value="'+esc(S.q)+'">'
+    +'<span class="pf-search-wrap"><input class="pf-in" id="pf-search" type="search" placeholder="Search name, mineral, locality…" aria-label="Search" oninput="onSearch(this.value)" value="'+esc(S.q)+'">'
+    +'<button class="pf-x" id="pf-search-x" type="button" aria-label="Clear search" style="display:'+((S.q||'').length?'':'none')+'" onclick="var i=document.getElementById(\'pf-search\');if(i){i.value=\'\';i.focus();}onSearch(\'\')">×</button></span>'
     +msHTML('sub','Type')+msHTML('species','Mineral')+msHTML('state','Locality')
+    +'<select class="pf-sel" id="pf-spin" aria-label="360° spin filter" title="Show only specimens with (or without) a 360° spin" onchange="S.spin=this.value;renderContent();var c=document.getElementById(\'pf-clear\');if(c)c.style.display=filtersActive()?\'\':\'none\';">'+spo+'</select>'
     +'<select class="pf-sel" aria-label="Sort" onchange="S.sort=this.value;renderContent()">'+so+'</select>'
     +'<button class="pf-clear" id="pf-clear" onclick="clearFilters()" style="display:'+(filtersActive()?'':'none')+'">Clear</button>'
     +'</div>';
 }
-function onSearch(v){S.q=v;renderContent();var c=document.getElementById('pf-clear');if(c)c.style.display=filtersActive()?'':'none';}
-function clearFilters(){S.q='';S.f={subtype:[],provenance:[],species:[],state:[]};var s=document.getElementById('pf-search');if(s)s.value='';renderContent();refreshFilterBar();}
+function onSearch(v){S.q=v;renderContent();var c=document.getElementById('pf-clear');if(c)c.style.display=filtersActive()?'':'none';var x=document.getElementById('pf-search-x');if(x)x.style.display=(v||'').length?'':'none';}
+function clearFilters(){S.q='';S.spin='';S.f={subtype:[],provenance:[],species:[],state:[]};var s=document.getElementById('pf-search');if(s)s.value='';var sp=document.getElementById('pf-spin');if(sp)sp.value='';var x=document.getElementById('pf-search-x');if(x)x.style.display='none';renderContent();refreshFilterBar();}
 document.addEventListener('click',function(e){if(!e.target.closest('.pubms'))document.querySelectorAll('.pubms.open').forEach(function(x){x.classList.remove('open');});});
 
 /* ------------------------------------------------------------------ render */
@@ -429,7 +440,7 @@ function renderContent(){
 function newestM(){var M=minData().slice();M.sort(function(a,b){return a.id<b.id?1:(a.id>b.id?-1:0);});return M[0]||null;}
 function isDefaultView(){
   var f=S.f;
-  return S.sort==='idDesc' && S.view==='grid' && !(S.q||'').trim()
+  return S.sort==='idDesc' && S.view==='grid' && !(S.q||'').trim() && !S.spin
       && !f.subtype.length && !f.provenance.length && !f.species.length && !f.state.length;
 }
 function featuredHTML(){
@@ -535,7 +546,7 @@ function spinStop(){var S=spinSt();if(S.t){clearInterval(S.t);S.t=null;}if(S.rt)
 function spinReset(){spinStop();window._spin=null;}
 function spinShow(i){var m=curM();if(!m||!m.spin)return;var S=spinSt();var N=m.spin.frames;S.i=((i%N)+N)%N;var im=spinLayer();if(im){var pre=S.imgs&&S.imgs[S.i];im.src=(pre&&pre.complete&&pre.naturalWidth)?pre.src:spinURL(m,S.i);}}
 function spinTick(){var box=document.getElementById('cw-modal');var wrap=document.getElementById('modal-wrap');var S=spinSt();if(!box||!S.on||(wrap&&wrap.classList.contains('hidden'))){spinStop();return;}if(!S.playing)return;if(window._zm&&window._zm.s>1)return;spinShow(S.i+1);}
-function spinPlay(){var m=curM();if(!m||!m.spin)return;var S=spinSt();if(S.t)clearInterval(S.t);var iv=Math.max(60,Math.min(110,Math.round(2600/m.spin.frames)));S.playing=true;S.t=setInterval(spinTick,iv);spinChipUpdate();}
+function spinPlay(){var m=curM();if(!m||!m.spin)return;var S=spinSt();if(S.t)clearInterval(S.t);/* museum pace (owner, 2026-08-29): ~6.5s per revolution — slow enough to fixate on one face; was ~2.7s */var iv=Math.max(110,Math.min(280,Math.round(6500/m.spin.frames)));S.playing=true;S.t=setInterval(spinTick,iv);spinChipUpdate();}
 function spinPause(resumeMs){var S=spinSt();S.playing=false;if(S.rt){clearTimeout(S.rt);S.rt=null;}spinChipUpdate();if(resumeMs)S.rt=setTimeout(function(){var S2=spinSt();if(S2.on&&!S2.userPaused&&!S2.playing&&S2.loaded>=spinN()&&!(window._zm&&window._zm.s>1))spinPlay();},resumeMs);}
 function spinChipUpdate(){var box=document.getElementById('cw-modal');if(!box)return;var ch=box.querySelector('.min-spin-chip');if(!ch)return;var S=window._spin;var N=spinN();if(!S||!S.on){ch.textContent='360°';ch.title='Play the 360° spin';ch.classList.remove('min-spin-live');return;}ch.classList.add('min-spin-live');if(S.loaded<N){ch.textContent='360° · '+Math.round(S.loaded/Math.max(N,1)*100)+'%';ch.title='Loading spin frames…';}else{ch.textContent=S.playing?'360° ❚❚':'360° ▶';ch.title=S.playing?'Pause the spin — drag the rock to rotate it':'Resume the spin';}}
 function spinPreload(){var m=curM();if(!m||!m.spin)return;var S=spinSt();if(S.imgs)return;var N=m.spin.frames;S.imgs=[];S.loaded=0;for(var i=0;i<N;i++)(function(){var im=new Image();im.onload=im.onerror=function(){S.loaded++;spinChipUpdate();if(S.loaded>=N&&S.on&&!S.playing&&!S.userPaused)spinPlay();};im.src=spinURL(m,S.imgs.length);S.imgs.push(im);})();}
