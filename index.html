@@ -203,6 +203,30 @@ body.cw-fs-on{overflow:hidden}
 .min-locimg{margin:0 0 12px;padding:0}
 .min-locimg img{width:100%;max-height:380px;object-fit:contain;background:var(--card2);border-radius:8px;display:block}
 .min-locimg figcaption{margin-top:5px;font-size:0.72rem;color:var(--t3);line-height:1.4}
+.min-loc-kind{display:inline-block;font-size:0.62rem;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:#2dd4bf;background:rgba(20,184,166,0.12);border-radius:5px;padding:1px 6px;margin-right:7px;vertical-align:1px}
+/* candidate-origin map (no-locality specimens — possible sources, never provenance; 2026-08-29) */
+.min-cand{border-left-color:var(--gold,#f59e0b)}
+.min-cand .min-region-h{color:var(--gold,#f59e0b)}
+.min-cand-sub{font-size:0.84rem;line-height:1.5;color:var(--t2);margin-bottom:8px}
+.min-candmap{position:relative;margin:2px 0 10px}
+.min-candmap svg{display:block;width:100%;height:auto;border-radius:8px;background:rgba(10,16,28,0.5);border:1px solid var(--bdr2);overflow:hidden}
+.min-candmap.min-cand-multi{cursor:zoom-out}
+.min-candmap.cand-world{cursor:zoom-in}
+.min-candmap svg.cand-w{display:none}
+.min-candmap.cand-world svg.cand-f{display:none}
+.min-candmap.cand-world svg.cand-w{display:block}
+.min-cn{fill:#fff;font-weight:700;paint-order:stroke;stroke:#0b1220;stroke-width:2.5px}
+.min-cn-x{fill:#b7c0d2}
+.min-cx-pin{fill:#4a5568;stroke:#0b1220}
+.min-cx-l{stroke:#e2e8f0}
+.min-cand-rows{display:flex;flex-direction:column;gap:7px;margin:4px 0 8px}
+.min-cand-row{display:flex;gap:9px;align-items:flex-start;font-size:0.85rem;line-height:1.5;color:var(--t2)}
+.min-cand-row strong{color:var(--t1)}
+.min-cand-n{flex:0 0 20px;height:20px;border-radius:50%;background:var(--gold,#f59e0b);color:#0b1220;font-size:0.72rem;font-weight:800;display:flex;align-items:center;justify-content:center;margin-top:2px}
+.min-cand-nx{background:#4a5568;color:#cbd5e1}
+.min-cand-xrow{opacity:0.75}
+.min-cand-xtag{font-size:0.7rem;font-weight:700;color:#f87171;text-transform:uppercase;letter-spacing:0.05em}
+.min-cand-note{font-size:0.78rem;line-height:1.5;color:var(--t3);font-style:italic;border-top:1px dashed var(--bdr2);padding-top:7px}
 </style>
 </head>
 <body>
@@ -230,6 +254,7 @@ body.cw-fs-on{overflow:hidden}
 <script defer>
 /* ------------------------------------------------------------------ helpers */
 function esc(s){return s==null?'':String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function richB(t){var x=esc(t);return x.replace(/\*\*([^*]+)\*\*/g,function(_,b){return '<strong>'+b+'</strong>';}).replace(/\*\*/g,'');}
 var PLACEHOLDER="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='90'%3E%3Crect width='120' height='90' fill='%23171e2c'/%3E%3Cpath d='M35 30h50l14 22-38 40-40-40z' fill='none' stroke='%232dd4bf' stroke-width='2' opacity='.5'/%3E%3C/svg%3E";
 function minData(){return window.MINERALS||[];}
 function img(ph,size){return 'images/minerals/'+ph.f+'_'+size+'.jpg';}
@@ -392,16 +417,17 @@ function modalBody(m){
   var rocknav=n>1?'<div class="min-rocknav"><button class="min-rock-btn" onclick="navRock(-1)" aria-label="Previous">‹ Prev</button><span class="min-rock-pos">'+((window._navIdx||0)+1)+' / '+n+'</span><button class="min-rock-btn" onclick="navRock(1)" aria-label="Next">Next ›</button></div>':'';
   var species=(m.species||[]).map(function(sp){return '<a class="min-mindat" href="'+esc(mindat(sp))+'" target="_blank" rel="noopener">'+esc(sp)+'</a>';}).join(', ');
   function field(k,vv){if(vv==null||vv===''||vv==='—')return '';return '<div class="min-field"><span class="mf-k">'+k+'</span><span class="mf-v">'+vv+'</span></div>';}
-  var fields=field('Species',species)+field('Locality',esc(locStr(m.locality)))+field('Size',esc(m.size))+field('Color',esc(m.color))+field('Habit',esc(m.habit))+field('Fluorescence',esc(m.fluorescence))+field('Catalog #',esc(m.catalog_no||m.id));
+  var fields=field('Species',species)+field('Locality',esc(locStr(m.locality)))+field('Size',esc(m.size))+field('Color',richB(m.color))+field('Habit',richB(m.habit))+field('Fluorescence',richB(m.fluorescence))+field('Catalog #',esc(m.catalog_no||m.id));
   return '<button class="modal-close" onclick="fsAwareClose()" aria-label="Close">×</button>'
     +'<div class="min-stage'+(multi?' min-multi':'')+'"><div class="min-track'+(multi?'':' min-single')+'">'+slides+'</div>'+arrows+pos+spinChip+full+'</div>'
     +thumbs+rocknav
     +'<h2>'+esc(title(m))+'</h2>'
     +'<div class="badges"><span class="min-sub-badge" style="background:rgba(20,184,166,0.15);color:#2dd4bf">'+esc(subLabel(m.subtype))+'</span>'+(m.provenance?'<span class="min-cw-badge">'+esc(m.provenance==='Charlie Wills'?'Charlie Wills collection':'From the family')+'</span>':'')+'</div>'
-    +(m.flavor?'<div class="min-flavor">'+esc(m.flavor)+'</div>':'')
+    +(m.flavor?'<div class="min-flavor">'+richB(m.flavor)+'</div>':'')
     +fields
     +(m.label_text?'<div class="min-label"><div class="min-label-h">&#127991; Charlie&rsquo;s label</div><div class="min-label-body">'+esc(m.label_text)+'</div><div class="min-label-note">Transcribed exactly as written &mdash; spelling and all.</div></div>':'')
-    +(function(){var mp=mapHTML(m);var li=locImgHTML(m);if(!m.region_history&&!mp&&!li)return'';return'<div class="min-region"><div class="min-region-h">&#9968; The mine &amp; the region</div>'+li+mp+(m.region_history?'<div class="min-region-body">'+esc(m.region_history)+'</div>':'')+'</div>';})();
+    +(function(){var mp=mapHTML(m);var li=locImgHTML(m);if(!m.region_history&&!mp&&!li)return'';return'<div class="min-region"><div class="min-region-h">&#9968; The mine &amp; the region</div>'+li+mp+(m.region_history?'<div class="min-region-body">'+richB(m.region_history)+'</div>':'')+'</div>';})()
+    +candMapHTML(m);
 }
 function track(){return document.querySelector('#cw-modal .min-track');}
 function setSlideImg(sl,p){var im=sl&&sl.querySelector('img');if(im&&p){im._hi=0;im.style.transform='';im.src=img(p,1280);}}
@@ -462,11 +488,62 @@ function mapHTML(m){
     +'<div class="min-map-cap"><span class="mmc-loc">&#128205; '+esc(C.l)+approx+'</span></div>'
     +'</div>';
 }
+function locKindLbl(k){return k==='mine'?'The mine':k==='town'?'The town':k==='map'?'Locality map':k==='underground'?'Inside the mine':k==='land'?'The land':'The area';}
+function locFig(e,l){return '<figure class="min-locimg"><img src="images/localities/'+esc(e.i)+'_800.jpg" loading="lazy" decoding="async" alt="'+esc(locKindLbl(e.ik))+' — '+esc(l||'')+'" onerror="this.parentElement.style.display=\'none\'"><figcaption><span class="min-loc-kind">'+esc(locKindLbl(e.ik))+'</span>'+esc(e.cap||'')+'</figcaption></figure>';}
 function locImgHTML(m){
   var C=window.MINERAL_COORDS&&window.MINERAL_COORDS[m.id];
   if(!C||!C.i)return '';
-  var kindLbl=C.ik==='mine'?'The mine':C.ik==='town'?'The town':C.ik==='map'?'Locality map':'The area';
-  return '<figure class="min-locimg"><img src="images/localities/'+esc(C.i)+'_800.jpg" loading="lazy" decoding="async" alt="'+esc(kindLbl)+' — '+esc(C.l||'')+'" onerror="this.parentElement.style.display=\'none\'"><figcaption>'+esc(C.cap||'')+'</figcaption></figure>';
+  var h=locFig(C,C.l);(C.xi||[]).forEach(function(x){h+=locFig(x,C.l);});
+  return h;
+}
+/* Candidate-origin world map (2026-08-29) — for specimens with NO recorded locality only:
+   pins the places the specimen's OWN record names as possible sources, or classic districts
+   with an explicit context-only disclaimer; crossed-out pins mark places the record REFUTES.
+   Possibilities, never provenance. Mirrors the dashboard's _minCandMapHTML — keep in sync. */
+function candMapHTML(m){
+  var W=window.WORLD_MAP,C=window.MINERAL_CANDIDATES&&window.MINERAL_CANDIDATES[m.id];
+  if(!W||!W.d||!C||!C.pins||!C.pins.length)return '';
+  if(window.MINERAL_COORDS&&window.MINERAL_COORDS[m.id])return '';
+  var P=[];C.pins.forEach(function(p){var y=(W.latTop-p.la)/W.latSpan*500;if(y<-10||y>510)return;P.push({l:p.l,t:p.t,r:p.r,x:(p.lo+180)/360*1000,y:y});});
+  if(!P.length)return '';
+  var xs=P.map(function(p){return p.x}),ys=P.map(function(p){return p.y});
+  var x0=Math.min.apply(0,xs),x1=Math.max.apply(0,xs),y0=Math.min.apply(0,ys),y1=Math.max.apply(0,ys);
+  var s=Math.min(4,1000/((x1-x0)+150),420/((y1-y0)+120));if(!isFinite(s)||s<1)s=1;
+  function svgFor(vx,vy,vw,vh,cls){
+    var r=Math.max(4,vw/70),fs=Math.max(9,vw/30),sw=Math.max(0.5,vw/1400);
+    var pins='';
+    for(var i=0;i<P.length;i++){var p=P[i],near=false;
+      for(var j=0;j<i;j++){if(Math.abs(P[j].x-p.x)<vw/20&&Math.abs(P[j].y-p.y)<vw/20){near=true;break;}}
+      var lx=near?p.x:(p.x+r*1.8),ly=near?(p.y+r*3.4):(p.y+fs*0.36),anch=near?'middle':'start';
+      if(p.t==='x'){
+        pins+='<circle class="min-cx-pin" cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="'+r.toFixed(1)+'" style="stroke-width:'+(r*0.28).toFixed(1)+'px"/>'
+          +'<line class="min-cx-l" x1="'+(p.x-r*0.6).toFixed(1)+'" y1="'+(p.y-r*0.6).toFixed(1)+'" x2="'+(p.x+r*0.6).toFixed(1)+'" y2="'+(p.y+r*0.6).toFixed(1)+'" style="stroke-width:'+(r*0.3).toFixed(1)+'px"/>'
+          +'<line class="min-cx-l" x1="'+(p.x-r*0.6).toFixed(1)+'" y1="'+(p.y+r*0.6).toFixed(1)+'" x2="'+(p.x+r*0.6).toFixed(1)+'" y2="'+(p.y-r*0.6).toFixed(1)+'" style="stroke-width:'+(r*0.3).toFixed(1)+'px"/>';
+      }else{
+        pins+='<circle class="min-map-pin" cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="'+r.toFixed(1)+'" style="stroke-width:'+(r*0.32).toFixed(1)+'px"/>';
+      }
+      pins+='<text class="min-cn'+(p.t==='x'?' min-cn-x':'')+'" x="'+lx.toFixed(1)+'" y="'+ly.toFixed(1)+'" text-anchor="'+anch+'" style="font-size:'+fs.toFixed(1)+'px">'+(i+1)+'</text>';
+    }
+    return '<svg class="'+cls+'" viewBox="'+vx.toFixed(1)+' '+vy.toFixed(1)+' '+vw.toFixed(1)+' '+vh.toFixed(1)+'" role="img" aria-label="Map of possible origins" preserveAspectRatio="xMidYMid meet"><path class="min-map-land" style="stroke-width:'+sw.toFixed(2)+'px" d="'+W.d+'"/>'+pins+'</svg>';
+  }
+  var vw=1000/s,vh=vw*0.42;
+  var vx=Math.max(0,Math.min(1000-vw,(x0+x1)/2-vw/2));
+  var vy=Math.max(-10,Math.min(510-vh,(y0+y1)/2-vh/2));
+  var svgs=svgFor(vx,vy,vw,vh,'cand-f');
+  var multi=s>1.15;
+  if(multi)svgs+=svgFor(0,Math.max(-10,Math.min(90,(y0+y1)/2-210)),1000,420,'cand-w');
+  var rows=P.map(function(p,i){
+    return '<div class="min-cand-row'+(p.t==='x'?' min-cand-xrow':'')+'"><span class="min-cand-n'+(p.t==='x'?' min-cand-nx':'')+'">'+(i+1)+'</span><div class="min-cand-txt"><strong>'+esc(p.l)+'</strong>'+(p.t==='x'?' <span class="min-cand-xtag">refuted by the record</span>':'')+' — '+esc(p.r)+'</div></div>';
+  }).join('');
+  var sub=C.b==='record'
+    ?'No locality is recorded for this specimen. Its record names these places as possible sources — <strong>possibilities, not provenance</strong>.'
+    :'No locality is recorded, and the record names no candidate — <strong>classic sources for this kind of material, shown for context only</strong>.';
+  return '<div class="min-region min-cand"><div class="min-region-h">&#127757; Where could it have come from?</div>'
+    +'<div class="min-cand-sub">'+sub+'</div>'
+    +'<div class="min-candmap'+(multi?' min-cand-multi':'')+'"'+(multi?' onclick="this.classList.toggle(\'cand-world\')" title="Tap to toggle the world view"':'')+'>'+svgs+'</div>'
+    +'<div class="min-cand-rows">'+rows+'</div>'
+    +'<div class="min-cand-note">'+esc(C.n)+'</div>'
+    +'</div>';
 }
 function bindStage(){var stage=document.querySelector('#cw-modal .min-stage');if(!stage)return;var tk=stage.querySelector('.min-track');if(!tk)return;var m=curM();var N=m?photosOf(m).length:0;
 scrollActiveThumb();zmReset();spinReset();
