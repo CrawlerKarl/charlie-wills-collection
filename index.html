@@ -227,6 +227,21 @@ body.cw-fs-on{overflow:hidden}
 .min-cand-xrow{opacity:0.75}
 .min-cand-xtag{font-size:0.7rem;font-weight:700;color:#f87171;text-transform:uppercase;letter-spacing:0.05em}
 .min-cand-note{font-size:0.78rem;line-height:1.5;color:var(--t3);font-style:italic;border-top:1px dashed var(--bdr2);padding-top:7px}
+.min-cpin{stroke:#0b1220}
+.min-cpin-l,.min-cpin-bg-l{fill:#22c55e;background:#22c55e}
+.min-cpin-p,.min-cpin-bg-p{fill:var(--gold,#f59e0b);background:var(--gold,#f59e0b)}
+.min-cpin-o,.min-cpin-bg-o{fill:#94a3b8;background:#94a3b8}
+.min-cand-key{display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin:-2px 0 9px;font-size:0.72rem;color:var(--t3)}
+.min-ck{display:inline-flex;align-items:center;gap:5px}
+.min-ck-dot{width:10px;height:10px;border-radius:50%;display:inline-block;border:1.5px solid rgba(11,18,32,0.55)}
+.min-ck-x{background:#4a5568;color:#e2e8f0;font-size:7px;line-height:10px;text-align:center;border-radius:50%}
+.min-cand-n-l{background:#22c55e}
+.min-cand-n-p{background:var(--gold,#f59e0b)}
+.min-cand-n-o{background:#94a3b8}
+.min-cand-lh{font-size:0.68rem;font-weight:800;text-transform:uppercase;letter-spacing:0.05em;border-radius:5px;padding:1px 6px;vertical-align:1px}
+.min-cand-lh-l{color:#4ade80;background:rgba(34,197,94,0.12)}
+.min-cand-lh-p{color:#fbbf24;background:rgba(245,158,11,0.12)}
+.min-cand-lh-o{color:#a8b3c4;background:rgba(148,163,184,0.14)}
 </style>
 </head>
 <body>
@@ -504,8 +519,9 @@ function candMapHTML(m){
   var W=window.WORLD_MAP,C=window.MINERAL_CANDIDATES&&window.MINERAL_CANDIDATES[m.id];
   if(!W||!W.d||!C||!C.pins||!C.pins.length)return '';
   if(window.MINERAL_COORDS&&window.MINERAL_COORDS[m.id])return '';
-  var P=[];C.pins.forEach(function(p){var y=(W.latTop-p.la)/W.latSpan*500;if(y<-10||y>510)return;P.push({l:p.l,t:p.t,r:p.r,x:(p.lo+180)/360*1000,y:y});});
+  var P=[];C.pins.forEach(function(p){var y=(W.latTop-p.la)/W.latSpan*500;if(y<-10||y>510)return;P.push({l:p.l,t:p.t,h:p.h,r:p.r,x:(p.lo+180)/360*1000,y:y});});
   if(!P.length)return '';
+  var LH={l:'likely',p:'plausible',o:'possible'};
   var xs=P.map(function(p){return p.x}),ys=P.map(function(p){return p.y});
   var x0=Math.min.apply(0,xs),x1=Math.max.apply(0,xs),y0=Math.min.apply(0,ys),y1=Math.max.apply(0,ys);
   var s=Math.min(4,1000/((x1-x0)+150),420/((y1-y0)+120));if(!isFinite(s)||s<1)s=1;
@@ -520,7 +536,7 @@ function candMapHTML(m){
           +'<line class="min-cx-l" x1="'+(p.x-r*0.6).toFixed(1)+'" y1="'+(p.y-r*0.6).toFixed(1)+'" x2="'+(p.x+r*0.6).toFixed(1)+'" y2="'+(p.y+r*0.6).toFixed(1)+'" style="stroke-width:'+(r*0.3).toFixed(1)+'px"/>'
           +'<line class="min-cx-l" x1="'+(p.x-r*0.6).toFixed(1)+'" y1="'+(p.y+r*0.6).toFixed(1)+'" x2="'+(p.x+r*0.6).toFixed(1)+'" y2="'+(p.y-r*0.6).toFixed(1)+'" style="stroke-width:'+(r*0.3).toFixed(1)+'px"/>';
       }else{
-        pins+='<circle class="min-map-pin" cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="'+r.toFixed(1)+'" style="stroke-width:'+(r*0.32).toFixed(1)+'px"/>';
+        pins+='<circle class="min-cpin min-cpin-'+(p.h||'p')+'" cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="'+r.toFixed(1)+'" style="stroke-width:'+(r*0.32).toFixed(1)+'px"/>';
       }
       pins+='<text class="min-cn'+(p.t==='x'?' min-cn-x':'')+'" x="'+lx.toFixed(1)+'" y="'+ly.toFixed(1)+'" text-anchor="'+anch+'" style="font-size:'+fs.toFixed(1)+'px">'+(i+1)+'</text>';
     }
@@ -532,8 +548,16 @@ function candMapHTML(m){
   var svgs=svgFor(vx,vy,vw,vh,'cand-f');
   var multi=s>1.15;
   if(multi)svgs+=svgFor(0,Math.max(-10,Math.min(90,(y0+y1)/2-210)),1000,420,'cand-w');
+  var seen={};P.forEach(function(p){seen[p.t==='x'?'x':(p.h||'p')]=1;});
+  var key='<div class="min-cand-key">'
+    +(seen.l?'<span class="min-ck"><span class="min-ck-dot min-cpin-bg-l"></span>likely</span>':'')
+    +(seen.p?'<span class="min-ck"><span class="min-ck-dot min-cpin-bg-p"></span>plausible</span>':'')
+    +(seen.o?'<span class="min-ck"><span class="min-ck-dot min-cpin-bg-o"></span>possible</span>':'')
+    +(seen.x?'<span class="min-ck"><span class="min-ck-dot min-ck-x">&#10005;</span>refuted</span>':'')
+    +'</div>';
   var rows=P.map(function(p,i){
-    return '<div class="min-cand-row'+(p.t==='x'?' min-cand-xrow':'')+'"><span class="min-cand-n'+(p.t==='x'?' min-cand-nx':'')+'">'+(i+1)+'</span><div class="min-cand-txt"><strong>'+esc(p.l)+'</strong>'+(p.t==='x'?' <span class="min-cand-xtag">refuted by the record</span>':'')+' — '+esc(p.r)+'</div></div>';
+    var tag=p.t==='x'?'<span class="min-cand-xtag">refuted by the record</span>':'<span class="min-cand-lh min-cand-lh-'+(p.h||'p')+'">'+LH[p.h||'p']+'</span>';
+    return '<div class="min-cand-row'+(p.t==='x'?' min-cand-xrow':' ')+'"><span class="min-cand-n'+(p.t==='x'?' min-cand-nx':' min-cand-n-'+(p.h||'p'))+'">'+(i+1)+'</span><div class="min-cand-txt"><strong>'+esc(p.l)+'</strong> '+tag+' — '+esc(p.r)+'</div></div>';
   }).join('');
   var sub=C.b==='record'
     ?'No locality is recorded for this specimen. Its record names these places as possible sources — <strong>possibilities, not provenance</strong>.'
@@ -541,7 +565,7 @@ function candMapHTML(m){
   return '<div class="min-region min-cand"><div class="min-region-h">&#127757; Where could it have come from?</div>'
     +'<div class="min-cand-sub">'+sub+'</div>'
     +'<div class="min-candmap'+(multi?' min-cand-multi':'')+'"'+(multi?' onclick="this.classList.toggle(\'cand-world\')" title="Tap to toggle the world view"':'')+'>'+svgs+'</div>'
-    +'<div class="min-cand-rows">'+rows+'</div>'
+    +key+'<div class="min-cand-rows">'+rows+'</div>'
     +'<div class="min-cand-note">'+esc(C.n)+'</div>'
     +'</div>';
 }
