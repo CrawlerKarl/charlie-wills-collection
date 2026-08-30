@@ -206,7 +206,7 @@ body.cw-fs-on{overflow:hidden}
 .mmc-approx{color:var(--t3);font-size:0.72rem}
 @media(prefers-reduced-motion:reduce){.min-map-halo{animation:none}.min-map-g{transition:none}}
 .min-locimg{margin:0 0 12px;padding:0}
-.min-locimg img{width:100%;max-height:380px;object-fit:contain;background:var(--card2);border-radius:8px;display:block}
+.min-locimg img{width:100%;min-height:120px;max-height:380px;object-fit:contain;background:var(--card2);border-radius:8px;display:block}
 .min-locimg figcaption{margin-top:5px;font-size:0.72rem;color:var(--t3);line-height:1.4}
 .min-loc-kind{display:inline-block;font-size:0.62rem;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:#2dd4bf;background:rgba(20,184,166,0.12);border-radius:5px;padding:1px 6px;margin-right:7px;vertical-align:1px}
 /* candidate-origin map (no-locality specimens — possible sources, never provenance; 2026-08-29) */
@@ -574,7 +574,7 @@ function mapHTML(m){
     +'</div>';
 }
 function locKindLbl(k){return k==='mine'?'The mine':k==='town'?'The town':k==='map'?'Locality map':k==='underground'?'Inside the mine':k==='land'?'The land':'The area';}
-function locFig(e,l){return '<figure class="min-locimg"><img src="images/localities/'+esc(e.i)+'_800.jpg" loading="lazy" decoding="async" alt="'+esc(locKindLbl(e.ik))+' — '+esc(l||'')+'" onerror="this.parentElement.style.display=\'none\'"><figcaption><span class="min-loc-kind">'+esc(locKindLbl(e.ik))+'</span>'+esc(e.cap||'')+'</figcaption></figure>';}
+function locFig(e,l){return '<figure class="min-locimg"><img src="images/localities/'+esc(e.i)+'_800.jpg" loading="eager" decoding="async" alt="'+esc(locKindLbl(e.ik))+' — '+esc(l||'')+'" onerror="this.parentElement.style.display=\'none\'"><figcaption><span class="min-loc-kind">'+esc(locKindLbl(e.ik))+'</span>'+esc(e.cap||'')+'</figcaption></figure>';}
 function locImgHTML(m){
   var C=window.MINERAL_COORDS&&window.MINERAL_COORDS[m.id];
   if(!C||!C.i)return '';
