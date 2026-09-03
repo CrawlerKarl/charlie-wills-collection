@@ -53,6 +53,14 @@ main{padding:18px 0 40px}
 @media(max-width:760px){.cw-story{grid-template-columns:1fr;gap:14px;padding:15px}.cw-story-photo img{max-width:100%;max-height:380px}}
 /* filter bar */
 .pf-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+/* Search stays visible; the rest collapses behind one control on phones. */
+.pf-shell{margin-bottom:12px}
+.pf-search-row{display:flex;gap:8px}
+.pf-search-row .pf-in{width:100%}
+.pf-mobile-toggle{display:none;flex:0 0 auto;min-height:48px;padding:10px 13px;border:1px solid var(--bdr);border-radius:var(--r-sm);background:var(--card2);color:var(--t1);font-weight:700;cursor:pointer}
+.pf-mobile-toggle .cnt{margin-left:5px;padding:1px 7px;border-radius:999px;background:var(--teal);color:#04201c;font-size:0.72rem}
+.pf-advanced{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.pf-search-row + .pf-advanced{margin-top:8px}
 .pf-in{flex:1 1 200px;min-width:160px;background:var(--inp);border:1px solid var(--bdr);border-radius:var(--r-sm);color:var(--t1);font-size:1.02rem;padding:12px 14px;min-height:48px}
 .pf-in:focus{outline:none;border-color:var(--gold)}
 .pf-search-wrap{position:relative;flex:1 1 200px;min-width:160px;display:flex}
@@ -91,8 +99,8 @@ main{padding:18px 0 40px}
 .gtile-badges{position:absolute;top:8px;left:8px;display:flex;gap:5px}
 .gtile-body{padding:13px 15px 15px;display:flex;flex-direction:column;gap:3px}
 .gtile-name{font-size:1.32rem;line-height:1.28;font-weight:700;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.gtile-sub{font-size:1.05rem;line-height:1.4;color:var(--t2)}
-.min-tile-flavor{font-size:1rem;line-height:1.5;color:var(--t2);font-style:italic;margin-top:9px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.gtile-sub{font-size:1.05rem;line-height:1.4;color:var(--t2);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.min-tile-flavor{font-size:0.95rem;line-height:1.45;color:var(--t2);font-style:italic;margin-top:7px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .min-sub-badge{font-size:0.76rem;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;background:rgba(0,0,0,0.55);color:#cbd5e1;padding:3px 9px;border-radius:6px}
 .min-cw-badge{font-size:0.76rem;font-weight:700;letter-spacing:0.03em;background:rgba(20,184,166,0.9);color:#04201c;padding:3px 9px;border-radius:6px}
 .mgrid.compact{gap:11px}
@@ -185,7 +193,7 @@ body.cw-fs-on{overflow:hidden}
 .modal.fs-on .min-nav{width:54px;height:54px;font-size:2.1rem;background:rgba(255,255,255,0.16)}
 .modal.fs-on .min-photo-pos{bottom:calc(16px + env(safe-area-inset-bottom,0));font-size:0.95rem;padding:5px 15px}
 .modal.fs-on .modal-close{position:fixed;top:calc(12px + env(safe-area-inset-top,0));right:14px;z-index:202;background:rgba(255,255,255,0.16);color:#fff;border-color:transparent}
-@media(max-width:600px){.min-stage{aspect-ratio:1/1;max-height:62vh}.modal{padding:14px 15px 20px}.hdr-title{font-size:1.4rem}.mgrid{grid-template-columns:repeat(var(--mob-cols,2),1fr);gap:11px}.mgrid .gtile-name{font-size:1.12rem}.mgrid .gtile-sub{font-size:0.94rem}.mgrid .min-tile-flavor{display:none}.mgrid .gtile-body{padding:10px 11px}.mgrid.compact .gtile-name{font-size:0.9rem}.mgrid.compact .gtile-sub{font-size:0.78rem}.modal-close{width:62px;height:62px;font-size:2.4rem;border-radius:15px}.modal h2{padding-right:74px}.tc-hd .tt{display:none}.vt-grp{flex-shrink:0}#gs-grp{flex-shrink:0}.pf-in{flex-basis:100%}.min-fullsize{width:56px;height:56px;font-size:1.85rem;border-radius:13px}}
+@media(max-width:600px){.min-stage{aspect-ratio:1/1;max-height:62vh}.modal{padding:14px 15px 20px}.hdr-title{font-size:1.4rem}.mgrid{grid-template-columns:repeat(var(--mob-cols,2),1fr);gap:11px}.mgrid .gtile-name{font-size:1.12rem}.mgrid .gtile-sub{font-size:0.94rem}.mgrid .min-tile-flavor{display:none}.mgrid .gtile-body{padding:10px 11px}.mgrid.compact .gtile-name{font-size:0.9rem}.mgrid.compact .gtile-sub{font-size:0.78rem}.modal-close{width:62px;height:62px;font-size:2.4rem;border-radius:15px}.modal h2{padding-right:74px}.tc-hd .tt{display:none}.vt-grp{flex-shrink:0}#gs-grp{flex-shrink:0}.min-fullsize{width:56px;height:56px;font-size:1.85rem;border-radius:13px}.pf-shell{position:sticky;z-index:34;top:0;margin:0 -6px 10px;padding:8px 6px;background:var(--bg);box-shadow:0 8px 16px rgba(0,0,0,0.12)}.pf-search-row{display:grid;grid-template-columns:minmax(0,1fr) auto}.pf-mobile-toggle{display:block}.pf-advanced{display:none;margin-top:8px;padding:10px;border:1px solid var(--bdr);border-radius:11px;background:var(--card)}.pf-shell.open .pf-advanced{display:flex}.pf-advanced .pubms,.pf-advanced .pubms-trig,.pf-advanced .pf-sel{flex:1 1 calc(50% - 4px);min-width:0;width:100%}.pf-advanced .pf-clear{flex:1 1 100%}.pubms-drop{position:fixed;z-index:120;left:12px;right:12px;top:auto;bottom:12px;min-width:0;max-height:min(62vh,460px);border-radius:15px}}
 /* footer */
 .site-ftr{border-top:1px solid var(--bdr);padding:22px 0 34px;margin-top:20px;color:var(--t3);font-size:0.84rem}
 .site-ftr .wrap{display:flex;flex-direction:column;gap:5px}
@@ -308,6 +316,38 @@ function hero(m){var ph=(m.photos||[]);return ph.filter(function(x){return x.her
 function mindat(sp){return 'https://www.mindat.org/search.php?search='+encodeURIComponent(sp);}
 function locStr(loc){if(!loc)return 'Locality unknown';var p=[loc.mine,loc.district,loc.state,loc.country].filter(Boolean);return p.length?p.join(', '):'Locality unknown';}
 function title(m){return m.name||(m.species&&m.species[0])||m.id;}
+/* Card text is a GLANCE, not the record. The full name, full locality and full
+   description all live in the modal; the tile shows the shortest honest form of each. */
+function shortLoc(loc){if(!loc)return 'Locality unknown';var lead=String(loc.mine||loc.district||loc.state||loc.country||'').replace(/\s*\([^)]*\)\s*$/,'').trim();var tail=loc.country&&loc.country!==lead?loc.country:'';return [lead,tail].filter(Boolean).join(' \u00b7 ')||'Locality unknown';}
+function shortCardTitle(m){
+  var full=String(title(m)||'');
+  var match=full.match(/^(.+?)\s*\(([^)]*)\)(\s*[\u2014\u2013-]\s*.+)?$/);
+  if(!match)return full;
+  var base=match[1].trim(),note=match[2].trim(),suffix=match[3]||'';
+  var localityNote=!!suffix||/\b(?:mine|quarry|district|county|co\.|cave-in-rock|bisbee|erongo|wutong|mibladen|shangbao|xia yang|okorusu|yaogangxian|milpo|denton|minerva|custar|arizona|illinois|ohio|china|morocco|mexico|namibia|peru|usa)\b/i.test(note);
+  if(!localityNote)return full;
+  var qualifier=note.split(',')[0].trim();
+  if(/^(?:pale |deep |sky-|root-beer )?(?:blue|purple|brown|green|yellow|pink|red|orange|white|black|colorless)(?:\s*(?:&|and)\s*(?:blue|purple|brown|green|yellow|pink|red|orange|white|black))?$/i.test(qualifier)){
+    return qualifier.charAt(0).toUpperCase()+qualifier.slice(1)+' '+base.charAt(0).toLowerCase()+base.slice(1);
+  }
+  return base;
+}
+/* First sentence only. A period followed by whitespace + a capital is the break;
+   an abbreviation before it (Co., Mt., a lone initial) is not, and a fragment under
+   40 chars is not a sentence worth stopping on. Markers (the record's own emphasis
+   vocabulary) are display noise at tile size. */
+var _FLAVOR_ABBR=/\b(?:[A-Za-z]|Co|Mt|St|Mr|Mrs|Dr|No|approx|cf|ca|vs|etc)$/;
+function shortFlavor(t){
+  var str=String(t||'').replace(/\*\*/g,'').replace(/[\u2b50\u26a0\u2705\ufe0f]+\s*/g,'').trim();
+  if(!str)return '';
+  var re=/[.!?]\s+(?=[\u201c\u2018"'(]?[A-Z0-9])/g,m;
+  while((m=re.exec(str))!==null){
+    if(m.index+1<40)continue;
+    if(_FLAVOR_ABBR.test(str.slice(0,m.index)))continue;
+    return str.slice(0,m.index+1);
+  }
+  return str;
+}
 function subLabel(t){return ({mineral:'Mineral',rock:'Rock',fossil:'Fossil',cut_stone:'Cut stone',meteorite:'Meteorite'})[t]||t||'';}
 function provOf(m){return m.provenance||'(untagged)';}
 function stateOf(m){return (m.locality&&m.locality.state)||'(unknown)';}
@@ -316,7 +356,7 @@ function heroIdx(m){var P=photosOf(m);for(var i=0;i<P.length;i++){if(P[i]&&P[i].
 function speciesMatch(m,sel){var sp=m.species||[];for(var i=0;i<sel.length;i++){if(sp.indexOf(sel[i])>=0)return true;}return false;}
 
 /* ------------------------------------------------------------------ state */
-var S={q:'',sort:'idDesc',view:'grid',lvl:0,spin:'',f:{subtype:[],provenance:[],species:[],state:[]}};
+var S={q:'',sort:'idDesc',view:'grid',lvl:0,spin:'',filterOpen:false,f:{subtype:[],provenance:[],species:[],state:[]}};
 var LEVELS=[300,200,150,110];
 var MOB_COLS=[1,2,3,4];
 try{S.view=localStorage.getItem('cwView')||'grid';}catch(e){}
@@ -393,20 +433,36 @@ function refreshFilterBar(){
     box.querySelector('.pubms-drop').innerHTML=msOptsHTML(prop);
   });
   var c=document.getElementById('pf-clear');if(c)c.style.display=filtersActive()?'':'none';
+  var sp=document.getElementById('pf-spin');if(sp&&sp.value!==S.spin)sp.value=S.spin;
+  var sx=document.getElementById('pf-search-x');if(sx)sx.style.display=(S.q||'').length?'':'none';
+  var btn=document.getElementById('pf-mobile-toggle');
+  if(btn){var n=filterSelectionCount();btn.innerHTML='Filters'+(n?' <span class="cnt">'+n+'</span>':'');btn.setAttribute('aria-label','Filters'+(n?', '+n+' active':''));}
+}
+function filterSelectionCount(){var f=S.f;return f.subtype.length+f.provenance.length+f.species.length+f.state.length+(S.spin?1:0);}
+function toggleFilterPanel(){
+  S.filterOpen=!S.filterOpen;
+  var shell=document.querySelector('.pf-shell'),btn=document.getElementById('pf-mobile-toggle');
+  if(shell)shell.classList.toggle('open',S.filterOpen);
+  if(btn)btn.setAttribute('aria-expanded',S.filterOpen?'true':'false');
 }
 function filterBarHTML(){
-  var sorts=[['idDesc','Newest'],['id','Catalog #'],['name','Name A–Z'],['species','Mineral'],['subtype','Type']];
-  var so=sorts.map(function(s){return '<option value="'+s[0]+'"'+(S.sort===s[0]?' selected':'')+'>'+s[1]+'</option>';}).join('');
-  var spins=[['','360°: all'],['yes','Has 360° spin'],['no','No 360° spin']];
+  var sorts=[['idDesc','Newest'],['id','Catalog #'],['name','Name A\u2013Z'],['species','Mineral'],['subtype','Type']];
+  var so=sorts.map(function(x){return '<option value="'+x[0]+'"'+(S.sort===x[0]?' selected':'')+'>'+x[1]+'</option>';}).join('');
+  var spins=[['','360\u00b0: all'],['yes','Has 360\u00b0 spin'],['no','No 360\u00b0 spin']];
   var spo=spins.map(function(o){return '<option value="'+o[0]+'"'+(S.spin===o[0]?' selected':'')+'>'+o[1]+'</option>';}).join('');
-  return '<div class="pf-bar">'
-    +'<span class="pf-search-wrap"><input class="pf-in" id="pf-search" type="search" placeholder="Search name, mineral, locality…" aria-label="Search" oninput="onSearch(this.value)" value="'+esc(S.q)+'">'
-    +'<button class="pf-x" id="pf-search-x" type="button" aria-label="Clear search" style="display:'+((S.q||'').length?'':'none')+'" onclick="var i=document.getElementById(\'pf-search\');if(i){i.value=\'\';i.focus();}onSearch(\'\')">×</button></span>'
+  var n=filterSelectionCount();
+  return '<div class="pf-shell'+(S.filterOpen?' open':'')+'">'
+    +'<div class="pf-search-row">'
+    +'<span class="pf-search-wrap"><input class="pf-in" id="pf-search" type="search" placeholder="Search name, mineral, locality\u2026" aria-label="Search" oninput="onSearch(this.value)" value="'+esc(S.q)+'">'
+    +'<button class="pf-x" id="pf-search-x" type="button" aria-label="Clear search" style="display:'+((S.q||'').length?'':'none')+'" onclick="var i=document.getElementById(\'pf-search\');if(i){i.value=\'\';i.focus();}onSearch(\'\')">\u00d7</button></span>'
+    +'<button class="pf-mobile-toggle" id="pf-mobile-toggle" type="button" aria-label="Filters'+(n?', '+n+' active':'')+'" aria-expanded="'+(S.filterOpen?'true':'false')+'" aria-controls="pf-advanced" onclick="toggleFilterPanel()">Filters'+(n?' <span class="cnt">'+n+'</span>':'')+'</button>'
+    +'</div>'
+    +'<div class="pf-advanced" id="pf-advanced">'
     +msHTML('sub','Type')+msHTML('species','Mineral')+msHTML('state','Locality')
-    +'<select class="pf-sel" id="pf-spin" aria-label="360° spin filter" title="Show only specimens with (or without) a 360° spin" onchange="S.spin=this.value;renderContent();var c=document.getElementById(\'pf-clear\');if(c)c.style.display=filtersActive()?\'\':\'none\';">'+spo+'</select>'
+    +'<select class="pf-sel" id="pf-spin" aria-label="360\u00b0 spin filter" title="Show only specimens with (or without) a 360\u00b0 spin" onchange="S.spin=this.value;renderContent();refreshFilterBar()">'+spo+'</select>'
     +'<select class="pf-sel" aria-label="Sort" onchange="S.sort=this.value;renderContent()">'+so+'</select>'
     +'<button class="pf-clear" id="pf-clear" onclick="clearFilters()" style="display:'+(filtersActive()?'':'none')+'">Clear</button>'
-    +'</div>';
+    +'</div></div>';
 }
 function onSearch(v){S.q=v;renderContent();var c=document.getElementById('pf-clear');if(c)c.style.display=filtersActive()?'':'none';var x=document.getElementById('pf-search-x');if(x)x.style.display=(v||'').length?'':'none';}
 function clearFilters(){S.q='';S.spin='';S.f={subtype:[],provenance:[],species:[],state:[]};var s=document.getElementById('pf-search');if(s)s.value='';var sp=document.getElementById('pf-spin');if(sp)sp.value='';var x=document.getElementById('pf-search-x');if(x)x.style.display='none';renderContent();refreshFilterBar();}
@@ -430,7 +486,7 @@ function renderContent(){
     var rows=M.map(function(m){return '<tr class="cl" onclick="showMineral(\''+m.id+'\')"><td><strong>'+esc(title(m))+'</strong><div style="color:var(--t3);font-size:0.72rem">'+esc(m.id)+(m.provenance==='Charlie Wills'?' · CW':'')+'</div></td><td>'+esc(subLabel(m.subtype))+'</td><td>'+esc(locStr(m.locality))+'</td><td>'+esc(m.size||'—')+'</td></tr>';}).join('');
     el.innerHTML='<div style="overflow-x:auto"><table class="min-table"><thead><tr><th>Specimen</th><th>Type</th><th>Locality</th><th>Size</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
   }else{
-    var tiles=M.map(function(m){var h=hero(m);var src=h?img(h,400):PLACEHOLDER;return '<div class="gtile" onclick="showMineral(\''+m.id+'\')"><div class="gtile-imgwrap"><img class="gtile-img" src="'+esc(src)+'" loading="lazy" decoding="async" alt="'+esc(title(m))+'" onerror="this.onerror=null;this.src=\''+PLACEHOLDER+'\'"><div class="gtile-badges"><span class="min-sub-badge">'+esc(subLabel(m.subtype))+'</span>'+(m.provenance==='Charlie Wills'?'<span class="min-cw-badge" title="Charlie Wills collection">CW</span>':'')+(m.spin?'<span class="min-spin-badge" title="Has a 360° spin">360°</span>':'')+'</div></div><div class="gtile-body"><div class="gtile-name">'+esc(title(m))+'</div><div class="gtile-sub">'+esc(locStr(m.locality))+'</div>'+(m.flavor?'<div class="min-tile-flavor">'+esc(m.flavor)+'</div>':'')+'</div></div>';}).join('');
+    var tiles=M.map(function(m){var h=hero(m);var src=h?img(h,400):PLACEHOLDER;return '<div class="gtile" onclick="showMineral(\''+m.id+'\')"><div class="gtile-imgwrap"><img class="gtile-img" src="'+esc(src)+'" loading="lazy" decoding="async" alt="'+esc(title(m))+'" onerror="this.onerror=null;this.src=\''+PLACEHOLDER+'\'"><div class="gtile-badges"><span class="min-sub-badge">'+esc(subLabel(m.subtype))+'</span>'+(m.provenance==='Charlie Wills'?'<span class="min-cw-badge" title="Charlie Wills collection">CW</span>':'')+(m.spin?'<span class="min-spin-badge" title="Has a 360° spin">360°</span>':'')+'</div></div><div class="gtile-body"><div class="gtile-name" title="'+esc(title(m))+'">'+esc(shortCardTitle(m))+'</div><div class="gtile-sub" title="'+esc(locStr(m.locality))+'">'+esc(shortLoc(m.locality))+'</div>'+(shortFlavor(m.flavor)?'<div class="min-tile-flavor">'+esc(shortFlavor(m.flavor))+'</div>':'')+'</div></div>';}).join('');
     el.innerHTML='<div class="mgrid'+(S.lvl>=2?' compact':'')+'" role="list">'+tiles+'</div>';applyGridSize();
   }
 }
@@ -458,7 +514,7 @@ function featuredHTML(){
     +'<div class="cw-feat-badges">'+badges+'</div>'
     +'<div class="cw-feat-name">'+esc(title(m))+'</div>'
     +'<div class="cw-feat-loc">'+esc(locStr(m.locality))+'</div>'
-    +(m.flavor?'<p class="cw-feat-flavor">'+esc(m.flavor)+'</p>':'')
+    +(shortFlavor(m.flavor)?'<p class="cw-feat-flavor">'+esc(shortFlavor(m.flavor))+'</p>':'')
     +'<span class="cw-feat-cta">View specimen \u2192</span>'
     +'</section>';
 }
