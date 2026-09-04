@@ -280,6 +280,47 @@ body.cw-fs-on{overflow:hidden}
    with the rocks, and his story is the note it ends on. */
 .cw-story{margin-top:26px;margin-bottom:0}
 @media(max-width:760px){.cw-story{grid-template-columns:1fr}}
+/* ---- Rich-text prose + collapsible field notes (ported from the private viewer, 2026-09-03) ----
+   The records are markdown-ish: **bold** plus a marker vocabulary (star = finding, ! = caution,
+   check = verified; doubled = key). Long values lead with one crisp sentence and keep the full
+   text behind a native <details> — the same skim-first format as the dashboard + private viewer.
+   Display-side only; the data is never rewritten. */
+.rt{margin:0 0 10px;font-size:1.02rem;line-height:1.62;color:var(--t1)}
+.rt:last-child{margin-bottom:0}
+.rt.rt-lead{color:var(--t2)}
+.rt-star,.rt-warn,.rt-ok{position:relative;display:grid;grid-template-columns:26px minmax(0,1fr);gap:10px;padding:11px 13px 11px 10px;border:1px solid var(--bdr);border-left-width:3px;border-radius:0 10px 10px 0}
+.rt-star>p,.rt-warn>p,.rt-ok>p{margin:0;min-width:0}
+.rt-ic{width:22px;height:22px;margin-top:1px;display:inline-flex;align-items:center;justify-content:center;border-radius:7px;font-size:0.78rem;font-weight:900;line-height:1}
+.rt-star{border-left-color:var(--gold,#f59e0b);background:linear-gradient(90deg,rgba(245,158,11,0.09),rgba(245,158,11,0.02) 70%)}
+.rt-star .rt-ic{background:rgba(245,158,11,0.18);color:#fbbf24}
+.rt-warn{border-left-color:#f97316;background:linear-gradient(90deg,rgba(249,115,22,0.08),rgba(249,115,22,0.02) 70%)}
+.rt-warn .rt-ic{background:rgba(249,115,22,0.16);color:#fb923c}
+.rt-ok{border-left-color:#10b981;background:linear-gradient(90deg,rgba(16,185,129,0.08),rgba(16,185,129,0.02) 70%)}
+.rt-ok .rt-ic{background:rgba(16,185,129,0.16);color:#34d399}
+.rt-hot{border-left-width:5px}
+.rt-hot.rt-star{background:linear-gradient(90deg,rgba(245,158,11,0.15),rgba(245,158,11,0.03) 75%)}
+.rt-hot.rt-warn{background:linear-gradient(90deg,rgba(249,115,22,0.14),rgba(249,115,22,0.03) 75%)}
+.rt strong{color:var(--t1);font-weight:750}
+[data-theme="light"] .rt-star .rt-ic{color:#b45309}
+[data-theme="light"] .rt-warn .rt-ic{color:#c2410c}
+[data-theme="light"] .rt-ok .rt-ic{color:#047857}
+.mf-lead{display:block}
+.mq-note{margin-top:6px;color:var(--t3);font-size:0.94rem;line-height:1.55}
+.mq-note.mq-inline{margin-top:4px}
+.mq-note .rt{font-size:0.94rem;margin-bottom:6px}
+.mq-note .rt-star,.mq-note .rt-warn,.mq-note .rt-ok{padding:7px 9px 7px 7px;grid-template-columns:20px minmax(0,1fr);gap:7px}
+.mq-note .rt-ic{width:17px;height:17px;font-size:0.62rem;border-radius:5px}
+.mq-more{margin-top:5px;width:100%}
+.mq-more>summary{display:inline-flex;align-items:center;gap:5px;cursor:pointer;list-style:none;color:var(--t3);font-size:0.76rem;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;padding:3px 0;min-height:44px;-webkit-user-select:none;user-select:none}
+.mq-more>summary::-webkit-details-marker{display:none}
+.mq-more>summary::before{content:'▸';font-size:0.68rem;transition:transform .15s ease}
+.mq-more[open]>summary::before{transform:rotate(90deg)}
+.mq-more>summary:hover{color:var(--gold)}
+.mq-more:not([open])>*:not(summary){display:none}
+.rt-more{margin-top:8px}
+.rt-more[open]>summary{margin-bottom:4px}
+.min-field .mf-v .rt-lead{margin:0}
+@media(prefers-reduced-motion:reduce){.mq-more>summary::before{transition:none}}
 </style>
 </head>
 <body>
@@ -308,6 +349,55 @@ body.cw-fs-on{overflow:hidden}
 /* ------------------------------------------------------------------ helpers */
 function esc(s){return s==null?'':String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function richB(t){var x=esc(t);return x.replace(/\*\*([^*]+)\*\*/g,function(_,b){return '<strong>'+b+'</strong>';}).replace(/\*\*/g,'');}
+/* ---- rich text + skim-first collapsibles (ported from the private viewer's friends_viewer.js, 2026-09-03) ---- */
+function richText(raw){
+  var s=Array.isArray(raw)?raw.join('\n'):String(raw==null?'':raw);s=s.trim();if(!s)return '';
+  s=esc(s).replace(/\*\*(.+?)\*\*/g,function(_,b){return '<strong>'+b+'</strong>';}).replace(/\*\*/g,'');
+  s=s.replace(/⭐⭐\s*/g,'\x01').replace(/(?:⚠️⚠️|⚠⚠)\s*/g,'\x02').replace(/⭐\s*/g,'\x03').replace(/⚠️?\s*/g,'\x04').replace(/✅\s*/g,'\x05');
+  var kinds={'\x01':['rt-star rt-hot','★'],'\x02':['rt-warn rt-hot','!'],'\x03':['rt-star','★'],'\x04':['rt-warn','!'],'\x05':['rt-ok','✓']};
+  return s.split(/(?=[\x01-\x05])/).map(function(block){
+    block=block.trim();if(!block)return '';
+    var k=kinds[block.charAt(0)];var body=(k?block.slice(1):block).trim().replace(/\n+/g,'<br>');
+    if(!body)return '';
+    if(!k)return '<p class="rt rt-lead">'+body+'</p>';
+    return '<div class="rt '+k[0]+'"><span class="rt-ic" aria-hidden="true">'+k[1]+'</span><p>'+body+'</p></div>';
+  }).join('');
+}
+function richInline(raw){var s=String(raw==null?'':raw).trim();if(!s)return '';return esc(s).replace(/\*\*(.+?)\*\*/g,function(_,b){return '<strong>'+b+'</strong>';}).replace(/\*\*/g,'');}
+/* One crisp lead paragraph, then the FULL text collapsed behind a details (the lead repeats inside so the story stays intact). */
+function richTextSkim(raw,summaryLabel){
+  var s=Array.isArray(raw)?raw.join('\n'):String(raw==null?'':raw);s=s.trim();if(!s)return '';
+  if(s.length<=260)return richText(s);
+  var lead;var b=s.match(/\*\*([^*]{30,}?[.!?])\*\*/);
+  if(b){lead='<p class="rt rt-lead"><strong>'+esc(b[1])+'</strong></p>';}
+  else{
+    var plain=s.replace(/⭐⭐\s*/g,' ').replace(/(?:⚠️⚠️|⚠⚠)\s*/g,' ').replace(/⭐\s*/g,' ').replace(/⚠️?\s*/g,' ').replace(/✅\s*/g,' ').replace(/\s+/g,' ').trim();
+    var cut=plain.match(/[a-z\)]\.\s+(?=[A-Z0-9~])/);var first=cut?plain.slice(0,cut.index+2).trim():plain;
+    if(!cut&&first.length>220){var sp=first.lastIndexOf(' ',220);first=first.slice(0,sp>80?sp:220)+'…';}
+    lead='<p class="rt rt-lead">'+richInline(first)+'</p>';
+  }
+  return lead+'<details class="mq-more rt-more"><summary>'+esc(summaryLabel)+'</summary>'+richText(s)+'</details>';
+}
+/* Value-first split for fact rows: the measurement leads; methodology caveats become field notes. */
+function splitFact(raw){
+  var s=String(raw==null?'':raw).trim();var m=s.match(/[⭐⚠✅]/);
+  if(m&&m.index>0){
+    var lead=s.slice(0,m.index).trim(),rest=s.slice(m.index).trim();
+    if(lead.length>180){var lc=lead.match(/[a-z\)]\.\s+(?=[A-Z0-9~])/);if(lc){var la=lc.index+2;rest=(lead.slice(la).trim()+' '+rest).trim();lead=lead.slice(0,la).trim();}}
+    return {lead:lead,rest:rest};
+  }
+  if(s.length>200){
+    var semi=s.indexOf('; ');if(semi>40&&semi<200)return {lead:s.slice(0,semi).trim(),rest:s.slice(semi+1).trim()};
+    var cut=s.match(/[a-z\)]\.\s+(?=[A-Z0-9~])/);if(cut){var at=cut.index+2;return {lead:s.slice(0,at).trim(),rest:s.slice(at).trim()};}
+  }
+  return {lead:s,rest:''};
+}
+function factValue(raw){
+  var s=String(raw==null?'':raw).trim();if(!s||s==='—')return '';
+  var parts=splitFact(s);var v='<span class="mf-lead">'+richInline(parts.lead)+'</span>';
+  if(parts.rest){v+=parts.rest.length>130?'<details class="mq-more"><summary>field notes</summary><div class="mq-note">'+richText(parts.rest)+'</div></details>':'<div class="mq-note mq-inline">'+richInline(parts.rest)+'</div>';}
+  return v;
+}
 var PLACEHOLDER="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='90'%3E%3Crect width='120' height='90' fill='%23171e2c'/%3E%3Cpath d='M35 30h50l14 22-38 40-40-40z' fill='none' stroke='%232dd4bf' stroke-width='2' opacity='.5'/%3E%3C/svg%3E";
 function minData(){return window.MINERALS||[];}
 function img(ph,size){return 'images/minerals/'+ph.f+'_'+size+'.jpg';}
@@ -557,7 +647,7 @@ function modalBody(m){
   var rocknav=n>1?'<div class="min-rocknav"><button class="min-rock-btn" onclick="navRock(-1)" aria-label="Previous">‹ Prev</button><span class="min-rock-pos">'+((window._navIdx||0)+1)+' / '+n+'</span><button class="min-rock-btn" onclick="navRock(1)" aria-label="Next">Next ›</button></div>':'';
   var species=(m.species||[]).map(function(sp){return '<a class="min-mindat" href="'+esc(mindat(sp))+'" target="_blank" rel="noopener">'+esc(sp)+'</a>';}).join(', ');
   function field(k,vv){if(vv==null||vv===''||vv==='—')return '';return '<div class="min-field"><span class="mf-k">'+k+'</span><span class="mf-v">'+vv+'</span></div>';}
-  var fields=field('Species',species)+field('Locality',esc(locStr(m.locality)))+field('Size',esc(m.size))+field('Color',richB(m.color))+field('Habit',richB(m.habit))+field('Fluorescence',richB(m.fluorescence))+field('Catalog #',esc(m.catalog_no||m.id));
+  var fields=field('Species',species)+field('Locality',esc(locStr(m.locality)))+field('Size',factValue(m.size))+field('Color',factValue(m.color))+field('Habit',richTextSkim(m.habit,'more'))+field('Fluorescence',richTextSkim(m.fluorescence,'the full story'))+field('Catalog #',esc(m.catalog_no||m.id));
   return '<button class="modal-close" onclick="fsAwareClose()" aria-label="Close">×</button>'
     +'<div class="min-stage'+(multi?' min-multi':'')+'"><div class="min-track'+(multi?'':' min-single')+'">'+slides+'</div>'+arrows+pos+spinChip+full+'</div>'
     +thumbs+rocknav
@@ -566,7 +656,7 @@ function modalBody(m){
     +(m.flavor?'<div class="min-flavor">'+richB(m.flavor)+'</div>':'')
     +fields
     +(m.label_text?'<div class="min-label"><div class="min-label-h">&#127991; Charlie&rsquo;s label</div><div class="min-label-body">'+esc(m.label_text)+'</div><div class="min-label-note">Transcribed exactly as written &mdash; spelling and all.</div></div>':'')
-    +(function(){var mp=mapHTML(m);var li=locImgHTML(m);if(!m.region_history&&!mp&&!li)return'';return'<div class="min-region"><div class="min-region-h">&#9968; The mine &amp; the region</div>'+li+mp+(m.region_history?'<div class="min-region-body">'+richB(m.region_history)+'</div>':'')+'</div>';})()
+    +(function(){var mp=mapHTML(m);var li=locImgHTML(m);if(!m.region_history&&!mp&&!li)return'';return'<div class="min-region"><div class="min-region-h">&#9968; The mine &amp; the region</div>'+li+mp+(m.region_history?'<div class="min-region-body">'+richTextSkim(m.region_history,'more about the region')+'</div>':'')+'</div>';})()
     +candMapHTML(m);
 }
 function track(){return document.querySelector('#cw-modal .min-track');}
