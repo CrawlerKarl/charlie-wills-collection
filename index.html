@@ -430,7 +430,83 @@ body.cw-fs-on{overflow:hidden}
 function esc(s){return s==null?'':String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function richB(t){var x=esc(t);return x.replace(/\*\*([^*]+)\*\*/g,function(_,b){return '<strong>'+b+'</strong>';}).replace(/\*\*/g,'');}
 /* ---- rich text + skim-first collapsibles (ported from the private viewer's friends_viewer.js, 2026-09-03) ---- */
-function richText(raw){
+/* ---- shared photo references — guard #181 · DO NOT EDIT ONE COPY --------------
+   A specimen record cites its own frames by stem — "RM-0103_12" — wherever the
+   prose needs a witness. Read as text those citations are noise; rendered as a
+   tiny camera that previews the frame on hover and jumps the carousel on click,
+   they are the evidence. This block is byte-identical in three viewers — the
+   collection dashboard's Minerals tab, the private full-collection viewer, and the
+   public Charlie Wills viewer — and kept that way by a test, not by discipline.
+   It reads NOTHING from any viewer: the host passes an adapter
+   { photos:[{f}], url(p,size), jump:'fnName' } and the block resolves a stem to
+   an index, a thumbnail URL and a click target through that alone. A stem the
+   adapter cannot resolve (another specimen, a frame not in this build) is left
+   as the plain text it was. Popup lives on document.body — never inside the
+   modal, whose transform/backdrop-filter would re-anchor a fixed element. */
+var _PREF_RE=/\b((?:RM|FS)-\d{4})_(\d+)\b/g;
+var _PREF_GROUP_RE=/\(\s*((?:RM|FS)-\d{4}_\d+(?:\s*(?:,|;|and|&amp;|\/)\s*(?:RM|FS)-\d{4}_\d+)*)\s*\)/g;
+var _PREF_SVG='<svg viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true" focusable="false"><path d="M9 4l-1.6 2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-2.4L15 4H9z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="13" r="3.4" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>';
+function _prefEnsureStyle(){
+  if(document.getElementById('pref-style'))return;
+  var st=document.createElement('style');st.id='pref-style';
+  st.textContent='.pref{display:inline-block;vertical-align:-0.15em;margin:0 1px;line-height:0;color:inherit;opacity:.72;text-decoration:none;cursor:pointer;border-radius:4px;padding:0 1px}'
+    +'.pref:hover,.pref:focus-visible{opacity:1;outline:none;background:rgba(127,127,127,.18)}'
+    +'.pref+.pref{margin-left:2px}'
+    +'#pref-pop{position:fixed;z-index:100000;pointer-events:none;display:none;padding:4px;border-radius:10px;background:#0b0e14;box-shadow:0 10px 30px rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.14)}'
+    +'#pref-pop img{display:block;max-width:min(280px,42vw);max-height:min(280px,42vh);border-radius:7px}'
+    +'@media(hover:none){#pref-pop{display:none!important}}';
+  document.head.appendChild(st);
+}
+function _prefIndex(ctx){
+  var idx={},P=(ctx&&ctx.photos)||[];
+  for(var i=0;i<P.length;i++){if(P[i]&&P[i].f)idx[P[i].f]=i;}
+  return idx;
+}
+function _prefIcon(stem,i,ctx){
+  var p=ctx.photos[i],thumb=ctx.url(p,400),full=ctx.url(p,1280),n=i+1;
+  return '<a class="pref" href="'+full+'" target="_blank" rel="noopener" data-i="'+i+'" data-t="'+thumb+'" data-jump="'+(ctx.jump||'')+'"'
+    +' aria-label="Photo '+n+' ('+stem+')" title="Photo '+n+' — hover to preview, click to view"'
+    +' onclick="return _prefClick(this)" onmouseenter="_prefHover(this,1,event)" onmousemove="_prefHover(this,1,event)" onmouseleave="_prefHover(this,0)" onfocus="_prefHover(this,1)" onblur="_prefHover(this,0)">'
+    +_PREF_SVG+'</a>';
+}
+function linkPhotoRefs(html,ctx){
+  if(!html||!ctx||!ctx.photos||!ctx.photos.length||typeof ctx.url!=='function')return html;
+  var idx=_prefIndex(ctx);
+  function one(stem){var i=idx[stem];return (i==null)?null:_prefIcon(stem,i,ctx);}
+  _prefEnsureStyle();
+  /* a parenthesised group that is nothing but refs loses its parens: "(A, B)" -> two icons */
+  var out=String(html).replace(_PREF_GROUP_RE,function(whole,inner){
+    var stems=inner.match(/(?:RM|FS)-\d{4}_\d+/g)||[],icons=[];
+    for(var k=0;k<stems.length;k++){var ic=one(stems[k]);if(!ic)return whole;icons.push(ic);}
+    return '<span class="pref-grp">'+icons.join('')+'</span>';
+  });
+  /* any remaining lone ref becomes an icon; unknown stems stay as text */
+  return out.replace(_PREF_RE,function(whole){var ic=one(whole);return ic||whole;});
+}
+function _prefClick(a){
+  var fn=a&&a.dataset&&a.dataset.jump?window[a.dataset.jump]:null;
+  if(typeof fn==='function'){_prefHover(a,0);fn(parseInt(a.dataset.i,10));return false;}
+  return true;
+}
+function _prefHover(a,on,ev){
+  var pop=document.getElementById('pref-pop');
+  if(!on){if(pop)pop.style.display='none';return;}
+  if(window.matchMedia&&window.matchMedia('(hover:none)').matches)return;
+  if(!pop){pop=document.createElement('div');pop.id='pref-pop';pop.innerHTML='<img alt="">';document.body.appendChild(pop);}
+  var im=pop.firstChild;if(im.getAttribute('src')!==a.dataset.t)im.src=a.dataset.t;
+  pop.style.display='block';
+  var x,y;
+  if(ev&&typeof ev.clientX==='number'){x=ev.clientX+16;y=ev.clientY+16;}
+  else{var r=a.getBoundingClientRect();x=r.right+8;y=r.top-8;}
+  var W=window.innerWidth,H=window.innerHeight,pw=pop.offsetWidth||300,ph=pop.offsetHeight||300;
+  if(x+pw>W-8)x=Math.max(8,(ev&&typeof ev.clientX==='number'?ev.clientX:x)-pw-16);
+  if(y+ph>H-8)y=Math.max(8,H-8-ph);
+  pop.style.left=x+'px';pop.style.top=y+'px';
+}
+/* ---- end shared photo references ------------------------------------------- */
+function richText(raw){return linkPhotoRefs(richTextCore(raw),_prefCtx());}
+function _prefCtx(){var m=(typeof curM==='function')?curM():null;var P=(m&&typeof photosOf==='function')?photosOf(m):[];return{photos:P,url:img,jump:'photoShow'};}
+function richTextCore(raw){
   var s=Array.isArray(raw)?raw.join('\n'):String(raw==null?'':raw);s=s.trim();if(!s)return '';
   s=esc(s).replace(/\*\*(.+?)\*\*/g,function(_,b){return '<strong>'+b+'</strong>';}).replace(/\*\*/g,'');
   s=s.replace(/⭐⭐\s*/g,'\x01').replace(/(?:⚠️⚠️|⚠⚠)\s*/g,'\x02').replace(/⭐\s*/g,'\x03').replace(/⚠️?\s*/g,'\x04').replace(/✅\s*/g,'\x05');
@@ -784,8 +860,19 @@ function applyGridSize(){var g=document.querySelector('.mgrid');document.documen
 function setGridSize(d){S.lvl=Math.max(0,Math.min(LEVELS.length-1,S.lvl-d));try{localStorage.setItem('cwLvl',S.lvl);}catch(e){}applyGridSize();}
 function setView(v){S.view=v;try{localStorage.setItem('cwView',v);}catch(e){}renderContent();syncViewBtns();}
 function syncViewBtns(){var g=document.getElementById('cv-grid'),t=document.getElementById('cv-table');if(!g)return;g.className='vtbtn'+(S.view==='grid'?' on':'');t.className='vtbtn'+(S.view==='table'?' on':'');var sz=document.getElementById('gs-grp');if(sz)sz.style.display=S.view==='grid'?'':'none';}
+/* The "Latest addition" panel is drawn by render(), but search / the 360° filter / the
+   dropdowns / sort / view only re-run renderContent() — so the panel used to stay up under
+   a filter it no longer described (the 2026-08-29 note said it steps aside; it did not).
+   Sync it here, on the one path every control goes through: present only on the default
+   view, exactly as isDefaultView() defines it. */
+function syncFeatured(){
+  var cur=document.querySelector('section.cw-feat'),want=isDefaultView();
+  if(want&&!cur){var bar=document.querySelector('.pf-shell');if(bar)bar.insertAdjacentHTML('beforebegin',featuredHTML());}
+  else if(!want&&cur){cur.parentNode.removeChild(cur);}
+}
 function renderContent(){
   var el=document.getElementById('min-content');if(!el)return;
+  syncFeatured();
   var M=filtered(),total=minData().length,cnt=document.getElementById('min-count');
   if(cnt)cnt.textContent=(M.length===total?total+' specimens':M.length+' of '+total);
   /* The featured panel above already shows the newest specimen — drop it from the grid so
