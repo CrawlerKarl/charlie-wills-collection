@@ -321,6 +321,75 @@ body.cw-fs-on{overflow:hidden}
 .rt-more[open]>summary{margin-bottom:4px}
 .min-field .mf-v .rt-lead{margin:0}
 @media(prefers-reduced-motion:reduce){.mq-more>summary::before{transition:none}}
+/* ---- Modal layout mirrored from the private viewer (2026-09-03): photo | facts grid on top,
+   then a full-width dossier of cards (UV response, the mine & region, habit, identification,
+   related specimens). Same markup + class names as friends_viewer.js so the two stay in step. */
+.modal{max-width:1140px}
+.modal-grid{display:grid;grid-template-columns:minmax(0,1.04fr) minmax(380px,0.96fr);gap:24px;align-items:start}
+.modal-media{min-width:0;position:static}
+.modal-info{min-width:0;padding-top:52px}
+.modal-info h2{margin-top:0;font-size:clamp(1.65rem,2.5vw,2.15rem);letter-spacing:-0.02em}
+.min-source-badge{max-width:100%;padding:3px 9px;border:1px solid rgba(245,158,11,0.34);border-radius:6px;background:rgba(245,158,11,0.1);color:#fbbf24;font-size:0.76rem;font-weight:750;line-height:1.35}
+[data-theme="light"] .min-source-badge{color:#a85b05}
+.min-conf-badge{padding:3px 9px;border-radius:6px;border:1px solid transparent;font-size:0.76rem;font-weight:750;line-height:1.35}
+.min-conf-badge.conf-high{background:rgba(16,185,129,0.12);border-color:rgba(16,185,129,0.3);color:#34d399}
+.min-conf-badge.conf-medium{background:rgba(245,158,11,0.12);border-color:rgba(245,158,11,0.3);color:#fbbf24}
+.min-conf-badge.conf-low{background:rgba(249,115,22,0.12);border-color:rgba(249,115,22,0.32);color:#fb923c}
+[data-theme="light"] .min-conf-badge.conf-high{color:#047857}
+[data-theme="light"] .min-conf-badge.conf-medium{color:#a85b05}
+[data-theme="light"] .min-conf-badge.conf-low{color:#c2410c}
+.min-quick{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0 14px}
+.min-quick-item{min-width:0;padding:10px 11px;border:1px solid var(--bdr);border-radius:9px;background:var(--card2)}
+.min-quick-item.wide{grid-column:1/-1}
+.min-quick-k{display:block;margin-bottom:3px;color:var(--t3);font-size:0.66rem;font-weight:800;letter-spacing:0.06em;text-transform:uppercase}
+.min-quick-v{color:var(--t1);font-size:0.92rem;line-height:1.4;overflow-wrap:anywhere}
+.modal-info .min-label{margin-top:4px}
+.modal-dossier{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1.16fr) minmax(360px,0.84fr);gap:24px;align-items:start;margin-top:2px;padding-top:24px;border-top:1px solid var(--bdr)}
+.modal-dossier.dossier-single{grid-template-columns:minmax(0,940px);justify-content:center}
+.dossier-col{min-width:0;display:flex;flex-direction:column;gap:22px}
+.dossier-flavor{grid-column:1/-1;max-width:940px}
+.dossier-flavor .min-flavor{margin:0;padding:16px 17px;border-left-width:3px;border-radius:0 12px 12px 0;background:linear-gradient(90deg,rgba(20,184,166,0.08),transparent 75%);font-size:1.02rem;line-height:1.6}
+.dossier-card{min-width:0;padding:20px;border:1px solid var(--bdr);border-radius:15px;background:radial-gradient(circle at 100% 0,rgba(245,158,11,0.06),transparent 34%),var(--card2)}
+.dossier-kicker{color:var(--gold);font-size:0.66rem;font-weight:850;letter-spacing:0.12em;text-transform:uppercase}
+.dossier-card h3{margin:5px 0 15px;color:var(--t1);font-size:1.22rem;letter-spacing:-0.015em}
+.dossier-card .min-region{margin:0;padding:0;background:none;border:none;border-radius:0}
+.dossier-region-card .min-region-body{margin-top:12px}
+.ident-sub{margin:18px 0 8px;color:var(--t3);font-size:0.68rem;font-weight:850;letter-spacing:0.1em;text-transform:uppercase}
+.ident-sub:first-child{margin-top:0}
+.alt-list{margin:0;padding:0;list-style:none;display:grid;gap:6px}
+.alt-list li{position:relative;padding:8px 11px 8px 26px;border:1px solid var(--bdr);border-radius:8px;background:var(--card2);color:var(--t2);font-size:0.9rem;line-height:1.5}
+.alt-list li::before{content:'✕';position:absolute;left:10px;top:9px;color:var(--t3);font-size:0.68rem;font-weight:800}
+.related{margin-top:0;padding:18px;border:1px solid var(--bdr);border-radius:15px;background:var(--card2)}
+.related h3{margin:0 0 10px;font-size:0.8rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--teal)}
+.related-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.related-card{min-width:0;padding:0;overflow:hidden;border:1px solid var(--bdr);border-radius:10px;background:var(--card2);color:var(--t1);text-align:left;cursor:pointer;font-family:inherit}
+.related-card:hover{border-color:var(--gold)}
+.related-card:focus-visible{outline:3px solid rgba(245,158,11,0.65);outline-offset:3px}
+.related-card img{width:100%;aspect-ratio:4/3;display:block;object-fit:cover}
+.related-card-copy{display:block;padding:8px}
+.related-card strong,.related-card span{display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden}
+.related-card strong{-webkit-line-clamp:2;font-size:0.8rem;line-height:1.25}
+.related-card span{margin-top:3px;-webkit-line-clamp:1;color:var(--t3);font-size:0.7rem}
+/* fullscreen must survive the grid wrapper: the stage is now nested, so un-hide the wrapper
+   and hide its siblings instead (the public rule above hides direct children of .modal). */
+.modal.fs-on>.modal-grid{display:block!important}
+.modal.fs-on .modal-info,.modal.fs-on .modal-dossier,.modal.fs-on .modal-media>*:not(.min-stage){display:none}
+@media(max-width:900px){
+  .modal{max-width:760px}
+  .modal-grid{grid-template-columns:minmax(0,1fr)}
+  .modal-info{padding-top:6px}
+  .modal-dossier{grid-template-columns:minmax(0,1fr)}
+}
+@media(max-width:600px){
+  .modal-info h2{font-size:1.55rem}
+  .min-quick{margin-top:10px}
+  .min-quick-item.wide-mobile{grid-column:1/-1}
+  .dossier-card,.related{padding:15px;border-radius:12px}
+  .dossier-col{gap:16px}
+  .related-grid{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none}
+  .related-grid::-webkit-scrollbar{display:none}
+  .related-card{flex:0 0 145px;scroll-snap-align:start}
+}
 </style>
 </head>
 <body>
@@ -397,6 +466,44 @@ function factValue(raw){
   var parts=splitFact(s);var v='<span class="mf-lead">'+richInline(parts.lead)+'</span>';
   if(parts.rest){v+=parts.rest.length>130?'<details class="mq-more"><summary>field notes</summary><div class="mq-note">'+richText(parts.rest)+'</div></details>':'<div class="mq-note mq-inline">'+richInline(parts.rest)+'</div>';}
   return v;
+}
+/* ---- dossier cards (mirrors friends_viewer.js: quickField / factChip / dossierCard / identificationHTML / uvHTML / regionCardHTML / relatedHTML) ---- */
+function quickField(label,value,extraClass){if(value==null||value===''||value==='—')return '';return '<div class="min-quick-item'+(extraClass?' '+extraClass:'')+'"><span class="min-quick-k">'+esc(label)+'</span><div class="min-quick-v">'+value+'</div></div>';}
+function factChip(label,raw,extraClass){var v=factValue(raw);return v?quickField(label,v,extraClass):'';}
+function confidenceBadge(m){var c=String(m.id_confidence||'').toLowerCase();if(!c)return '';var label={high:'ID confidence: High',medium:'ID confidence: Medium',low:'ID confidence: Low'}[c];return label?'<span class="min-conf-badge conf-'+c+'">'+label+'</span>':'';}
+function dossierCard(kicker,heading,bodyHTML,cls){if(!bodyHTML)return '';return '<section class="dossier-card'+(cls?' '+cls:'')+'"><div class="dossier-kicker">'+esc(kicker)+'</div><h3>'+esc(heading)+'</h3>'+bodyHTML+'</section>';}
+function identificationHTML(m){
+  var ev=m.id_evidence?richTextSkim(m.id_evidence,'full evidence'):'';
+  var alts=(Array.isArray(m.id_alternatives)?m.id_alternatives:(m.id_alternatives?[m.id_alternatives]:[])).filter(Boolean);
+  var altHTML=alts.length?'<div class="ident-sub">Considered &amp; excluded</div><ul class="alt-list">'+alts.map(function(a){return '<li>'+richInline(a)+'</li>';}).join('')+'</ul>':'';
+  var tests=m.suggested_tests?'<div class="ident-sub">What would settle it further</div>'+richText(m.suggested_tests):'';
+  var deep=altHTML+tests;
+  if(deep)deep='<details class="mq-more rt-more"><summary>alternatives considered &amp; what would settle it</summary>'+deep+'</details>';
+  var body=ev+deep;return body?dossierCard('How it was identified','Identification',body):'';
+}
+function uvHTML(m){return m.fluorescence?dossierCard('Under the lamp','UV response',richTextSkim(m.fluorescence,'the full story'),'dossier-uv'):'';}
+function regionCardHTML(m){
+  var mp=mapHTML(m),li=locImgHTML(m);
+  if(!m.region_history&&!mp&&!li)return '';
+  return '<section class="dossier-card dossier-region-card"><div class="dossier-kicker">Where it came from</div><h3>The mine &amp; the region</h3>'+li+mp
+    +(m.region_history?'<div class="min-region-body">'+richTextSkim(m.region_history,'more about the region')+'</div>':'')+'</section>';
+}
+function relatedFor(m){
+  var sp=m.species||[];
+  return minData().filter(function(x){return x.id!==m.id&&hero(x);}).map(function(x){
+    var score=0;(x.species||[]).forEach(function(s){if(sp.indexOf(s)>=0)score+=5;});
+    var a=m.locality||{},b=x.locality||{};
+    if(a.mine&&b.mine&&a.mine===b.mine)score+=4;else if(a.state&&b.state&&a.state===b.state)score+=2;else if(a.country&&b.country&&a.country===b.country)score+=1;
+    if(m.subtype&&m.subtype===x.subtype)score+=0.25;
+    return {specimen:x,score:score};
+  }).filter(function(x){return x.score>0;}).sort(function(a,b){return b.score-a.score||(a.specimen.id<b.specimen.id?1:-1);}).slice(0,3).map(function(x){return x.specimen;});
+}
+function relatedHTML(m){
+  var items=relatedFor(m);if(!items.length)return '';
+  return '<section class="related"><h3>Related specimens</h3><div class="related-grid">'+items.map(function(x){
+    var h=hero(x),src=h?img(h,400):PLACEHOLDER;
+    return '<button class="related-card" type="button" onclick="showMineral(\''+esc(x.id)+'\')"><img src="'+esc(src)+'" loading="lazy" alt="" onerror="this.onerror=null;this.src=\''+PLACEHOLDER+'\'"><span class="related-card-copy"><strong>'+esc(shortCardTitle(x))+'</strong><span>'+esc(shortLoc(x.locality))+'</span></span></button>';
+  }).join('')+'</div></section>';
 }
 var PLACEHOLDER="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='90'%3E%3Crect width='120' height='90' fill='%23171e2c'/%3E%3Cpath d='M35 30h50l14 22-38 40-40-40z' fill='none' stroke='%232dd4bf' stroke-width='2' opacity='.5'/%3E%3C/svg%3E";
 function minData(){return window.MINERALS||[];}
@@ -646,18 +753,31 @@ function modalBody(m){
   var n=(window._navIds||[]).length;
   var rocknav=n>1?'<div class="min-rocknav"><button class="min-rock-btn" onclick="navRock(-1)" aria-label="Previous">‹ Prev</button><span class="min-rock-pos">'+((window._navIdx||0)+1)+' / '+n+'</span><button class="min-rock-btn" onclick="navRock(1)" aria-label="Next">Next ›</button></div>':'';
   var species=(m.species||[]).map(function(sp){return '<a class="min-mindat" href="'+esc(mindat(sp))+'" target="_blank" rel="noopener">'+esc(sp)+'</a>';}).join(', ');
-  function field(k,vv){if(vv==null||vv===''||vv==='—')return '';return '<div class="min-field"><span class="mf-k">'+k+'</span><span class="mf-v">'+vv+'</span></div>';}
-  var fields=field('Species',species)+field('Locality',esc(locStr(m.locality)))+field('Size',factValue(m.size))+field('Color',factValue(m.color))+field('Habit',richTextSkim(m.habit,'more'))+field('Fluorescence',richTextSkim(m.fluorescence,'the full story'))+field('Catalog #',esc(m.catalog_no||m.id));
+  var quick=quickField('Species',species)
+    +factChip('Locality',locStr(m.locality),'wide wide-mobile')
+    +factChip('Size',m.size)
+    +factChip('Color',m.color)
+    +factChip('Catalog #',m.catalog_no||m.id)
+    +(String(m.habit||'').length>240?'':factChip('Habit',m.habit,'wide'));
+  var labelBlock=m.label_text?'<div class="min-label"><div class="min-label-h">&#127991; Charlie&rsquo;s label</div><div class="min-label-body">'+esc(m.label_text)+'</div><div class="min-label-note">Transcribed exactly as written &mdash; spelling and all.</div></div>':'';
+  var uv=uvHTML(m),ident=identificationHTML(m),region=regionCardHTML(m)+candMapHTML(m),related=relatedHTML(m);
+  var habitCard=String(m.habit||'').length>240?dossierCard('In hand','Habit & character',richTextSkim(m.habit,'more')):'';
+  var flavorBand=m.flavor?'<div class="dossier-flavor"><div class="min-flavor">'+richText(m.flavor)+'</div></div>':'';
+  var colMain=uv+region,colSide=habitCard+ident+(related?'<div class="dossier-related">'+related+'</div>':'');
+  var dossier='';
+  if(colMain&&colSide)dossier='<div class="modal-dossier">'+flavorBand+'<div class="dossier-col">'+colMain+'</div><div class="dossier-col">'+colSide+'</div></div>';
+  else if(colMain||colSide||flavorBand)dossier='<div class="modal-dossier dossier-single">'+flavorBand+'<div class="dossier-col">'+colMain+colSide+'</div></div>';
   return '<button class="modal-close" onclick="fsAwareClose()" aria-label="Close">×</button>'
-    +'<div class="min-stage'+(multi?' min-multi':'')+'"><div class="min-track'+(multi?'':' min-single')+'">'+slides+'</div>'+arrows+pos+spinChip+full+'</div>'
-    +thumbs+rocknav
+    +'<div class="modal-grid">'
+    +'<div class="modal-media"><div class="min-stage'+(multi?' min-multi':'')+'"><div class="min-track'+(multi?'':' min-single')+'">'+slides+'</div>'+arrows+pos+spinChip+full+'</div>'+thumbs+rocknav+'</div>'
+    +'<div class="modal-info">'
     +'<h2>'+esc(title(m))+'</h2>'
-    +'<div class="badges"><span class="min-sub-badge" style="background:rgba(20,184,166,0.15);color:#2dd4bf">'+esc(subLabel(m.subtype))+'</span>'+(m.provenance?'<span class="min-cw-badge">'+esc(m.provenance==='Charlie Wills'?'Charlie Wills collection':'From the family')+'</span>':'')+'</div>'
-    +(m.flavor?'<div class="min-flavor">'+richB(m.flavor)+'</div>':'')
-    +fields
-    +(m.label_text?'<div class="min-label"><div class="min-label-h">&#127991; Charlie&rsquo;s label</div><div class="min-label-body">'+esc(m.label_text)+'</div><div class="min-label-note">Transcribed exactly as written &mdash; spelling and all.</div></div>':'')
-    +(function(){var mp=mapHTML(m);var li=locImgHTML(m);if(!m.region_history&&!mp&&!li)return'';return'<div class="min-region"><div class="min-region-h">&#9968; The mine &amp; the region</div>'+li+mp+(m.region_history?'<div class="min-region-body">'+richTextSkim(m.region_history,'more about the region')+'</div>':'')+'</div>';})()
-    +candMapHTML(m);
+    +'<div class="badges"><span class="min-sub-badge" style="background:rgba(20,184,166,0.15);color:#2dd4bf">'+esc(subLabel(m.subtype))+'</span>'+(m.provenance?'<span class="min-source-badge">'+esc(m.provenance==='Charlie Wills'?'Charlie Wills collection':'From the family')+'</span>':'')+confidenceBadge(m)+'</div>'
+    +'<div class="min-quick">'+quick+'</div>'
+    +labelBlock
+    +'</div>'
+    +dossier
+    +'</div>';
 }
 function track(){return document.querySelector('#cw-modal .min-track');}
 function setSlideImg(sl,p){var im=sl&&sl.querySelector('img');if(im&&p){im._hi=0;im.style.transform='';im.src=img(p,1280);}}
