@@ -359,6 +359,15 @@ body.cw-fs-on{overflow:hidden}
 .alt-list{margin:0;padding:0;list-style:none;display:grid;gap:6px}
 .alt-list li{position:relative;padding:8px 11px 8px 26px;border:1px solid var(--bdr);border-radius:8px;background:var(--card2);color:var(--t2);font-size:0.9rem;line-height:1.5}
 .alt-list li::before{content:'✕';position:absolute;left:10px;top:9px;color:var(--t3);font-size:0.68rem;font-weight:800}
+/* possible origin (inferred locality, 2026-09-04) — muted, and clearly not a fact.
+   The ✕ bullet of .alt-list means "considered and EXCLUDED"; these places are the
+   opposite, so it is overridden to a neutral dot inside this block. */
+.ident-inferred{margin-top:18px;padding:11px 12px;border:1px dashed var(--bdr);border-radius:10px;background:var(--card2)}
+.ident-inferred .ident-sub:first-child{margin-top:0}
+.ident-inf-lead{margin:0 0 8px;color:var(--t1);font-size:0.95rem;line-height:1.5}
+.ident-inf-conf{margin-left:6px;padding:1px 7px;border-radius:9px;background:var(--bdr);color:var(--t3);font-size:0.62rem;font-weight:800;letter-spacing:0.05em;text-transform:uppercase;vertical-align:1px}
+.ident-inf-warn{margin:9px 0 0;color:var(--t3);font-size:0.82rem;line-height:1.5}
+.ident-inferred .alt-list li::before{content:'\2022';font-size:0.9rem;top:6px}
 .related{margin-top:0;padding:18px;border:1px solid var(--bdr);border-radius:15px;background:var(--card2)}
 .related h3{margin:0 0 10px;font-size:0.8rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--teal)}
 .related-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
@@ -472,6 +481,28 @@ function quickField(label,value,extraClass){if(value==null||value===''||value===
 function factChip(label,raw,extraClass){var v=factValue(raw);return v?quickField(label,v,extraClass):'';}
 function confidenceBadge(m){var c=String(m.id_confidence||'').toLowerCase();if(!c)return '';var label={high:'ID confidence: High',medium:'ID confidence: Medium',low:'ID confidence: Low'}[c];return label?'<span class="min-conf-badge conf-'+c+'">'+label+'</span>':'';}
 function dossierCard(kicker,heading,bodyHTML,cls){if(!bodyHTML)return '';return '<section class="dossier-card'+(cls?' '+cls:'')+'"><div class="dossier-kicker">'+esc(kicker)+'</div><h3>'+esc(heading)+'</h3>'+bodyHTML+'</section>';}
+/* Possible origin (2026-09-04) — an ACCEPTED, reasoned inference about where a specimen
+   with NO recorded locality came from. ⚠️ NEVER provenance (guards #168 / #170): the
+   heading says "inferred, not recorded", the `locality` field is untouched, and a
+   two-candidate record shows BOTH places rather than picking one. Mirrors
+   friends_viewer.js's inferredOriginHTML and index.html's _minInferredHTML. */
+function inferredOriginHTML(m){
+  var I=m.locality_inferred;
+  if(!I||I.status!=='accepted')return '';
+  var cands=I.candidates||[],alts=I.alternatives||[],basis=I.basis||[];
+  var lead=I.text
+    ?'<p class="ident-inf-lead"><strong>'+esc(I.text)+'</strong>'+(I.confidence?' <span class="ident-inf-conf">'+esc(I.confidence)+' confidence</span>':'')+'</p>'
+    :(cands.length?'<p class="ident-inf-lead">Two possible origins, deliberately not narrowed to one:</p>':'');
+  if(!lead)return '';
+  var list=cands.length?'<ul class="alt-list">'+cands.map(function(c){return '<li><strong>'+esc(c.text||'')+'</strong>'+(c.note?' \u2014 '+esc(c.note):'')+'</li>';}).join('')+'</ul>':'';
+  var why=(basis.length?'<div class="ident-sub">What the inference rests on</div><ul class="alt-list">'+basis.map(function(b){return '<li>'+esc(b)+'</li>';}).join('')+'</ul>':'')
+    +(alts.length?'<div class="ident-sub">Other possibilities</div><ul class="alt-list">'+alts.map(function(a){return '<li>'+esc(a.text||'')+(a.note?' \u2014 '+esc(a.note):'')+'</li>';}).join('')+'</ul>':'');
+  return '<div class="ident-inferred"><div class="ident-sub">Possible origin \u2014 <em>inferred, not recorded</em></div>'
+    +lead+list
+    +'<p class="ident-inf-warn">No label or dealer card records a locality for this specimen. This is a reasoned possibility read from the piece itself \u2014 <strong>not provenance</strong>.</p>'
+    +(why?'<details class="mq-more rt-more"><summary>why this place</summary>'+why+'</details>':'')
+    +'</div>';
+}
 function identificationHTML(m){
   var ev=m.id_evidence?richTextSkim(m.id_evidence,'full evidence'):'';
   var alts=(Array.isArray(m.id_alternatives)?m.id_alternatives:(m.id_alternatives?[m.id_alternatives]:[])).filter(Boolean);
@@ -479,7 +510,7 @@ function identificationHTML(m){
   var tests=m.suggested_tests?'<div class="ident-sub">What would settle it further</div>'+richText(m.suggested_tests):'';
   var deep=altHTML+tests;
   if(deep)deep='<details class="mq-more rt-more"><summary>alternatives considered &amp; what would settle it</summary>'+deep+'</details>';
-  var body=ev+deep;return body?dossierCard('How it was identified','Identification',body):'';
+  var body=ev+inferredOriginHTML(m)+deep;return body?dossierCard('How it was identified','Identification',body):'';
 }
 function uvHTML(m){return m.fluorescence?dossierCard('Under the lamp','UV response',richTextSkim(m.fluorescence,'the full story'),'dossier-uv'):'';}
 function regionCardHTML(m){
