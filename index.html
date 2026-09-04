@@ -636,6 +636,36 @@ function shortFlavor(t){
   return str;
 }
 /* ---- end shared mineral card text ----------------------------------------- */
+/* ---- shared mineral search + filters — guard #180 · DO NOT EDIT ONE COPY -------
+   The same search box and the same filters must behave the same wherever the
+   collection is hosted: the collection dashboard's Minerals tab, the private
+   full-collection viewer, and the public Charlie Wills viewer. They are separate
+   ports with no shared runtime, so — like the card-text block above — this one is
+   kept byte-identical by a test (test_guard_180_mineral_search_filters.py), never
+   by discipline. Rule for everything in here: read RAW specimen fields only, never a
+   viewer's own title / locality / source helper — that dependency is exactly what
+   let the three search boxes drift apart. A field a surface strips (the public site
+   carries no notes; the private one no notes or label text) simply contributes
+   nothing, so one search blob serves all three: search matches whatever that
+   surface shows. 'Locality unknown' stays in the blob on purpose — typing "unknown"
+   has always found the unlocalized pieces, on every surface. */
+var SPIN_FILTER_OPTIONS=[['','360°: all'],['yes','Has 360° spin'],['no','No 360° spin']];
+var SPECIMEN_SORTS=[['idDesc','Newest'],['id','Catalog #'],['name','Name A–Z'],['species','Mineral'],['subtype','Type']];
+function specimenLocText(loc){if(!loc)return 'Locality unknown';var p=[loc.mine,loc.district,loc.state,loc.country].filter(Boolean);return p.length?p.join(', '):'Locality unknown';}
+function specimenSearchBlob(m){return ((m.name||'')+' '+((m.species||[]).join(' '))+' '+specimenLocText(m.locality)+' '+(m.label_text||'')+' '+(m.flavor||'')+' '+(m.notes||'')+' '+(m.id||'')).toLowerCase();}
+function specimenMatchesQuery(m,q){q=String(q==null?'':q).trim().toLowerCase();if(!q)return true;var b=m._sb||(m._sb=specimenSearchBlob(m));return b.indexOf(q)>=0;}
+function specimenSpinMatches(m,spin){if(spin==='yes')return !!m.spin;if(spin==='no')return !m.spin;return true;}
+function specimenSpeciesMatches(m,sel){if(!sel||!sel.length)return true;var sp=m.species||[];for(var i=0;i<sel.length;i++){if(sp.indexOf(sel[i])>=0)return true;}return false;}
+function specimenStateKey(m){return (m.locality&&m.locality.state)||'(unknown)';}
+function specimenSortTitle(m){return m.name||(m.species&&m.species[0])||m.id;}
+function specimenCompare(sort,a,b){
+  if(sort==='name')return String(specimenSortTitle(a)).localeCompare(String(specimenSortTitle(b)));
+  if(sort==='species')return String((a.species&&a.species[0])||'').localeCompare(String((b.species&&b.species[0])||''))||(a.id<b.id?-1:1);
+  if(sort==='subtype')return String(a.subtype||'').localeCompare(String(b.subtype||''))||(a.id<b.id?-1:1);
+  if(sort==='idDesc')return a.id<b.id?1:(a.id>b.id?-1:0);
+  return a.id<b.id?-1:(a.id>b.id?1:0);
+}
+/* ---- end shared mineral search + filters ---------------------------------------- */
 function subLabel(t){return ({mineral:'Mineral',rock:'Rock',fossil:'Fossil',cut_stone:'Cut stone',meteorite:'Meteorite'})[t]||t||'';}
 function provOf(m){return m.provenance||'(untagged)';}
 function stateOf(m){return (m.locality&&m.locality.state)||'(unknown)';}
@@ -652,25 +682,18 @@ try{var _lv=parseInt(localStorage.getItem('cwLvl'),10);S.lvl=isNaN(_lv)?1:_lv;}c
 
 /* ------------------------------------------------------------------ filtering */
 function filtered(){
-  var f=S.f,q=(S.q||'').trim().toLowerCase();
+  var f=S.f;
   var out=minData().filter(function(m){
     if(f.subtype.length&&f.subtype.indexOf(m.subtype)<0)return false;
     if(f.provenance.length&&f.provenance.indexOf(provOf(m))<0)return false;
-    if(f.state.length&&f.state.indexOf(stateOf(m))<0)return false;
-    if(f.species.length&&!speciesMatch(m,f.species))return false;
-    if(S.spin==='yes'&&!m.spin)return false;
-    if(S.spin==='no'&&m.spin)return false;
-    if(q){var b=m._b||(m._b=((m.name||'')+' '+((m.species||[]).join(' '))+' '+locStr(m.locality)+' '+(m.flavor||'')+' '+(m.label_text||'')+' '+(m.id||'')).toLowerCase());if(b.indexOf(q)<0)return false;}
+    if(f.state.length&&f.state.indexOf(specimenStateKey(m))<0)return false;
+    if(f.species.length&&!specimenSpeciesMatches(m,f.species))return false;
+    if(!specimenSpinMatches(m,S.spin))return false;
+    if(!specimenMatchesQuery(m,S.q))return false;
     return true;
   });
   var s=S.sort;
-  out.sort(function(a,b){
-    if(s==='name')return String(title(a)).localeCompare(String(title(b)));
-    if(s==='species')return String((a.species&&a.species[0])||'').localeCompare(String((b.species&&b.species[0])||''))||(a.id<b.id?-1:1);
-    if(s==='subtype')return String(a.subtype||'').localeCompare(String(b.subtype||''))||(a.id<b.id?-1:1);
-    if(s==='idDesc')return a.id<b.id?1:(a.id>b.id?-1:0);
-    return a.id<b.id?-1:(a.id>b.id?1:0);
-  });
+  out.sort(function(a,b){return specimenCompare(s,a,b);});
   return out;
 }
 function computeCounts(){
@@ -734,9 +757,9 @@ function toggleFilterPanel(){
   if(btn)btn.setAttribute('aria-expanded',S.filterOpen?'true':'false');
 }
 function filterBarHTML(){
-  var sorts=[['idDesc','Newest'],['id','Catalog #'],['name','Name A\u2013Z'],['species','Mineral'],['subtype','Type']];
+  var sorts=SPECIMEN_SORTS;
   var so=sorts.map(function(x){return '<option value="'+x[0]+'"'+(S.sort===x[0]?' selected':'')+'>'+x[1]+'</option>';}).join('');
-  var spins=[['','360\u00b0: all'],['yes','Has 360\u00b0 spin'],['no','No 360\u00b0 spin']];
+  var spins=SPIN_FILTER_OPTIONS;
   var spo=spins.map(function(o){return '<option value="'+o[0]+'"'+(S.spin===o[0]?' selected':'')+'>'+o[1]+'</option>';}).join('');
   var n=filterSelectionCount();
   return '<div class="pf-shell'+(S.filterOpen?' open':'')+'">'
