@@ -502,7 +502,7 @@ function relatedHTML(m){
   var items=relatedFor(m);if(!items.length)return '';
   return '<section class="related"><h3>Related specimens</h3><div class="related-grid">'+items.map(function(x){
     var h=hero(x),src=h?img(h,400):PLACEHOLDER;
-    return '<button class="related-card" type="button" onclick="showMineral(\''+esc(x.id)+'\')"><img src="'+esc(src)+'" loading="lazy" alt="" onerror="this.onerror=null;this.src=\''+PLACEHOLDER+'\'"><span class="related-card-copy"><strong>'+esc(shortCardTitle(x))+'</strong><span>'+esc(shortLoc(x.locality))+'</span></span></button>';
+    return '<button class="related-card" type="button" onclick="showMineral(\''+esc(x.id)+'\')"><img src="'+esc(src)+'" loading="lazy" alt="" onerror="this.onerror=null;this.src=\''+PLACEHOLDER+'\'"><span class="related-card-copy"><strong>'+esc(shortCardTitle(title(x)))+'</strong><span>'+esc(shortLoc(x.locality))+'</span></span></button>';
   }).join('')+'</div></section>';
 }
 var PLACEHOLDER="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='90'%3E%3Crect width='120' height='90' fill='%23171e2c'/%3E%3Cpath d='M35 30h50l14 22-38 40-40-40z' fill='none' stroke='%232dd4bf' stroke-width='2' opacity='.5'/%3E%3C/svg%3E";
@@ -512,12 +512,25 @@ function hero(m){var ph=(m.photos||[]);return ph.filter(function(x){return x.her
 function mindat(sp){return 'https://www.mindat.org/search.php?search='+encodeURIComponent(sp);}
 function locStr(loc){if(!loc)return 'Locality unknown';var p=[loc.mine,loc.district,loc.state,loc.country].filter(Boolean);return p.length?p.join(', '):'Locality unknown';}
 function title(m){return m.name||(m.species&&m.species[0])||m.id;}
-/* Card text is a GLANCE, not the record. The full name, full locality and full
-   description all live in the modal; the tile shows the shortest honest form of each. */
-function shortLoc(loc){if(!loc)return 'Locality unknown';var lead=String(loc.mine||loc.district||loc.state||loc.country||'').replace(/\s*\([^)]*\)\s*$/,'').trim();var tail=loc.country&&loc.country!==lead?loc.country:'';return [lead,tail].filter(Boolean).join(' \u00b7 ')||'Locality unknown';}
-function shortCardTitle(m){
-  var full=String(title(m)||'');
-  var match=full.match(/^(.+?)\s*\(([^)]*)\)(\s*[\u2014\u2013-]\s*.+)?$/);
+/* ---- shared mineral card text — guard #175 · DO NOT EDIT ONE COPY ----------
+   This block is byte-identical in three viewers — the collection dashboard's
+   Minerals tab, the private full-collection viewer, and the public Charlie
+   Wills viewer. They are independent ports with no shared runtime, so the text
+   is kept in step by a test rather than by an import. A card is a GLANCE: the
+   full name, the full locality and the full description all stay in the modal.
+   Every function takes a plain value, never a specimen, so the same source
+   compiles in all three (depending on each viewer's own title/locality helper
+   is what made these impossible to keep identical before). Change it in one
+   place and test_guard_175_mineral_card_text.py fails until the others match. */
+function shortLoc(loc){
+  if(!loc)return 'Locality unknown';
+  var lead=String(loc.mine||loc.district||loc.state||loc.country||'').replace(/\s*\([^)]*\)\s*$/,'').trim();
+  var tail=loc.country&&loc.country!==lead?loc.country:'';
+  return [lead,tail].filter(Boolean).join(' · ')||'Locality unknown';
+}
+function shortCardTitle(full){
+  full=String(full||'');
+  var match=full.match(/^(.+?)\s*\(([^)]*)\)(\s*[—–-]\s*.+)?$/);
   if(!match)return full;
   var base=match[1].trim(),note=match[2].trim(),suffix=match[3]||'';
   var localityNote=!!suffix||/\b(?:mine|quarry|district|county|co\.|cave-in-rock|bisbee|erongo|wutong|mibladen|shangbao|xia yang|okorusu|yaogangxian|milpo|denton|minerva|custar|arizona|illinois|ohio|china|morocco|mexico|namibia|peru|usa)\b/i.test(note);
@@ -529,14 +542,14 @@ function shortCardTitle(m){
   return base;
 }
 /* First sentence only. A period followed by whitespace + a capital is the break;
-   an abbreviation before it (Co., Mt., a lone initial) is not, and a fragment under
-   40 chars is not a sentence worth stopping on. Markers (the record's own emphasis
-   vocabulary) are display noise at tile size. */
+   an abbreviation before it (Co., Mt., a lone initial) is not, and a fragment
+   under 40 chars is not a sentence worth stopping on. The record's own marker
+   glyphs are emphasis for the dossier and display noise at card size. */
 var _FLAVOR_ABBR=/\b(?:[A-Za-z]|Co|Mt|St|Mr|Mrs|Dr|No|approx|cf|ca|vs|etc)$/;
 function shortFlavor(t){
-  var str=String(t||'').replace(/\*\*/g,'').replace(/[\u2b50\u26a0\u2705\ufe0f]+\s*/g,'').trim();
+  var str=String(t||'').replace(/\*\*/g,'').replace(/[⭐⚠✅️]+\s*/g,'').trim();
   if(!str)return '';
-  var re=/[.!?]\s+(?=[\u201c\u2018"'(]?[A-Z0-9])/g,m;
+  var re=/[.!?]\s+(?=[“‘"'(]?[A-Z0-9])/g,m;
   while((m=re.exec(str))!==null){
     if(m.index+1<40)continue;
     if(_FLAVOR_ABBR.test(str.slice(0,m.index)))continue;
@@ -544,6 +557,7 @@ function shortFlavor(t){
   }
   return str;
 }
+/* ---- end shared mineral card text ----------------------------------------- */
 function subLabel(t){return ({mineral:'Mineral',rock:'Rock',fossil:'Fossil',cut_stone:'Cut stone',meteorite:'Meteorite'})[t]||t||'';}
 function provOf(m){return m.provenance||'(untagged)';}
 function stateOf(m){return (m.locality&&m.locality.state)||'(unknown)';}
@@ -682,7 +696,7 @@ function renderContent(){
     var rows=M.map(function(m){return '<tr class="cl" onclick="showMineral(\''+m.id+'\')"><td><strong>'+esc(title(m))+'</strong><div style="color:var(--t3);font-size:0.72rem">'+esc(m.id)+(m.provenance==='Charlie Wills'?' · CW':'')+'</div></td><td>'+esc(subLabel(m.subtype))+'</td><td>'+esc(locStr(m.locality))+'</td><td>'+esc(m.size||'—')+'</td></tr>';}).join('');
     el.innerHTML='<div style="overflow-x:auto"><table class="min-table"><thead><tr><th>Specimen</th><th>Type</th><th>Locality</th><th>Size</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
   }else{
-    var tiles=M.map(function(m){var h=hero(m);var src=h?img(h,400):PLACEHOLDER;return '<div class="gtile" onclick="showMineral(\''+m.id+'\')"><div class="gtile-imgwrap"><img class="gtile-img" src="'+esc(src)+'" loading="lazy" decoding="async" alt="'+esc(title(m))+'" onerror="this.onerror=null;this.src=\''+PLACEHOLDER+'\'"><div class="gtile-badges"><span class="min-sub-badge">'+esc(subLabel(m.subtype))+'</span>'+(m.provenance==='Charlie Wills'?'<span class="min-cw-badge" title="Charlie Wills collection">CW</span>':'')+(m.spin?'<span class="min-spin-badge" title="Has a 360° spin">360°</span>':'')+'</div></div><div class="gtile-body"><div class="gtile-name" title="'+esc(title(m))+'">'+esc(shortCardTitle(m))+'</div><div class="gtile-sub" title="'+esc(locStr(m.locality))+'">'+esc(shortLoc(m.locality))+'</div>'+(shortFlavor(m.flavor)?'<div class="min-tile-flavor">'+esc(shortFlavor(m.flavor))+'</div>':'')+'</div></div>';}).join('');
+    var tiles=M.map(function(m){var h=hero(m);var src=h?img(h,400):PLACEHOLDER;return '<div class="gtile" onclick="showMineral(\''+m.id+'\')"><div class="gtile-imgwrap"><img class="gtile-img" src="'+esc(src)+'" loading="lazy" decoding="async" alt="'+esc(title(m))+'" onerror="this.onerror=null;this.src=\''+PLACEHOLDER+'\'"><div class="gtile-badges"><span class="min-sub-badge">'+esc(subLabel(m.subtype))+'</span>'+(m.provenance==='Charlie Wills'?'<span class="min-cw-badge" title="Charlie Wills collection">CW</span>':'')+(m.spin?'<span class="min-spin-badge" title="Has a 360° spin">360°</span>':'')+'</div></div><div class="gtile-body"><div class="gtile-name" title="'+esc(title(m))+'">'+esc(shortCardTitle(title(m)))+'</div><div class="gtile-sub" title="'+esc(locStr(m.locality))+'">'+esc(shortLoc(m.locality))+'</div>'+(shortFlavor(m.flavor)?'<div class="min-tile-flavor">'+esc(shortFlavor(m.flavor))+'</div>':'')+'</div></div>';}).join('');
     el.innerHTML='<div class="mgrid'+(S.lvl>=2?' compact':'')+'" role="list">'+tiles+'</div>';applyGridSize();
   }
 }
