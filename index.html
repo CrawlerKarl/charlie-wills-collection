@@ -202,7 +202,7 @@ body.cw-fs-on{overflow:hidden}
 .min-locmap{margin:2px 0 12px}
 .min-locmap svg{display:block;width:100%;height:auto;border-radius:8px;background:rgba(10,16,28,0.5);border:1px solid var(--bdr2);cursor:zoom-in;overflow:hidden}
 .min-locmap.min-map-zoomed svg{cursor:zoom-out}
-.min-map-land{fill:#334663;stroke:#4a5f80;stroke-width:0.6}
+.min-map-land{fill:#334663;stroke:#4a5f80;stroke-width:0.6}/* map layers (guard #182) — non-scaling-stroke keeps lines hairline at any zoom, incl. the recorded map's scale(3.4) click */.min-map-lake{fill:#101a2b;stroke:#46597a;stroke-width:.5;vector-effect:non-scaling-stroke}.min-map-state{fill:none;stroke:#59708f;stroke-width:.4;opacity:.55;vector-effect:non-scaling-stroke}.min-map-border{fill:none;stroke:#7d94b5;stroke-width:.7;opacity:.85;vector-effect:non-scaling-stroke}.min-map-land{vector-effect:non-scaling-stroke}[data-theme="light"] .min-map-land{fill:#a9bbd1;stroke:#8fa6c2}[data-theme="light"] .min-map-lake{fill:#dce8f6;stroke:#8fa6c2}[data-theme="light"] .min-map-state{stroke:#8098b6}[data-theme="light"] .min-map-border{stroke:#5f7a99}
 .min-map-g{transition:transform 0.5s cubic-bezier(.22,.9,.32,1);will-change:transform}
 .min-map-zoomed .min-map-g{transform:scale(3.4)}
 .min-map-pin{fill:var(--gold,#f59e0b);stroke:#0b1220;stroke-width:3;paint-order:stroke}
@@ -1032,6 +1032,40 @@ function spinChipClick(){var m=curM();if(!m||!m.spin)return;var S=spinSt();if(!S
 /* Locality map + imagery in the region block — data rides mineral_coords.js (public-id-filtered
    by the builder). mapHTML mirrors the private base viewer; locImgHTML shows a photo of the
    mine/area (or a generated terrain map) with its caption incl. any required photo credit. */
+/* ---- shared map layers + fit — guard #182 · DO NOT EDIT ONE COPY --------------
+   Owner, 2026-09-04: "I'd also like for the map on all the panes to have outlines
+   of countries and states. If the only plausible locations are concentrated, it's
+   ok to zoom into the state level."
+   Both map panes — the recorded locality and the candidate-origin map — draw the
+   same four Natural Earth layers in the same order, and the candidate map fits its
+   view to the pins. This block is byte-identical in three viewers and kept that way
+   by a test, not by discipline (the #175 / #181 pattern). It reads NOTHING from any
+   viewer: it takes WORLD_MAP and plain numbers.
+   ⚠️ Borders are drawn with vector-effect:non-scaling-stroke, so one stroke width
+   reads correctly at every zoom AND under the recorded map's scale(3.4) click —
+   without it, lines thicken with the zoom and the state mesh turns to mud. */
+var MAP_STATE_VW = 16;   /* narrowest fit: ~5.8 deg of longitude, about one US state */
+function mapLayersSVG(W){
+  if(!W||!W.d)return '';
+  return '<path class="min-map-land" d="'+W.d+'"/>'
+    +(W.k?'<path class="min-map-lake" d="'+W.k+'"/>':'')
+    +(W.s?'<path class="min-map-state" d="'+W.s+'"/>':'')
+    +(W.b?'<path class="min-map-border" d="'+W.b+'"/>':'');
+}
+/* Fit a view to a set of points (viewBox units), never tighter than one state and
+   never wider than the map. Returns {vx,vy,vw,vh,zoomed}. */
+function mapFit(x0,x1,y0,y1,aspect){
+  var spanX=x1-x0, spanY=y1-y0;
+  var pad=Math.max(5,spanX*0.45,spanY*0.45);
+  var w=Math.max(MAP_STATE_VW,spanX+pad*2), h=spanY+pad*2;
+  if(w<h*aspect)w=h*aspect;
+  var vw=Math.min(1000,w), vh=vw/aspect;
+  var cx=(x0+x1)/2, cy=(y0+y1)/2;
+  return {vx:Math.max(0,Math.min(1000-vw,cx-vw/2)),
+          vy:Math.max(-10,Math.min(510-vh,cy-vh/2)),
+          vw:vw, vh:vh, zoomed:vw<820};
+}
+/* ---- end shared map layers ---------------------------------------------- */
 function mapHTML(m){
   var W=window.WORLD_MAP,C=window.MINERAL_COORDS&&window.MINERAL_COORDS[m.id];
   if(!W||!W.d||!C||C.lat==null||C.lon==null)return '';
@@ -1041,7 +1075,7 @@ function mapHTML(m){
   var approx=(C.p==='state'||C.p==='country')?' <span class="mmc-approx">&#8776; '+esc(C.p==='state'?'state/province':'country')+'-level</span>':'';
   return '<div class="min-locmap">'
     +'<svg viewBox="0 '+yTop+' 1000 '+bandH+'" role="img" aria-label="World map showing '+esc(C.l)+'" onclick="this.parentNode.classList.toggle(\'min-map-zoomed\')">'
-    +'<g class="min-map-g" style="transform-box:view-box;transform-origin:'+x+'px '+y+'px"><path class="min-map-land" d="'+W.d+'"/></g>'
+    +'<g class="min-map-g" style="transform-box:view-box;transform-origin:'+x+'px '+y+'px">'+mapLayersSVG(W)+'</g>'
     +'<circle class="min-map-halo" cx="'+x+'" cy="'+y+'" r="9"/>'
     +'<circle class="min-map-pin" cx="'+x+'" cy="'+y+'" r="9"/>'
     +'</svg>'
@@ -1069,9 +1103,9 @@ function candMapHTML(m){
   var LH={l:'likely',p:'plausible',o:'possible'};
   var xs=P.map(function(p){return p.x}),ys=P.map(function(p){return p.y});
   var x0=Math.min.apply(0,xs),x1=Math.max.apply(0,xs),y0=Math.min.apply(0,ys),y1=Math.max.apply(0,ys);
-  var s=Math.min(4,1000/((x1-x0)+150),420/((y1-y0)+120));if(!isFinite(s)||s<1)s=1;
+  
   function svgFor(vx,vy,vw,vh,cls){
-    var r=Math.max(4,vw/70),fs=Math.max(9,vw/30),sw=Math.max(0.5,vw/1400);
+    var r=vw/70,fs=vw/30,sw=vw/1400;   /* no absolute floors: they only fire when zoomed, and then dwarf the map */
     var pins='';
     for(var i=0;i<P.length;i++){var p=P[i],near=false;
       for(var j=0;j<i;j++){if(Math.abs(P[j].x-p.x)<vw/20&&Math.abs(P[j].y-p.y)<vw/20){near=true;break;}}
@@ -1085,13 +1119,11 @@ function candMapHTML(m){
       }
       pins+='<text class="min-cn'+(p.t==='x'?' min-cn-x':'')+'" x="'+lx.toFixed(1)+'" y="'+ly.toFixed(1)+'" text-anchor="'+anch+'" style="font-size:'+fs.toFixed(1)+'px">'+(i+1)+'</text>';
     }
-    return '<svg class="'+cls+'" viewBox="'+vx.toFixed(1)+' '+vy.toFixed(1)+' '+vw.toFixed(1)+' '+vh.toFixed(1)+'" role="img" aria-label="Map of possible origins" preserveAspectRatio="xMidYMid meet"><path class="min-map-land" style="stroke-width:'+sw.toFixed(2)+'px" d="'+W.d+'"/>'+pins+'</svg>';
+    return '<svg class="'+cls+'" viewBox="'+vx.toFixed(1)+' '+vy.toFixed(1)+' '+vw.toFixed(1)+' '+vh.toFixed(1)+'" role="img" aria-label="Map of possible origins" preserveAspectRatio="xMidYMid meet">'+mapLayersSVG(W)+''+pins+'</svg>';
   }
-  var vw=1000/s,vh=vw*0.42;
-  var vx=Math.max(0,Math.min(1000-vw,(x0+x1)/2-vw/2));
-  var vy=Math.max(-10,Math.min(510-vh,(y0+y1)/2-vh/2));
+  var F=mapFit(x0,x1,y0,y1,1000/420),vw=F.vw,vh=F.vh,vx=F.vx,vy=F.vy;
   var svgs=svgFor(vx,vy,vw,vh,'cand-f');
-  var multi=s>1.15;
+  var multi=F.zoomed;
   if(multi)svgs+=svgFor(0,Math.max(-10,Math.min(90,(y0+y1)/2-210)),1000,420,'cand-w');
   var seen={};P.forEach(function(p){seen[p.t==='x'?'x':(p.h||'p')]=1;});
   var key='<div class="min-cand-key">'
