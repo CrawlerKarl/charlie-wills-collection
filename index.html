@@ -368,6 +368,8 @@ body.cw-fs-on{overflow:hidden}
 .ident-inf-conf{margin-left:6px;padding:1px 7px;border-radius:9px;background:var(--bdr);color:var(--t3);font-size:0.62rem;font-weight:800;letter-spacing:0.05em;text-transform:uppercase;vertical-align:1px}
 .ident-inf-warn{margin:9px 0 0;color:var(--t3);font-size:0.82rem;line-height:1.5}
 .ident-inferred .alt-list li::before{content:'\2022';font-size:0.9rem;top:6px}
+.loc-inferred{color:var(--t3);font-style:italic;cursor:help}
+.min-cand-inftag{display:inline-block;margin-left:6px;padding:1px 6px;border-radius:9px;background:var(--bdr);color:var(--t3);font-size:0.62rem;font-weight:800;letter-spacing:0.04em;text-transform:uppercase}
 .related{margin-top:0;padding:18px;border:1px solid var(--bdr);border-radius:15px;background:var(--card2)}
 .related h3{margin:0 0 10px;font-size:0.8rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--teal)}
 .related-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
@@ -481,6 +483,51 @@ function quickField(label,value,extraClass){if(value==null||value===''||value===
 function factChip(label,raw,extraClass){var v=factValue(raw);return v?quickField(label,v,extraClass):'';}
 function confidenceBadge(m){var c=String(m.id_confidence||'').toLowerCase();if(!c)return '';var label={high:'ID confidence: High',medium:'ID confidence: Medium',low:'ID confidence: Low'}[c];return label?'<span class="min-conf-badge conf-'+c+'">'+label+'</span>':'';}
 function dossierCard(kicker,heading,bodyHTML,cls){if(!bodyHTML)return '';return '<section class="dossier-card'+(cls?' '+cls:'')+'"><div class="dossier-kicker">'+esc(kicker)+'</div><h3>'+esc(heading)+'</h3>'+bodyHTML+'</section>';}
+/* ---- the candidate map must AGREE with the record (2026-09-04) -------------
+   43 specimens now carry an accepted `locality_inferred`, and the old lead
+   sentence — "the record names no candidate" — sat a few hundred pixels above an
+   "inferred: …" block saying the opposite. ⚠️ The PINS are untouched: an inferred
+   origin never promotes a pin's likelihood tier (guard #170); at most a pin inside
+   the inferred state is TAGGED as consistent with it, an observation not evidence.
+   Mirrors index.html and friends_viewer.js — keep the wording in step. */
+function acceptedInference(m){var I=m&&m.locality_inferred;return (I&&I.status==='accepted')?I:null;}
+function infPinConsistent(I,label){
+  if(!I||!I.text||!label)return false;
+  var lab=String(label).toLowerCase(),GEN={'usa':1,'u.s.a.':1,'united states':1};
+  var parts=String(I.text).split(/[,(]/);
+  for(var i=0;i<parts.length;i++){var q=parts[i].replace(/\)/g,'').trim().toLowerCase();
+    if(q.length<4||GEN[q])continue;
+    if(lab.indexOf(q)>=0)return true;}
+  return false;
+}
+function candLeadHTML(m,C){
+  var I=acceptedInference(m);
+  var ctx=(C.b==='record')
+    ?'The pins below come from the record\u2019s own prose \u2014 <strong>possibilities, not provenance</strong>.'
+    :'The pins below are classic sources for this kind of material, <strong>shown for context only</strong>.';
+  if(I&&I.text){
+    return 'No locality is recorded, but the record carries an <strong>inferred origin</strong> \u2014 <strong>'+esc(I.text)+'</strong>'
+      +(I.confidence?', inferred at '+esc(I.confidence)+' confidence':'')
+      +' and only to state scope (see <em>Identification</em>). '+ctx;
+  }
+  if(I&&I.candidates&&I.candidates.length){
+    return 'No locality is recorded, and the record names <strong>two candidate districts</strong> without choosing between them \u2014 <strong>'
+      +I.candidates.map(function(c){return esc(c.text||'');}).join('</strong> and <strong>')
+      +'</strong> (see <em>Identification</em>). '+ctx;
+  }
+  return C.b==='record'
+    ?'No locality is recorded for this specimen. Its record names these places as possible sources \u2014 <strong>possibilities, not provenance</strong>.'
+    :'No locality is recorded, and the record names no candidate \u2014 <strong>classic sources for this kind of material, shown for context only</strong>.';
+}
+/* The featured-panel locality line, plus the inference when there is one, so the
+   featured panel and the modal never disagree. NOT part of the guard-#175 block. */
+function locLineHTML(m){
+  var base=esc(locStr(m.locality)),I=acceptedInference(m);
+  if(!I)return base;
+  var full=I.text||(I.candidates||[]).map(function(c){return c.text;}).filter(Boolean).join(' or ');
+  if(!full)return base;
+  return base+' <span class="loc-inferred" title="'+esc('Inferred, not recorded: '+full)+'">\u00b7 inferred: '+esc(full)+'</span>';
+}
 /* Possible origin (2026-09-04) — an ACCEPTED, reasoned inference about where a specimen
    with NO recorded locality came from. ⚠️ NEVER provenance (guards #168 / #170): the
    heading says "inferred, not recorded", the `locality` field is untouched, and a
@@ -754,7 +801,7 @@ function featuredHTML(){
     +'<div class="cw-feat-media"><img src="'+esc(img(h,1280))+'" alt="'+esc(title(m))+'" loading="eager" decoding="async" onerror="this.onerror=null;this.src=\''+PLACEHOLDER+'\'"></div>'
     +'<div class="cw-feat-badges">'+badges+'</div>'
     +'<div class="cw-feat-name">'+esc(title(m))+'</div>'
-    +'<div class="cw-feat-loc">'+esc(locStr(m.locality))+'</div>'
+    +'<div class="cw-feat-loc">'+locLineHTML(m)+'</div>'
     +(shortFlavor(m.flavor)?'<p class="cw-feat-flavor">'+esc(shortFlavor(m.flavor))+'</p>':'')
     +'<span class="cw-feat-cta">View specimen \u2192</span>'
     +'</section>';
@@ -935,13 +982,14 @@ function candMapHTML(m){
     +(seen.o?'<span class="min-ck"><span class="min-ck-dot min-cpin-bg-o"></span>possible</span>':'')
     +(seen.x?'<span class="min-ck"><span class="min-ck-dot min-ck-x">&#10005;</span>refuted</span>':'')
     +'</div>';
+  var infA=acceptedInference(m);
   var rows=P.map(function(p,i){
     var tag=p.t==='x'?'<span class="min-cand-xtag">refuted by the record</span>':'<span class="min-cand-lh min-cand-lh-'+(p.h||'p')+'">'+LH[p.h||'p']+'</span>';
+    /* Observation only — the tier above is NOT raised by it (guard #170). */
+    if(p.t!=='x'&&infPinConsistent(infA,p.l))tag+='<span class="min-cand-inftag">consistent with the inferred origin</span>';
     return '<div class="min-cand-row'+(p.t==='x'?' min-cand-xrow':' ')+'"><span class="min-cand-n'+(p.t==='x'?' min-cand-nx':' min-cand-n-'+(p.h||'p'))+'">'+(i+1)+'</span><div class="min-cand-txt"><strong>'+esc(p.l)+'</strong> '+tag+' — '+esc(p.r)+'</div></div>';
   }).join('');
-  var sub=C.b==='record'
-    ?'No locality is recorded for this specimen. Its record names these places as possible sources — <strong>possibilities, not provenance</strong>.'
-    :'No locality is recorded, and the record names no candidate — <strong>classic sources for this kind of material, shown for context only</strong>.';
+  var sub=candLeadHTML(m,C);
   return '<div class="min-region min-cand"><div class="min-region-h">&#127757; Where could it have come from?</div>'
     +'<div class="min-cand-sub">'+sub+'</div>'
     +'<div class="min-candmap'+(multi?' min-cand-multi':'')+'"'+(multi?' onclick="this.classList.toggle(\'cand-world\')" title="Tap to toggle the world view"':'')+'>'+svgs+'</div>'
