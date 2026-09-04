@@ -465,7 +465,7 @@ function _prefIndex(ctx){
 function _prefIcon(stem,i,ctx){
   var p=ctx.photos[i],thumb=ctx.url(p,400),full=ctx.url(p,1280),n=i+1;
   return '<a class="pref" href="'+full+'" target="_blank" rel="noopener" data-i="'+i+'" data-t="'+thumb+'" data-jump="'+(ctx.jump||'')+'"'
-    +' aria-label="Photo '+n+' ('+stem+')" title="Photo '+n+' — hover to preview, click to view"'
+    +' aria-label="Photo '+n+'" title="Photo '+n+' — hover to preview, click to view"'
     +' onclick="return _prefClick(this)" onmouseenter="_prefHover(this,1,event)" onmousemove="_prefHover(this,1,event)" onmouseleave="_prefHover(this,0)" onfocus="_prefHover(this,1)" onblur="_prefHover(this,0)">'
     +_PREF_SVG+'</a>';
 }
@@ -474,14 +474,18 @@ function linkPhotoRefs(html,ctx){
   var idx=_prefIndex(ctx);
   function one(stem){var i=idx[stem];return (i==null)?null:_prefIcon(stem,i,ctx);}
   _prefEnsureStyle();
-  /* a parenthesised group that is nothing but refs loses its parens: "(A, B)" -> two icons */
-  var out=String(html).replace(_PREF_GROUP_RE,function(whole,inner){
-    var stems=inner.match(/(?:RM|FS)-\d{4}_\d+/g)||[],icons=[];
-    for(var k=0;k<stems.length;k++){var ic=one(stems[k]);if(!ic)return whole;icons.push(ic);}
-    return '<span class="pref-grp">'+icons.join('')+'</span>';
-  });
-  /* any remaining lone ref becomes an icon; unknown stems stay as text */
-  return out.replace(_PREF_RE,function(whole){var ic=one(whole);return ic||whole;});
+  function pass(seg){
+    /* a parenthesised group that is nothing but refs loses its parens: "(A, B)" -> two icons */
+    var out=seg.replace(_PREF_GROUP_RE,function(whole,inner){
+      var stems=inner.match(/(?:RM|FS)-\d{4}_\d+/g)||[],icons=[];
+      for(var k=0;k<stems.length;k++){var ic=one(stems[k]);if(!ic)return whole;icons.push(ic);}
+      return '<span class="pref-grp">'+icons.join('')+'</span>';
+    });
+    /* any remaining lone ref becomes an icon; unknown stems stay as text */
+    return out.replace(_PREF_RE,function(whole){var ic=one(whole);return ic||whole;});
+  }
+  /* idempotent: text already inside an icon is never re-wrapped, so renderers may nest */
+  return String(html).split(/(<a class="pref"[\s\S]*?<\/a>)/g).map(function(seg,i){return i%2?seg:pass(seg);}).join('');
 }
 function _prefClick(a){
   var fn=a&&a.dataset&&a.dataset.jump?window[a.dataset.jump]:null;
@@ -493,7 +497,10 @@ function _prefHover(a,on,ev){
   if(!on){if(pop)pop.style.display='none';return;}
   if(window.matchMedia&&window.matchMedia('(hover:none)').matches)return;
   if(!pop){pop=document.createElement('div');pop.id='pref-pop';pop.innerHTML='<img alt="">';document.body.appendChild(pop);}
-  var im=pop.firstChild;if(im.getAttribute('src')!==a.dataset.t)im.src=a.dataset.t;
+  pop._a=a;pop._ev=ev&&typeof ev.clientX==='number'?{clientX:ev.clientX,clientY:ev.clientY}:null;
+  var im=pop.firstChild;
+  if(!im._wired){im._wired=1;im.onload=function(){if(pop.style.display==='block'&&pop._a)_prefHover(pop._a,1,pop._ev);};}
+  if(im.getAttribute('src')!==a.dataset.t)im.src=a.dataset.t;
   pop.style.display='block';
   var x,y;
   if(ev&&typeof ev.clientX==='number'){x=ev.clientX+16;y=ev.clientY+16;}
@@ -519,7 +526,8 @@ function richTextCore(raw){
     return '<div class="rt '+k[0]+'"><span class="rt-ic" aria-hidden="true">'+k[1]+'</span><p>'+body+'</p></div>';
   }).join('');
 }
-function richInline(raw){var s=String(raw==null?'':raw).trim();if(!s)return '';return esc(s).replace(/\*\*(.+?)\*\*/g,function(_,b){return '<strong>'+b+'</strong>';}).replace(/\*\*/g,'');}
+function richInline(raw){return linkPhotoRefs(richInlineCore(raw),_prefCtx());}
+function richInlineCore(raw){var s=String(raw==null?'':raw).trim();if(!s)return '';return esc(s).replace(/\*\*(.+?)\*\*/g,function(_,b){return '<strong>'+b+'</strong>';}).replace(/\*\*/g,'');}
 /* One crisp lead paragraph, then the FULL text collapsed behind a details (the lead repeats inside so the story stays intact). */
 function richTextSkim(raw,summaryLabel){
   var s=Array.isArray(raw)?raw.join('\n'):String(raw==null?'':raw);s=s.trim();if(!s)return '';
