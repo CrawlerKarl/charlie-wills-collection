@@ -810,7 +810,7 @@ function relatedHTML(m){
     return '<button class="related-card" type="button" onclick="showMineral(\''+esc(x.id)+'\')"><img src="'+esc(src)+'" loading="lazy" alt="" onerror="this.onerror=null;this.src=\''+PLACEHOLDER+'\'"><span class="related-card-copy"><strong>'+esc(shortCardTitle(title(x)))+'</strong><span>'+esc(shortLoc(x.locality))+'</span></span></button>';
   }).join('')+'</div></section>';
 }
-var PLACEHOLDER="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='90'%3E%3Crect width='120' height='90' fill='%23171e2c'/%3E%3Cpath d='M35 30h50l14 22-38 40-40-40z' fill='none' stroke='%232dd4bf' stroke-width='2' opacity='.5'/%3E%3C/svg%3E";
+var PLACEHOLDER="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27120%27 height=%2790%27%3E%3Crect width=%27120%27 height=%2790%27 fill=%27%23171e2c%27/%3E%3Cpath d=%27M35 30h50l14 22-38 40-40-40z%27 fill=%27none%27 stroke=%27%232dd4bf%27 stroke-width=%272%27 opacity=%27.5%27/%3E%3C/svg%3E";   // quotes percent-encoded: this URI is inlined inside onerror="…this.src='…'" (a raw quote there threw 'Unexpected identifier' on every 404 image, 2026-09-05)
 function minData(){return window.MINERALS||[];}
 function img(ph,size){return 'images/minerals/'+ph.f+'_'+size+'.jpg';}
 function hero(m){var ph=(m.photos||[]);return ph.filter(function(x){return x.hero;})[0]||ph[0]||null;}
