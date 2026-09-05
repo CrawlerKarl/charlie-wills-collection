@@ -460,7 +460,14 @@ function richB(t){var x=esc(t);return x.replace(/\*\*([^*]+)\*\*/g,function(_,b)
    — until the next tap, scroll or key — and leaves the main image where it was.
    Tapping that floating preview is the explicit second action that opens the
    frame. The popup lives on document.body, never inside the modal, whose
-   transform/backdrop-filter would re-anchor a fixed element. */
+   transform/backdrop-filter would re-anchor a fixed element.
+   SPECIMEN references get the same treatment: prose cites sibling pieces by catalog
+   number — "amber tabular barite RM-0037/0041", "goethite needles RM-0035/0036/0044" —
+   and the number stays as written (it IS the catalog number) with the same camera
+   beside it, previewing that specimen's hero and, on the second tap, opening it. The
+   host resolves an id through ctx.spec(id) -> {thumb,big} or null (its own id, or one
+   this build does not carry, resolves to null and stays plain text) and names the
+   open function in ctx.open. A stem's own "_7" suffix never reads as a specimen. */
 var _PREF_SEP_S='(?:\\s*(?:,|;|\\/|\\+|&amp;|&|and)\\s*)+';
 var _PREF_STEM_S='(?:RM|FS)-\\d{4}_\\d+';
 /* one loose stem. It is deliberately NOT chained: "(RM-0104_9, and RM-0104_12 under
@@ -479,7 +486,10 @@ var _PREF_TOK_RE=/((?:RM|FS)-\d{4})_(\d+)(_(?:200|400|1024|1280|2560))?|_(\d{1,2
 /* Rendered icons are stepped over on every later pass — a dimmed icon carries its own
    stem in a title, and an anchor carries three in its URLs, so a second pass that did
    not skip them would wrap a citation inside a citation. */
-var _PREF_ICON_SPLIT=/(<a class="pref"[\s\S]*?<\/a>|<span class="pref pref-off"[\s\S]*?<\/span>)/g;
+var _PREF_ICON_SPLIT=/(<a class="pref[^"]*"[\s\S]*?<\/a>|<span class="pref pref-off"[\s\S]*?<\/span>)/g;
+/* one specimen reference: a full id not followed by a frame suffix, or a "/0041" continuation
+   after one — two to four such continuations are how the records list a family */
+var _SREF_TOK_RE=/\b((?:RM|FS)-\d{4})(?![_\w])|\/(\d{4})(?![_\w])/g;
 var _PREF_SVG='<svg viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true" focusable="false"><path d="M9 4l-1.6 2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-2.4L15 4H9z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="13" r="3.4" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>';
 var _prefTimer=0,_prefStuck=0,_prefOff=null;
 function _prefEnsureStyle(){
@@ -512,6 +522,13 @@ function _prefIcon(stem,i,ctx){
 function _prefGap(stem){
   return '<span class="pref pref-off" title="'+stem+' — this frame is not published here"'
     +' aria-label="Photo '+stem+', not published here">'+_PREF_SVG+'</span>';
+}
+/* a sibling specimen: the camera sits AFTER the number, which stays as written */
+function _srefIcon(id,info,ctx){
+  return '<a class="pref sref" href="'+info.big+'" target="_blank" rel="noopener" data-i="'+id+'" data-t="'+info.thumb+'" data-b="'+info.big+'" data-jump="'+(ctx.open||'')+'"'
+    +' aria-label="Specimen '+id+'" title="'+id+' — tap to preview it here"'
+    +' onclick="return _prefClick(this,event)" onmouseenter="_prefHover(this,1,event)" onmousemove="_prefHover(this,1,event)" onmouseleave="_prefHover(this,0)" onfocus="_prefHover(this,1)" onblur="_prefHover(this,0)">'
+    +_PREF_SVG+'</a>';
 }
 /* One run of citations -> icons, separators collapsed into a tight strip. A stem the
    adapter cannot resolve keeps its plain text; `strict` is for a parenthesised run, whose
@@ -556,7 +573,19 @@ function linkPhotoRefs(html,ctx){
     });
   }
   /* idempotent: text already inside an icon is never re-wrapped, so renderers may nest */
-  return _prefOutside(html,pass);
+  var out=_prefOutside(html,pass);
+  if(typeof ctx.spec!=='function')return out;
+  /* specimen references, stepping over every icon drawn above; a "/0041" continuation
+     takes the prefix of the last full id in the same text run */
+  return _prefOutside(out,function(seg){
+    var pre=null;
+    return seg.replace(_SREF_TOK_RE,function(w,full,cont){
+      var id;
+      if(full){pre=full.slice(0,3);id=full;}else{if(!pre)return w;id=pre+cont;}
+      var info=ctx.spec(id);
+      return (info&&info.thumb&&info.big)?w+_srefIcon(id,info,ctx):w;
+    });
+  });
 }
 function _prefPop(){
   var pop=document.getElementById('pref-pop');
@@ -564,7 +593,7 @@ function _prefPop(){
     pop=document.createElement('div');pop.id='pref-pop';pop.innerHTML='<img alt="">';
     pop.onclick=function(){
       var a=pop._a,fn=(a&&a.dataset&&a.dataset.jump)?window[a.dataset.jump]:null;
-      if(typeof fn==='function'){var i=parseInt(a.dataset.i,10);_prefHide();fn(i);}
+      if(typeof fn==='function'){var i=a.dataset.i;_prefHide();fn(/^\d+$/.test(i)?parseInt(i,10):i);}
     };
     document.body.appendChild(pop);
   }
@@ -645,7 +674,7 @@ function _prefPlace(pop,a,ev,stick){
 }
 /* ---- end shared photo references ------------------------------------------- */
 function richText(raw){return linkPhotoRefs(richTextCore(raw),_prefCtx());}
-function _prefCtx(){var m=(typeof curM==='function')?curM():null;var P=(m&&typeof photosOf==='function')?photosOf(m):[];return{photos:P,url:img,jump:'photoShow'};}
+function _prefCtx(){var m=(typeof curM==='function')?curM():null;var P=(m&&typeof photosOf==='function')?photosOf(m):[];return{photos:P,url:img,jump:'photoShow',open:'showMineral',spec:function(id){if(m&&m.id===id)return null;var x=minData().find(function(y){return y.id===id;});var h=x?hero(x):null;return h?{thumb:img(h,200),big:img(h,1280)}:null;}};}
 function richTextCore(raw){
   var s=Array.isArray(raw)?raw.join('\n'):String(raw==null?'':raw);s=s.trim();if(!s)return '';
   s=esc(s).replace(/\*\*(.+?)\*\*/g,function(_,b){return '<strong>'+b+'</strong>';}).replace(/\*\*/g,'');
@@ -760,9 +789,9 @@ function inferredOriginHTML(m){
     ?'<p class="ident-inf-lead"><strong>'+esc(I.text)+'</strong>'+(I.confidence?' <span class="ident-inf-conf">'+esc(I.confidence)+' confidence</span>':'')+'</p>'
     :(cands.length?'<p class="ident-inf-lead">Two possible origins, deliberately not narrowed to one:</p>':'');
   if(!lead)return '';
-  var list=cands.length?'<ul class="alt-list">'+cands.map(function(c){return '<li><strong>'+esc(c.text||'')+'</strong>'+(c.note?' \u2014 '+esc(c.note):'')+'</li>';}).join('')+'</ul>':'';
-  var why=(basis.length?'<div class="ident-sub">What the inference rests on</div><ul class="alt-list">'+basis.map(function(b){return '<li>'+esc(b)+'</li>';}).join('')+'</ul>':'')
-    +(alts.length?'<div class="ident-sub">Other possibilities</div><ul class="alt-list">'+alts.map(function(a){return '<li>'+esc(a.text||'')+(a.note?' \u2014 '+esc(a.note):'')+'</li>';}).join('')+'</ul>':'');
+  var list=cands.length?'<ul class="alt-list">'+cands.map(function(c){return '<li><strong>'+esc(c.text||'')+'</strong>'+(c.note?' \u2014 '+richInline(c.note):'')+'</li>';}).join('')+'</ul>':'';
+  var why=(basis.length?'<div class="ident-sub">What the inference rests on</div><ul class="alt-list">'+basis.map(function(b){return '<li>'+richInline(b)+'</li>';}).join('')+'</ul>':'')
+    +(alts.length?'<div class="ident-sub">Other possibilities</div><ul class="alt-list">'+alts.map(function(a){return '<li>'+richInline(a.text||'')+(a.note?' \u2014 '+richInline(a.note):'')+'</li>';}).join('')+'</ul>':'');
   return '<div class="ident-inferred"><div class="ident-sub">Possible origin \u2014 <em>inferred, not recorded</em></div>'
     +lead+list
     +'<p class="ident-inf-warn">No label or dealer card records a locality for this specimen. This is a reasoned possibility read from the piece itself \u2014 <strong>not provenance</strong>.</p>'
