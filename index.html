@@ -432,29 +432,62 @@ function richB(t){var x=esc(t);return x.replace(/\*\*([^*]+)\*\*/g,function(_,b)
 /* ---- rich text + skim-first collapsibles (ported from the private viewer's friends_viewer.js, 2026-09-03) ---- */
 /* ---- shared photo references — guard #181 · DO NOT EDIT ONE COPY --------------
    A specimen record cites its own frames by stem — "RM-0103_12" — wherever the
-   prose needs a witness. Read as text those citations are noise; rendered as a
-   tiny camera that previews the frame on hover and jumps the carousel on click,
-   they are the evidence. This block is byte-identical in three viewers — the
-   collection dashboard's Minerals tab, the private full-collection viewer, and the
-   public Charlie Wills viewer — and kept that way by a test, not by discipline.
+   prose needs a witness, and once one is on the page it keeps going in shorthand:
+   "(RM-0029_4 overview, _5/_7 macros)". Read as text those citations are noise;
+   rendered as a tiny camera that shows the frame, they are the evidence. This
+   block is byte-identical in three viewers — the collection dashboard's Minerals
+   tab, the private full-collection viewer, and the public Charlie Wills viewer —
+   and kept that way by a test, not by discipline.
    It reads NOTHING from any viewer: the host passes an adapter
    { photos:[{f}], url(p,size), jump:'fnName' } and the block resolves a stem to
-   an index, a thumbnail URL and a click target through that alone. A stem the
-   adapter cannot resolve (another specimen, a frame not in this build) is left
-   as the plain text it was. Popup lives on document.body — never inside the
-   modal, whose transform/backdrop-filter would re-anchor a fixed element. */
-var _PREF_RE=/\b((?:RM|FS)-\d{4})_(\d+)\b/g;
-var _PREF_GROUP_RE=/\(\s*((?:RM|FS)-\d{4}_\d+(?:\s*(?:,|;|and|&amp;|\/)\s*(?:RM|FS)-\d{4}_\d+)*)\s*\)/g;
+   an index, a thumbnail URL and a tap target through that alone. A stem the
+   adapter cannot resolve is not silently dropped and not left as raw text either:
+   if it is one of THIS specimen's own frames the build did not carry — a dealer
+   card withheld because it shows a price, a misfire the record left unwired — it
+   renders as a dimmed, inert camera that says so. A stem naming some OTHER
+   specimen is prose, and stays prose.
+   ⚠️ The preview asks for the 200 and 1280 renders ONLY — the two sizes every
+   build emits for every frame. A 400 exists for heroes alone, so asking for one
+   showed a broken image on exactly the frames the prose cites.
+   ⚠️ A click NEVER moves the carousel. The reader is reading beside the photo he
+   chose, so a citation holds its frame hovering in front of him for a few seconds
+   — until the next tap, scroll or key — and leaves the main image where it was.
+   Tapping that floating preview is the explicit second action that opens the
+   frame. The popup lives on document.body, never inside the modal, whose
+   transform/backdrop-filter would re-anchor a fixed element. */
+var _PREF_SEP_S='(?:\\s*(?:,|;|\\/|\\+|&amp;|&|and)\\s*)+';
+var _PREF_STEM_S='(?:RM|FS)-\\d{4}_\\d+';
+/* one loose stem. It is deliberately NOT chained: "(RM-0104_9, and RM-0104_12 under
+   warm room light)" must keep its "and", because the author wrote those two out
+   separately and the words between them carry meaning. The trailing (?!\w) is
+   load-bearing: without it this would re-match a stem inside an icon's own
+   "…RM-0104_7_200.jpg" URL and nest anchors inside anchors. */
+var _PREF_RE=new RegExp('\\b('+_PREF_STEM_S+')(?!\\w)','g');
+/* a parenthesised run that is nothing but references — there the parentheses go and the
+   icons close up, because a bare "(A, B)" was never prose in the first place */
+var _PREF_GROUP_RE=new RegExp('\\(\\s*('+_PREF_STEM_S+'(?:'+_PREF_SEP_S+_PREF_STEM_S+')*)\\s*\\)','g');
+/* one citation token: a full stem (with an optional render size the prose sometimes
+   quotes, "RM-0008_1_2560"), or a bare "_6" continuation. Two digits at most, so a
+   camera filename ("PXL_20260901_2218…") and a render size can never be mistaken for one. */
+var _PREF_TOK_RE=/((?:RM|FS)-\d{4})_(\d+)(_(?:200|400|1024|1280|2560))?|_(\d{1,2})(?!\d)/g;
+/* Rendered icons are stepped over on every later pass — a dimmed icon carries its own
+   stem in a title, and an anchor carries three in its URLs, so a second pass that did
+   not skip them would wrap a citation inside a citation. */
+var _PREF_ICON_SPLIT=/(<a class="pref"[\s\S]*?<\/a>|<span class="pref pref-off"[\s\S]*?<\/span>)/g;
 var _PREF_SVG='<svg viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true" focusable="false"><path d="M9 4l-1.6 2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-2.4L15 4H9z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="13" r="3.4" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>';
+var _prefTimer=0,_prefStuck=0,_prefOff=null;
 function _prefEnsureStyle(){
   if(document.getElementById('pref-style'))return;
   var st=document.createElement('style');st.id='pref-style';
   st.textContent='.pref{display:inline-block;vertical-align:-0.15em;margin:0 1px;line-height:0;color:inherit;opacity:.72;text-decoration:none;cursor:pointer;border-radius:4px;padding:0 1px}'
     +'.pref:hover,.pref:focus-visible{opacity:1;outline:none;background:rgba(127,127,127,.18)}'
     +'.pref+.pref{margin-left:2px}'
+    +'.pref-off{opacity:.34;cursor:default}'
+    +'.pref-off:hover,.pref-off:focus{opacity:.34;background:none}'
     +'#pref-pop{position:fixed;z-index:100000;pointer-events:none;display:none;padding:4px;border-radius:10px;background:#0b0e14;box-shadow:0 10px 30px rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.14)}'
     +'#pref-pop img{display:block;max-width:min(280px,42vw);max-height:min(280px,42vh);border-radius:7px}'
-    +'@media(hover:none){#pref-pop{display:none!important}}';
+    +'#pref-pop.pref-stuck{pointer-events:auto;cursor:zoom-in;border-color:rgba(255,255,255,.30)}'
+    +'#pref-pop.pref-stuck img{max-width:min(360px,84vw);max-height:min(360px,52vh)}';
   document.head.appendChild(st);
 }
 function _prefIndex(ctx){
@@ -463,51 +496,145 @@ function _prefIndex(ctx){
   return idx;
 }
 function _prefIcon(stem,i,ctx){
-  var p=ctx.photos[i],thumb=ctx.url(p,400),full=ctx.url(p,1280),n=i+1;
-  return '<a class="pref" href="'+full+'" target="_blank" rel="noopener" data-i="'+i+'" data-t="'+thumb+'" data-jump="'+(ctx.jump||'')+'"'
-    +' aria-label="Photo '+n+'" title="Photo '+n+' — hover to preview, click to view"'
-    +' onclick="return _prefClick(this)" onmouseenter="_prefHover(this,1,event)" onmousemove="_prefHover(this,1,event)" onmouseleave="_prefHover(this,0)" onfocus="_prefHover(this,1)" onblur="_prefHover(this,0)">'
+  var p=ctx.photos[i],thumb=ctx.url(p,200),big=ctx.url(p,1280),n=i+1;
+  return '<a class="pref" href="'+big+'" target="_blank" rel="noopener" data-i="'+i+'" data-t="'+thumb+'" data-b="'+big+'" data-jump="'+(ctx.jump||'')+'"'
+    +' aria-label="Photo '+n+'" title="Photo '+n+' — tap to preview it here"'
+    +' onclick="return _prefClick(this,event)" onmouseenter="_prefHover(this,1,event)" onmousemove="_prefHover(this,1,event)" onmouseleave="_prefHover(this,0)" onfocus="_prefHover(this,1)" onblur="_prefHover(this,0)">'
     +_PREF_SVG+'</a>';
+}
+/* a frame this build does not carry — say so rather than print a bare stem */
+function _prefGap(stem){
+  return '<span class="pref pref-off" title="'+stem+' — this frame is not published here"'
+    +' aria-label="Photo '+stem+', not published here">'+_PREF_SVG+'</span>';
+}
+/* One run of citations -> icons, separators collapsed into a tight strip. A stem the
+   adapter cannot resolve keeps its plain text; `strict` is for a parenthesised run, whose
+   parentheses may only be dropped when nothing is left behind that needs them. */
+function _prefRun(run,one,strict){
+  var stems=run.match(/(?:RM|FS)-\d{4}_\d+/g)||[],icons=[],all=1;
+  for(var k=0;k<stems.length;k++){var ic=one(stems[k]);if(ic)icons.push(ic);else all=0;}
+  if(!icons.length||(strict&&!all))return null;
+  if(all)return icons.length===1?icons[0]:'<span class="pref-grp">'+icons.join('')+'</span>';
+  return run.replace(/(?:RM|FS)-\d{4}_\d+/g,function(w){return one(w)||w;});
+}
+function _prefOutside(html,fn){
+  return String(html).split(_PREF_ICON_SPLIT).map(function(seg,i){return i%2?seg:fn(seg);}).join('');
 }
 function linkPhotoRefs(html,ctx){
   if(!html||!ctx||!ctx.photos||!ctx.photos.length||typeof ctx.url!=='function')return html;
   var idx=_prefIndex(ctx);
+  var seed=(((ctx.photos[0]||{}).f||'').match(/^((?:RM|FS)-\d{4})_/)||[])[1]||null;
   function one(stem){var i=idx[stem];return (i==null)?null:_prefIcon(stem,i,ctx);}
+  /* a written-out stem of THIS specimen that the build does not carry still gets an
+     icon, dimmed and inert. Shorthand is held to the stricter `one`: a bare "_12"
+     that resolves to nothing was probably never a citation. */
+  function oneOrGap(stem){return one(stem)||((seed&&stem.indexOf(seed+'_')===0)?_prefGap(stem):null);}
   _prefEnsureStyle();
+  /* A record cites its first frame in full and then keeps going in shorthand —
+     "(RM-0029_4 overview, _5/_7 macros)". Normalise those to full stems as TEXT first,
+     so the icon passes below never have to reason about them, and so a "_6" only ever
+     becomes a citation when this specimen really has that frame. The specimen's own
+     prefix seeds it, which is how a lone "photo _16" still resolves. */
   function pass(seg){
-    /* a parenthesised group that is nothing but refs loses its parens: "(A, B)" -> two icons */
-    var out=seg.replace(_PREF_GROUP_RE,function(whole,inner){
-      var stems=inner.match(/(?:RM|FS)-\d{4}_\d+/g)||[],icons=[];
-      for(var k=0;k<stems.length;k++){var ic=one(stems[k]);if(!ic)return whole;icons.push(ic);}
-      return '<span class="pref-grp">'+icons.join('')+'</span>';
+    var pre=seed;
+    var s=seg.replace(_PREF_TOK_RE,function(w,a,b,sz,c){
+      if(a){pre=a;return sz?a+'_'+b:w;}   /* a quoted render size is still just that frame */
+      if(!pre)return w;
+      var stem=pre+'_'+c;return one(stem)?stem:w;
     });
-    /* any remaining lone ref becomes an icon; unknown stems stay as text */
-    return out.replace(_PREF_RE,function(whole){var ic=one(whole);return ic||whole;});
+    /* a parenthesised run that is nothing but refs loses its parens: "(A, B)" -> two icons */
+    var out=s.replace(_PREF_GROUP_RE,function(whole,inner){return _prefRun(inner,oneOrGap,1)||whole;});
+    /* any remaining run becomes icons, stepping over what the pass above already drew */
+    return _prefOutside(out,function(x){
+      return x.replace(_PREF_RE,function(whole){return _prefRun(whole,oneOrGap,0)||whole;});
+    });
   }
   /* idempotent: text already inside an icon is never re-wrapped, so renderers may nest */
-  return String(html).split(/(<a class="pref"[\s\S]*?<\/a>)/g).map(function(seg,i){return i%2?seg:pass(seg);}).join('');
+  return _prefOutside(html,pass);
 }
-function _prefClick(a){
-  var fn=a&&a.dataset&&a.dataset.jump?window[a.dataset.jump]:null;
-  if(typeof fn==='function'){_prefHover(a,0);fn(parseInt(a.dataset.i,10));return false;}
-  return true;
+function _prefPop(){
+  var pop=document.getElementById('pref-pop');
+  if(!pop){
+    pop=document.createElement('div');pop.id='pref-pop';pop.innerHTML='<img alt="">';
+    pop.onclick=function(){
+      var a=pop._a,fn=(a&&a.dataset&&a.dataset.jump)?window[a.dataset.jump]:null;
+      if(typeof fn==='function'){var i=parseInt(a.dataset.i,10);_prefHide();fn(i);}
+    };
+    document.body.appendChild(pop);
+  }
+  return pop;
+}
+function _prefHide(){
+  var pop=document.getElementById('pref-pop');
+  if(_prefTimer){clearTimeout(_prefTimer);_prefTimer=0;}
+  if(_prefOff){_prefOff();_prefOff=null;}
+  _prefStuck=0;
+  if(pop){pop.style.display='none';pop.className='';}
+}
+/* click/tap: hold the frame in front of the reader — never move the carousel. */
+function _prefClick(a,ev){
+  if(ev&&ev.preventDefault)ev.preventDefault();
+  _prefShow(a,null,1);
+  return false;
 }
 function _prefHover(a,on,ev){
-  var pop=document.getElementById('pref-pop');
-  if(!on){if(pop)pop.style.display='none';return;}
+  if(!on){if(!_prefStuck)_prefHide();return;}
+  if(_prefStuck)return;
   if(window.matchMedia&&window.matchMedia('(hover:none)').matches)return;
-  if(!pop){pop=document.createElement('div');pop.id='pref-pop';pop.innerHTML='<img alt="">';document.body.appendChild(pop);}
-  pop._a=a;pop._ev=ev&&typeof ev.clientX==='number'?{clientX:ev.clientX,clientY:ev.clientY}:null;
-  var im=pop.firstChild;
-  if(!im._wired){im._wired=1;im.onload=function(){if(pop.style.display==='block'&&pop._a)_prefHover(pop._a,1,pop._ev);};}
-  if(im.getAttribute('src')!==a.dataset.t)im.src=a.dataset.t;
+  _prefShow(a,ev,0);
+}
+function _prefShow(a,ev,stick){
+  var pop=_prefPop(),im=pop.firstChild;
+  if(_prefTimer){clearTimeout(_prefTimer);_prefTimer=0;}
+  if(_prefOff){_prefOff();_prefOff=null;}
+  pop._a=a;pop._ev=(!stick&&ev&&typeof ev.clientX==='number')?{clientX:ev.clientX,clientY:ev.clientY}:null;
+  if(!im._wired){im._wired=1;im.onload=function(){if(pop.style.display==='block'&&pop._a)_prefPlace(pop,pop._a,pop._ev,_prefStuck);};}
+  if(im.getAttribute('data-for')!==a.dataset.t){
+    im.setAttribute('data-for',a.dataset.t);im.src=a.dataset.t;
+    /* the 200 lands instantly; the 1280 replaces it in place once it arrives */
+    if(a.dataset.b&&a.dataset.b!==a.dataset.t){
+      var big=new Image();
+      big.onload=function(){if(im.getAttribute('data-for')===a.dataset.t)im.src=a.dataset.b;};
+      big.src=a.dataset.b;
+    }
+  }
+  _prefStuck=stick?1:0;
+  pop.className=stick?'pref-stuck':'';
   pop.style.display='block';
-  var x,y;
-  if(ev&&typeof ev.clientX==='number'){x=ev.clientX+16;y=ev.clientY+16;}
-  else{var r=a.getBoundingClientRect();x=r.right+8;y=r.top-8;}
-  var W=window.innerWidth,H=window.innerHeight,pw=pop.offsetWidth||300,ph=pop.offsetHeight||300;
-  if(x+pw>W-8)x=Math.max(8,(ev&&typeof ev.clientX==='number'?ev.clientX:x)-pw-16);
-  if(y+ph>H-8)y=Math.max(8,H-8-ph);
+  _prefPlace(pop,a,pop._ev,stick);
+  if(!stick)return;
+  _prefTimer=setTimeout(_prefHide,3200);
+  var away=function(e){if(e&&e.target&&pop.contains(e.target))return;_prefHide();};
+  /* armed on the next tick so the tap that opened this does not also close it */
+  var arm=setTimeout(function(){
+    document.addEventListener('pointerdown',away,true);
+    document.addEventListener('keydown',_prefHide,true);
+    window.addEventListener('scroll',_prefHide,true);
+    window.addEventListener('wheel',_prefHide,true);
+    window.addEventListener('resize',_prefHide,true);
+  },0);
+  _prefOff=function(){
+    clearTimeout(arm);
+    document.removeEventListener('pointerdown',away,true);
+    document.removeEventListener('keydown',_prefHide,true);
+    window.removeEventListener('scroll',_prefHide,true);
+    window.removeEventListener('wheel',_prefHide,true);
+    window.removeEventListener('resize',_prefHide,true);
+  };
+}
+function _prefPlace(pop,a,ev,stick){
+  var W=window.innerWidth,H=window.innerHeight,pw=pop.offsetWidth||300,ph=pop.offsetHeight||300,x,y;
+  if(!stick&&ev&&typeof ev.clientX==='number'){
+    x=ev.clientX+16;y=ev.clientY+16;
+    if(x+pw>W-8)x=Math.max(8,ev.clientX-pw-16);
+    if(y+ph>H-8)y=Math.max(8,H-8-ph);
+  }else{
+    var r=a.getBoundingClientRect();
+    x=r.left+r.width/2-pw/2;y=r.bottom+10;
+    if(y+ph>H-8)y=r.top-10-ph;
+    if(y<8)y=Math.max(8,Math.min(r.bottom+10,H-8-ph));
+    x=Math.max(8,Math.min(x,W-8-pw));
+  }
   pop.style.left=x+'px';pop.style.top=y+'px';
 }
 /* ---- end shared photo references ------------------------------------------- */
@@ -533,7 +660,9 @@ function richTextSkim(raw,summaryLabel){
   var s=Array.isArray(raw)?raw.join('\n'):String(raw==null?'':raw);s=s.trim();if(!s)return '';
   if(s.length<=260)return richText(s);
   var lead;var b=s.match(/\*\*([^*]{30,}?[.!?])\*\*/);
-  if(b){lead='<p class="rt rt-lead"><strong>'+esc(b[1])+'</strong></p>';}
+  /* richInline, not esc: the bold lead is prose like any other and routinely carries the
+     record's photo citations — escaping it left them as raw "RM-0104_7" text (guard #181). */
+  if(b){lead='<p class="rt rt-lead"><strong>'+richInline(b[1])+'</strong></p>';}
   else{
     var plain=s.replace(/⭐⭐\s*/g,' ').replace(/(?:⚠️⚠️|⚠⚠)\s*/g,' ').replace(/⭐\s*/g,' ').replace(/⚠️?\s*/g,' ').replace(/✅\s*/g,' ').replace(/\s+/g,' ').trim();
     var cut=plain.match(/[a-z\)]\.\s+(?=[A-Z0-9~])/);var first=cut?plain.slice(0,cut.index+2).trim():plain;
