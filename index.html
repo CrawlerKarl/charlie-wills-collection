@@ -41,16 +41,16 @@ main{padding:18px 0 40px}
 .sv{font-size:1.5rem;font-weight:800;margin-top:2px}
 .sc.gn .sv{color:var(--teal)}.sc.cy .sv{color:var(--cyn)}
 /* story (always visible, newspaper photo prominent at top) */
-.cw-story{background:var(--card);border:1px solid var(--bdr);border-radius:14px;padding:18px;margin-bottom:14px;display:grid;grid-template-columns:340px 1fr;gap:22px;align-items:start}
+.cw-story{background:var(--card);border:1px solid var(--bdr);border-radius:14px;padding:14px 16px;margin-bottom:14px;display:grid;grid-template-columns:150px 1fr;gap:22px;align-items:start}
 .cw-story-photo{margin:0}
 .cw-story-photo a{display:block}
-.cw-story-photo img{width:auto;max-width:100%;max-height:300px;border-radius:10px;border:1px solid var(--bdr);display:block;cursor:zoom-in;margin:0 auto}
-.cw-story-photo figcaption{font-size:0.8rem;line-height:1.5;color:var(--t3);margin-top:8px}
-.cw-story-text h2{font-size:1.35rem;font-weight:800;margin:0 0 9px;line-height:1.2}
+.cw-story-photo img{width:auto;max-width:100%;max-height:150px;border-radius:8px;border:1px solid var(--bdr);display:block;cursor:zoom-in;margin:0 auto}
+.cw-story-photo figcaption{font-size:0.7rem;line-height:1.35;color:var(--t3);margin-top:5px;text-align:center}
+.cw-story-text h2{font-size:1.15rem;font-weight:800;margin:0 0 6px;line-height:1.2}
 .cw-story-text p{font-size:0.95rem;line-height:1.62;color:var(--t2);margin:0 0 10px}
 .cw-story-text p:last-child{margin-bottom:0}
 .cw-story-text a{color:#2dd4bf}
-@media(max-width:760px){.cw-story{grid-template-columns:1fr;gap:14px;padding:15px}.cw-story-photo img{max-width:100%;max-height:230px}}
+@media(max-width:760px){.cw-story{display:block;padding:12px}.cw-story-photo{float:left;width:104px;margin:0 12px 2px 0}.cw-story-photo img{max-width:100%;max-height:140px}.cw-story-text h2{font-size:1.02rem}.cw-story-lead{font-size:0.9rem!important;line-height:1.5!important}.cw-story-more{clear:both}} /* phone: the text wraps under the thumbnail instead of stacking beside it */
 /* filter bar */
 /* Search stays visible; the rest collapses behind one control on phones. */
 .pf-shell{margin-bottom:12px}
@@ -279,10 +279,9 @@ body.cw-fs-on{overflow:hidden}
 /* Charlie's story OPENS the page again (owner, 2026-09-05): the newspaper photo and a
    two-sentence lead are always visible; the whole story — and the 1957 article transcribed —
    sits behind one dropdown, so the collection is still one scroll away. */
-.cw-story{margin-top:0;margin-bottom:14px;grid-template-columns:300px 1fr;align-items:start}
-@media(max-width:760px){.cw-story{grid-template-columns:1fr}}
-.cw-story-lead{font-size:1rem!important;line-height:1.6!important;color:var(--t1)!important}
-.cw-story-more{margin-top:10px}
+.cw-story{margin-top:0;margin-bottom:12px;align-items:start}
+.cw-story-lead{font-size:0.95rem!important;line-height:1.55!important;color:var(--t1)!important;margin:0 0 4px!important}
+.cw-story-more{margin-top:4px}
 .cw-story .cw-story-more>summary{font-size:0.95rem;letter-spacing:0;text-transform:none;color:#2dd4bf;font-weight:700} /* outranks .mq-more>summary (same specificity, later in the file) */
 .cw-story .cw-story-more>summary:hover{color:var(--gold)}
 .cw-story .cw-story-more[open]>summary{margin-bottom:10px}
@@ -1070,10 +1069,11 @@ function featuredHTML(){
 }
 function storyHTML(){
   return '<section class="cw-story">'
-    +'<figure class="cw-story-photo"><a href="images/minerals/charlie_wills_1957_article.jpg" target="_blank" rel="noopener" title="Open full size"><img src="images/minerals/charlie_wills_1957_article.jpg" loading="eager" alt="1957 Detroit Times feature ‘Rock Hound An Expert Now’ — Charles V. Wills and his wife Ann showing rock specimens to his grandson Thomas J. Herman"></a><figcaption>📰 “‘Rock Hound’ An Expert Now,” <em>Detroit Times</em>, 1957 (by Margaret Russell) — Charlie and Ann Wills showing specimens to his grandson Thomas J. Herman. Tap to enlarge.</figcaption></figure>'
+    +'<figure class="cw-story-photo"><a href="images/minerals/charlie_wills_1957_article.jpg" target="_blank" rel="noopener" title="Open full size"><img src="images/minerals/charlie_wills_1957_article.jpg" loading="eager" alt="1957 Detroit Times feature ‘Rock Hound An Expert Now’ — Charles V. Wills and his wife Ann showing rock specimens to his grandson Thomas J. Herman"></a><figcaption><em>Detroit Times</em>, April 30, 1957 · tap to enlarge</figcaption></figure>'
     +'<div class="cw-story-text"><h2>A lifelong rock hound</h2>'
     +'<p class="cw-story-lead"><strong>Charles V. “Charlie” Wills</strong> (Ishpeming, Michigan, December 27, 1872 – Tempe, Arizona, January 13, 1964) started collecting minerals at ten and was still at it at eighty-five: a mining electrician of Michigan’s Copper Country and the copper mines of Bisbee, Arizona. These are the pieces he kept at home; his main collection went to Michigan Tech.</p>'
     +'<details class="mq-more rt-more cw-story-more"><summary>Charlie’s whole story</summary>'
+    +'<p class="cw-note">📰 The photograph: “‘Rock Hound’ An Expert Now,” <em>Detroit Times</em>, April 30, 1957, by Margaret Russell — Charlie and Ann Wills showing specimens to his grandson Thomas J. Herman.</p>'
     +'<p>Charlie was born on December 27, 1872 in Ishpeming, in Michigan’s iron and copper country, and raised in <strong>Calumet</strong>. He was a rock hound from boyhood: he began collecting at ten, and at eleven his father gave him a piece of quartz shot through with gold from a mine near Ishpeming — “most people say there never was any gold in Michigan,” he liked to point out. That piece, he said, cemented the hobby for life. “For years I was what they call a ‘rock hound.’ That means anyone who collects and even polishes rocks. Then later I kind of graduated into collecting these crystallized mineral specimens.”</p>'
     +'<p>He trained as an electrician for the copper mines. Around 1900 he traveled by buckboard to pre-statehood Arizona; in 1901 he married Elizabeth Nekervis, a Houghton County girl, and their son was born the next year. He spent seven years as an electrician for five copper mines near <strong>Bisbee</strong> — the museum that holds his collection records him as an electrical engineer of the Calumet and Arizona mine, a Bisbee company founded in 1901 by Calumet men, and later of Phelps Dodge, which absorbed it in 1931. He staked mining claims of his own — some thirty near Bisbee, which he later sold at what he called a “good profit,” and a silver claim in Mexico that never produced. “I learned a lot about geology in those days,” he said, “information that has been of tremendous help to me in my collecting.”</p>'
     +'<p>He became so respected a collector that miners would halt a shaft and call him in to extract a large crystal. His main collection went to the Michigan College of Mines (now Michigan Technological University) on his death; it is held today in the <a href="https://museum.mtu.edu/" target="_blank" rel="noopener">A.E. Seaman Mineral Museum</a>, which lists it among its <a href="https://museum.mtu.edu/sites/default/files/2019-11/Past-Major-Acquisitions_0.pdf" target="_blank" rel="noopener">major past acquisitions</a> — the family recalls that the Smithsonian had sought it too. The specimens shown here are the smaller pieces Charlie gave his wife, <strong>Anna</strong> (“Ann” in the article).</p>'
