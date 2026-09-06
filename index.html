@@ -240,6 +240,7 @@ body.cw-fs-on{overflow:hidden}
 .min-cand-xrow{opacity:0.75}
 .min-cand-xtag{font-size:0.7rem;font-weight:700;color:#f87171;text-transform:uppercase;letter-spacing:0.05em}
 .min-cand-note{font-size:0.78rem;line-height:1.5;color:var(--t3);font-style:italic;border-top:1px dashed var(--bdr2);padding-top:7px}
+.min-origin-chips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 10px}.min-origin-chip{display:inline-flex;align-items:center;gap:6px;max-width:100%;box-sizing:border-box;padding:3px 9px 3px 4px;border-radius:999px;border:1px solid var(--bdr2);background:rgba(148,163,184,0.06);font-size:0.8rem;line-height:1.2;color:var(--t1)}.min-origin-l{min-width:0;white-space:normal}.min-origin-n{flex:0 0 18px;width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:0.68rem;font-weight:800;color:#0b1220;background:var(--gold,#f59e0b)}.min-origin-chip-l .min-origin-n{background:#22c55e}.min-origin-chip-o .min-origin-n{background:#94a3b8}.min-origin-chip-x .min-origin-n{background:#4a5568;color:#e2e8f0}.min-origin-t{font-size:0.62rem;font-weight:800;text-transform:uppercase;letter-spacing:0.05em;padding:1px 6px;border-radius:5px;color:#fbbf24;background:rgba(245,158,11,0.12)}.min-origin-chip-l .min-origin-t{color:#4ade80;background:rgba(34,197,94,0.12)}.min-origin-chip-o .min-origin-t{color:#a8b3c4;background:rgba(148,163,184,0.14)}.min-origin-chip-x{opacity:.75}.min-origin-chip-x .min-origin-l{text-decoration:line-through}.min-origin-chip-x .min-origin-t{color:#f87171;background:rgba(248,113,113,0.12)}.min-origin-fold{margin-top:4px}.min-origin-fold>summary{cursor:pointer;font-size:0.82rem;font-weight:700;color:var(--t2);padding:6px 0}.min-origin-fold>summary:hover{color:var(--gold,#f59e0b)}.min-origin-fold .min-cand-sub{margin-top:8px}
 .min-cpin{stroke:#0b1220}
 .min-cpin-l,.min-cpin-bg-l{fill:#22c55e;background:#22c55e}
 .min-cpin-p,.min-cpin-bg-p{fill:var(--gold,#f59e0b);background:var(--gold,#f59e0b)}
@@ -437,6 +438,21 @@ body.cw-fs-on{overflow:hidden}
 function esc(s){return s==null?'':String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function richB(t){var x=esc(t);return x.replace(/\*\*([^*]+)\*\*/g,function(_,b){return '<strong>'+b+'</strong>';}).replace(/\*\*/g,'');}
 /* ---- rich text + skim-first collapsibles (ported from the private viewer's friends_viewer.js, 2026-09-03) ---- */
+/* ---- shared origin fold — guard #189 · DO NOT EDIT ONE COPY ---------------
+   The "where could it have come from?" pane runs long: a lead, a per-pin
+   reason for every candidate, the district imagery, and a closing note. The
+   owner (2026-09-06) wants the ANSWER visible and the ARGUMENT one tap away:
+   a numbered row of place chips carrying their likelihood tier (likely /
+   plausible / possible, or refuted), then ONE disclosure holding everything
+   else. Chips mirror the map's numbering and colours, so the map and the row
+   read as one figure. This block takes plain values (the projected pin list
+   and a tier-word map) and returns HTML; it reads nothing from a viewer.
+   Byte-identical in the three viewers (guard #189, the #175/#181/#188
+   pattern) — edit one, copy verbatim to the other two, run
+   test_guard_189_origin_fold.py. */
+function originChipsHTML(P,LH){var h='<div class="min-origin-chips">';for(var i=0;i<P.length;i++){var p=P[i],x=p.t==='x',tier=x?'refuted':(LH[p.h||'p']||'plausible');h+='<span class="min-origin-chip'+(x?' min-origin-chip-x':' min-origin-chip-'+(p.h||'p'))+'"><span class="min-origin-n">'+(i+1)+'</span><span class="min-origin-l">'+p.l.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</span><span class="min-origin-t">'+tier+'</span></span>';}return h+'</div>';}
+function originFoldHTML(label,inner){if(!inner)return'';return'<details class="min-more min-origin-fold"><summary>'+label+'</summary><div class="min-more-body">'+inner+'</div></details>';}
+/* ---- end shared origin fold -------------------------------------------------- */
 /* ---- shared photo order — guard #188 · DO NOT EDIT ONE COPY --------------
    Every specimen's carousel runs in ONE order on every surface: the 360° spin
    (a sibling field, drawn by each viewer's spin chip/thumb ahead of this list),
@@ -1329,8 +1345,8 @@ function locFig(e,l){return '<figure class="min-locimg"><img src="images/localit
 function locImgHTML(m){
   var C=window.MINERAL_COORDS&&window.MINERAL_COORDS[m.id];
   if(!C||!C.i)return '';
-  var h=locFig(C,C.l);(C.xi||[]).forEach(function(x){h+=locFig(x,C.l);});
-  return h;
+  var h=locFig(C,C.l),x='';(C.xi||[]).forEach(function(e){x+=locFig(e,C.l);});
+  return h+originFoldHTML('More photographs of the place',x);
 }
 /* Candidate-origin world map (2026-08-29) — for specimens with NO recorded locality only:
    pins the places the specimen's OWN record names as possible sources, or classic districts
@@ -1383,10 +1399,9 @@ function candMapHTML(m){
   }).join('');
   var sub=candLeadHTML(m,C);
   return '<div class="min-region min-cand"><div class="min-region-h">&#127757; Where could it have come from?</div>'
-    +'<div class="min-cand-sub">'+sub+'</div>'
     +'<div class="min-candmap'+(multi?' min-cand-multi':'')+'"'+(multi?' onclick="this.classList.toggle(\'cand-world\')" title="Tap to toggle the world view"':'')+'>'+svgs+'</div>'
-    +key+'<div class="min-cand-rows">'+rows+'</div>'
-    +'<div class="min-cand-note">'+esc(C.n)+'</div>'
+    +originChipsHTML(P,LH)
+    +originFoldHTML('Why these places &mdash; the reasoning','<div class="min-cand-sub">'+sub+'</div>'+key+'<div class="min-cand-rows">'+rows+'</div>'+'<div class="min-cand-note">'+esc(C.n)+'</div>')
     +'</div>';
 }
 function bindStage(){var stage=document.querySelector('#cw-modal .min-stage');if(!stage)return;var tk=stage.querySelector('.min-track');if(!tk)return;var m=curM();var N=m?photosOf(m).length:0;
