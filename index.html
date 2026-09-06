@@ -142,6 +142,7 @@ main{padding:18px 0 40px}
 .min-stage.min-multi .min-slide-img{cursor:pointer}
 .min-thumbs{display:flex;gap:6px;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;margin-top:8px;-webkit-overflow-scrolling:touch;scrollbar-width:thin;scroll-behavior:smooth;padding-bottom:2px}
 .min-thumbs::-webkit-scrollbar{height:5px}.min-thumbs::-webkit-scrollbar-thumb{background:var(--bdr);border-radius:3px}
+.min-thumb-more{flex:0 0 auto;width:56px;height:42px;box-sizing:border-box;border:1px dashed var(--bdr);border-radius:6px;background:transparent;color:var(--muted,#9aa3ad);font-family:inherit;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;line-height:1;cursor:pointer;padding:0;scroll-snap-align:center;-webkit-tap-highlight-color:transparent}.min-thumb-more:hover,.min-thumb-more:focus-visible{border-color:var(--gold,#f59e0b);color:var(--gold,#f59e0b);outline:none}.min-thumb-more-n{font-weight:800;font-size:.82rem}.min-thumb-more-t{font-size:.52rem;letter-spacing:.06em;text-transform:uppercase;opacity:.85}
 .min-thumb{flex:0 0 auto;width:56px;height:42px;object-fit:cover;border-radius:5px;border:1px solid var(--bdr);cursor:pointer}
 .min-thumb.on{border-color:var(--gold)}
 /* Rocks photo zoom (wheel/pinch). State: window._zm={s,tx,ty}. At s==1 one-finger drag = swipe
@@ -436,6 +437,27 @@ body.cw-fs-on{overflow:hidden}
 function esc(s){return s==null?'':String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function richB(t){var x=esc(t);return x.replace(/\*\*([^*]+)\*\*/g,function(_,b){return '<strong>'+b+'</strong>';}).replace(/\*\*/g,'');}
 /* ---- rich text + skim-first collapsibles (ported from the private viewer's friends_viewer.js, 2026-09-03) ---- */
+/* ---- shared photo order — guard #188 · DO NOT EDIT ONE COPY --------------
+   Every specimen's carousel runs in ONE order on every surface: the 360° spin
+   (a sibling field, drawn by each viewer's spin chip/thumb ahead of this list),
+   then the hero, the other whole-object frames, the macros, the label, and the
+   UV frames that show a response. Frames that are EVIDENCE rather than
+   viewing — scale/weight shots and UV where nothing answers the lamp — fold
+   behind a "+N more" tile at the end of the strip. The judgement of which UV
+   frame is worth showing lives in the DATA (`featured:true`), never here.
+   This block reads nothing from a viewer: it takes the raw photos[] array and
+   a boolean, and returns arrays. Byte-identical in the dashboard Minerals tab,
+   the private/gated viewer and the public Charlie Wills viewer (guard #188,
+   the #175/#181 pattern) — edit one, copy verbatim to the other two, run
+   test_guard_188_photo_order.py. */
+var PHOTO_KIND_RANK={specimen:0,macro:1,label:2,uv:3,scale:4};
+function photoIsAux(p){return !!p&&(p.kind==='scale'||(p.kind==='uv'&&!p.featured));}
+function _photoRank(p){return p.hero?-1:(PHOTO_KIND_RANK[p.kind]!==undefined?PHOTO_KIND_RANK[p.kind]:9);}
+function _photoStable(a){return a.map(function(p,i){return{p:p,i:i};}).sort(function(x,y){return _photoRank(x.p)-_photoRank(y.p)||x.i-y.i;}).map(function(x){return x.p;});}
+function orderPhotos(photos,showAux){var main=[],aux=[];for(var i=0;i<(photos||[]).length;i++){var p=photos[i];if(!p)continue;(photoIsAux(p)?aux:main).push(p);}main=_photoStable(main);return showAux?main.concat(_photoStable(aux)):main;}
+function photoAuxCount(photos){var n=0;for(var i=0;i<(photos||[]).length;i++)if(photoIsAux(photos[i]))n++;return n;}
+function photoMoreHTML(photos,showAux,onclick){var n=photoAuxCount(photos);if(!n||showAux)return'';return'<button type="button" class="min-thumb-more" onclick="event.stopPropagation();'+onclick+'" title="Show the scale, weight and remaining UV frames ('+n+')" aria-label="Show '+n+' more photos"><span class="min-thumb-more-n">+'+n+'</span><span class="min-thumb-more-t">more</span></button>';}
+/* ---- end shared photo order ------------------------------------------------ */
 /* ---- shared photo references — guard #181 · DO NOT EDIT ONE COPY --------------
    A specimen record cites its own frames by stem — "RM-0103_12" — wherever the
    prose needs a witness, and once one is on the page it keeps going in shorthand:
@@ -674,7 +696,7 @@ function _prefPlace(pop,a,ev,stick){
 }
 /* ---- end shared photo references ------------------------------------------- */
 function richText(raw){return linkPhotoRefs(richTextCore(raw),_prefCtx());}
-function _prefCtx(){var m=(typeof curM==='function')?curM():null;var P=(m&&typeof photosOf==='function')?photosOf(m):[];return{photos:P,url:img,jump:'photoShow',open:'showMineral',spec:function(id){if(m&&m.id===id)return null;var x=minData().find(function(y){return y.id===id;});var h=x?hero(x):null;return h?{thumb:img(h,200),big:img(h,1280)}:null;}};}
+function _prefCtx(){var m=(typeof curM==='function')?curM():null;var P=(m&&typeof orderPhotos==='function')?orderPhotos(m.photos||[],true):[];return{photos:P,url:img,jump:'prefJump',open:'showMineral',spec:function(id){if(m&&m.id===id)return null;var x=minData().find(function(y){return y.id===id;});var h=x?hero(x):null;return h?{thumb:img(h,200),big:img(h,1280)}:null;}};}
 function richTextCore(raw){
   var s=Array.isArray(raw)?raw.join('\n'):String(raw==null?'':raw);s=s.trim();if(!s)return '';
   s=esc(s).replace(/\*\*(.+?)\*\*/g,function(_,b){return '<strong>'+b+'</strong>';}).replace(/\*\*/g,'');
@@ -969,7 +991,11 @@ function specimenCompare(sort,a,b){
 function subLabel(t){return ({mineral:'Mineral',rock:'Rock',fossil:'Fossil',cut_stone:'Cut stone',meteorite:'Meteorite'})[t]||t||'';}
 function provOf(m){return m.provenance||'(untagged)';}
 function stateOf(m){return (m.locality&&m.locality.state)||'(unknown)';}
-function photosOf(m){return (m.photos&&m.photos.length)?m.photos:(hero(m)?[hero(m)]:[]);}
+function photosOf(m){return (m.photos&&m.photos.length)?orderPhotos(m.photos,!!window._showAux):(hero(m)?[hero(m)]:[]);}
+/* guard #188: expand the folded evidence frames IN PLACE — same specimen, same photo. */
+function toggleAux(){var m=curM(),box=document.getElementById('cw-modal');if(!m||!box)return;var cur=photosOf(m)[window._photoIdx||0];window._showAux=true;var P=photosOf(m),idx=0;for(var i=0;i<P.length;i++){if(cur&&P[i].f===cur.f){idx=i;break;}}window._photoIdx=idx;clearTimeout(window._animT);window._anim=false;box.innerHTML=modalBody(m);bindStage();if(window._spin&&window._spin.on)spinExit();}
+function showStem(f){var m=curM();if(!m)return;var P=photosOf(m),i;for(i=0;i<P.length;i++)if(P[i].f===f){photoShow(i);return;}if(!window._showAux){toggleAux();P=photosOf(m);for(i=0;i<P.length;i++)if(P[i].f===f){photoShow(i);return;}}}
+function prefJump(i){var m=curM();if(!m)return;var all=orderPhotos(m.photos||[],true);if(all[i])showStem(all[i].f);}
 function heroIdx(m){var P=photosOf(m);for(var i=0;i<P.length;i++){if(P[i]&&P[i].hero)return i;}return 0;}
 function speciesMatch(m,sel){var sp=m.species||[];for(var i=0;i<sel.length;i++){if(sp.indexOf(sel[i])>=0)return true;}return false;}
 
@@ -1175,7 +1201,7 @@ function modalBody(m){
   var full=P.length?'<button class="min-fullsize" title="Fullscreen — swipe to browse photos" aria-label="Fullscreen" onclick="event.stopPropagation();enterFullscreen()">⤢</button>':'';
   var spinChip=m.spin?'<button class="min-spin-chip" title="Play the 360° spin" onclick="event.stopPropagation();spinChipClick()">360°</button>':'';
   var spinThumb=m.spin?'<span class="min-spin-thumbwrap" onclick="spinEnter()" title="360° spin — drag to rotate"><img class="min-thumb min-spin-thumb" src="images/minerals/'+esc(m.spin.stem)+'01_200.jpg" loading="lazy" alt="360° spin"><span class="min-spin-thumbtag">360°</span></span>':'';
-  var thumbs=(multi||m.spin)?'<div class="min-thumbs">'+spinThumb+P.map(function(p,i){return '<img class="min-thumb'+(i===pi?' on':'')+'" src="'+esc(img(p,200))+'" loading="lazy" alt="" onclick="photoShow('+i+')" onerror="if(!this._fb){this._fb=1;this.src=\''+img(p,1280)+'\'}else{this.style.display=\'none\'}">';}).join('')+'</div>':'';
+  var thumbs=(multi||m.spin)?'<div class="min-thumbs">'+spinThumb+P.map(function(p,i){return '<img class="min-thumb'+(i===pi?' on':'')+'" src="'+esc(img(p,200))+'" loading="lazy" alt="" onclick="photoShow('+i+')" onerror="if(!this._fb){this._fb=1;this.src=\''+img(p,1280)+'\'}else{this.style.display=\'none\'}">';}).join('')+photoMoreHTML(m.photos,!!window._showAux,'toggleAux()')+'</div>':'';
   var n=(window._navIds||[]).length;
   var rocknav=n>1?'<div class="min-rocknav"><button class="min-rock-btn" onclick="navRock(-1)" aria-label="Previous">‹ Prev</button><span class="min-rock-pos">'+((window._navIdx||0)+1)+' / '+n+'</span><button class="min-rock-btn" onclick="navRock(1)" aria-label="Next">Next ›</button></div>':'';
   var species=(m.species||[]).map(function(sp){return '<a class="min-mindat" href="'+esc(mindat(sp))+'" target="_blank" rel="noopener">'+esc(sp)+'</a>';}).join(', ');
@@ -1407,13 +1433,13 @@ stage.addEventListener('touchend',tEnd,{passive:true});
 stage.addEventListener('touchcancel',tEnd,{passive:true});
 if(m&&m.spin)spinEnter();
 }
-function fill(){var m=curM(),box=document.getElementById('cw-modal');if(!m||!box)return;clearTimeout(window._animT);window._anim=false;window._photoIdx=heroIdx(m);box.innerHTML=modalBody(m);box.scrollTop=0;bindStage();}
+function fill(){var m=curM(),box=document.getElementById('cw-modal');if(!m||!box)return;clearTimeout(window._animT);window._anim=false;window._showAux=false;window._photoIdx=heroIdx(m);box.innerHTML=modalBody(m);box.scrollTop=0;bindStage();}
 function navRock(d){var ids=window._navIds||[],n=ids.length;if(n<2)return;window._navIdx=((window._navIdx||0)+d+n)%n;fill();}
 /* Prev/Next follows the order the visitor is actually looking at (filtered() — newest-first
    by default), not the raw catalog order. Before this the newest specimen opened as "72 / 72",
    which reads badly when the Latest-addition panel is the front door. Falls back to minData()
    if the current view is empty so navigation can never be lost. */
-function showMineral(id){var M=filtered();if(!M.length||M.map(function(x){return x.id;}).indexOf(id)<0)M=minData();var ids=M.map(function(x){return x.id;}),idx=ids.indexOf(id);if(idx<0)return;var m=M[idx],wrap=document.getElementById('modal-wrap');if(!wrap)return;window._navIds=ids;window._navIdx=idx;window._photoIdx=heroIdx(m);wrap.innerHTML='<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal" id="cw-modal">'+modalBody(m)+'</div></div>';wrap.classList.remove('hidden');var bg=wrap.querySelector('.modal-bg');requestAnimationFrame(function(){if(bg)bg.classList.add('vis');});bindStage();if(!window._keyBound){window._keyBound=1;document.addEventListener('keydown',function(e){if(!document.getElementById('cw-modal'))return;if(e.key==='ArrowLeft'){if(e.shiftKey)navRock(-1);else photoNav(-1);}else if(e.key==='ArrowRight'){if(e.shiftKey)navRock(1);else photoNav(1);}else if(e.key==='Escape'){if(isFullscreen())exitFullscreen();else closeModal();}});}}
+function showMineral(id){var M=filtered();if(!M.length||M.map(function(x){return x.id;}).indexOf(id)<0)M=minData();var ids=M.map(function(x){return x.id;}),idx=ids.indexOf(id);if(idx<0)return;var m=M[idx],wrap=document.getElementById('modal-wrap');if(!wrap)return;window._navIds=ids;window._navIdx=idx;window._showAux=false;window._photoIdx=heroIdx(m);wrap.innerHTML='<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal" id="cw-modal">'+modalBody(m)+'</div></div>';wrap.classList.remove('hidden');var bg=wrap.querySelector('.modal-bg');requestAnimationFrame(function(){if(bg)bg.classList.add('vis');});bindStage();if(!window._keyBound){window._keyBound=1;document.addEventListener('keydown',function(e){if(!document.getElementById('cw-modal'))return;if(e.key==='ArrowLeft'){if(e.shiftKey)navRock(-1);else photoNav(-1);}else if(e.key==='ArrowRight'){if(e.shiftKey)navRock(1);else photoNav(1);}else if(e.key==='Escape'){if(isFullscreen())exitFullscreen();else closeModal();}});}}
 function closeModal(){document.body.classList.remove('cw-fs-on');var w=document.getElementById('modal-wrap');if(!w)return;var bg=w.querySelector('.modal-bg');if(bg)bg.classList.remove('vis');setTimeout(function(){w.classList.add('hidden');w.innerHTML='';},160);}
 function isFullscreen(){return document.body.classList.contains('cw-fs-on');}
 function enterFullscreen(){var b=document.getElementById('cw-modal');if(!b)return;b.classList.add('fs-on');document.body.classList.add('cw-fs-on');zmReset();}
