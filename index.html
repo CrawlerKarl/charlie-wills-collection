@@ -1024,7 +1024,7 @@ var SPECIMEN_SORTS=[['idDesc','Newest'],['id','Catalog #'],['name','Name A–Z']
 function specimenLocText(loc){if(!loc)return 'Locality unknown';var p=[loc.mine,loc.district,loc.state,loc.country].filter(Boolean);return p.length?p.join(', '):'Locality unknown';}
 function specimenSearchBlob(m){return ((m.name||'')+' '+((m.species||[]).join(' '))+' '+specimenLocText(m.locality)+' '+(m.label_text||'')+' '+(m.flavor||'')+' '+(m.notes||'')+' '+(m.id||'')).toLowerCase();}
 function specimenMatchesQuery(m,q){q=String(q==null?'':q).trim().toLowerCase();if(!q)return true;var b=m._sb||(m._sb=specimenSearchBlob(m));return b.indexOf(q)>=0;}
-function specimenSpinMatches(m,spin){if(spin==='yes')return !!m.spin;if(spin==='no')return !m.spin;return true;}
+function specimenSpinMatches(m,spin){var has=!!(m&&((m.spin&&m.spin.stem)||(m.spins&&m.spins.length)));if(spin==='yes')return has;if(spin==='no')return !has;return true;}
 function specimenSpeciesMatches(m,sel){if(!sel||!sel.length)return true;var sp=m.species||[];for(var i=0;i<sel.length;i++){if(sp.indexOf(sel[i])>=0)return true;}return false;}
 function specimenStateKey(m){return (m.locality&&m.locality.state)||'(unknown)';}
 function specimenSortTitle(m){return m.name||(m.species&&m.species[0])||m.id;}
