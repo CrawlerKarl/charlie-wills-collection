@@ -454,25 +454,36 @@ function originChipsHTML(P,LH){var h='<div class="min-origin-chips">';for(var i=
 function originFoldHTML(label,inner){if(!inner)return'';return'<details class="min-more min-origin-fold"><summary>'+label+'</summary><div class="min-more-body">'+inner+'</div></details>';}
 /* ---- end shared origin fold -------------------------------------------------- */
 /* ---- shared photo order — guard #188 · DO NOT EDIT ONE COPY --------------
-   Every specimen's carousel runs in ONE order on every surface: the 360° spin
-   (a sibling field, drawn by each viewer's spin chip/thumb ahead of this list),
-   then the hero, the other whole-object frames, the macros, the label, and the
-   UV frames that show a response. Frames that are EVIDENCE rather than
-   viewing — scale/weight shots and UV where nothing answers the lamp — fold
-   behind a "+N more" tile at the end of the strip. The judgement of which UV
-   frame is worth showing lives in the DATA (`featured:true`), never here.
-   This block reads nothing from a viewer: it takes the raw photos[] array and
-   a boolean, and returns arrays. Byte-identical in the dashboard Minerals tab,
-   the private/gated viewer and the public Charlie Wills viewer (guard #188,
-   the #175/#181 pattern) — edit one, copy verbatim to the other two, run
-   test_guard_188_photo_order.py. */
+   Every specimen's media runs in ONE order on every surface. Ahead of the stills
+   come the MOVING pieces — videos first, then the 360° spins — because they show
+   the specimen the way no still can; each viewer draws them from videosOf()/spinsOf()
+   before this list. Then the stills: the hero, then any frame the record marks
+   `featured:true`, then the other whole-object frames, the macros, the label, and
+   last the UV that shows a response. Frames that are EVIDENCE rather than viewing —
+   scale/weight shots and UV where nothing answers the lamp — fold behind a "+N more"
+   tile at the end.
+   ⭐ 2026-09-07, owner-directed: `featured:true` floats a photo to the FRONT of the
+   stills, whatever its kind, so the striking frames sit right behind the media. It
+   used to mean only "a UV frame worth showing"; that meaning still holds (a featured
+   UV frame is both shown AND promoted) and no record needed rewriting. The HERO stays
+   ahead of the featured ones — it is the specimen's face and the grid tile uses it,
+   so to put a frame above everything, make it the hero.
+   ⚠️ The judgement of which frame is striking lives in the DATA, never here.
+   ⚠️ spinsOf() accepts EITHER `spins:[{stem,frames}]` (several rotations) or the older
+   single `spin:{stem,frames}`, so a record written before multi-spin keeps working.
+   This block reads nothing from a viewer: it takes raw record fields and returns
+   arrays. Byte-identical in the dashboard Minerals tab, the private/gated viewer and
+   the public Charlie Wills viewer (guard #188, the #175/#181 pattern) — edit one, copy
+   verbatim to the other two, run test_guard_188_photo_order.py. */
 var PHOTO_KIND_RANK={specimen:0,macro:1,label:2,uv:3,scale:4};
 function photoIsAux(p){return !!p&&(p.kind==='scale'||(p.kind==='uv'&&!p.featured));}
-function _photoRank(p){return p.hero?-1:(PHOTO_KIND_RANK[p.kind]!==undefined?PHOTO_KIND_RANK[p.kind]:9);}
+function _photoRank(p){return p.hero?-2:(p.featured?-1:(PHOTO_KIND_RANK[p.kind]!==undefined?PHOTO_KIND_RANK[p.kind]:9));}
 function _photoStable(a){return a.map(function(p,i){return{p:p,i:i};}).sort(function(x,y){return _photoRank(x.p)-_photoRank(y.p)||x.i-y.i;}).map(function(x){return x.p;});}
 function orderPhotos(photos,showAux){var main=[],aux=[];for(var i=0;i<(photos||[]).length;i++){var p=photos[i];if(!p)continue;(photoIsAux(p)?aux:main).push(p);}main=_photoStable(main);return showAux?main.concat(_photoStable(aux)):main;}
 function photoAuxCount(photos){var n=0;for(var i=0;i<(photos||[]).length;i++)if(photoIsAux(photos[i]))n++;return n;}
 function photoMoreHTML(photos,showAux,onclick){var n=photoAuxCount(photos);if(!n||showAux)return'';return'<button type="button" class="min-thumb-more" onclick="event.stopPropagation();'+onclick+'" title="Show the scale, weight and remaining UV frames ('+n+')" aria-label="Show '+n+' more photos"><span class="min-thumb-more-n">+'+n+'</span><span class="min-thumb-more-t">more</span></button>';}
+function videosOf(m){var v=(m&&m.videos)||[];var o=[];for(var i=0;i<v.length;i++)if(v[i]&&v[i].f)o.push(v[i]);return o;}
+function spinsOf(m){if(!m)return[];var s=m.spins;if(s&&s.length){var o=[];for(var i=0;i<s.length;i++)if(s[i]&&s[i].stem&&s[i].frames)o.push(s[i]);return o;}return(m.spin&&m.spin.stem&&m.spin.frames)?[m.spin]:[];}
 /* ---- end shared photo order ------------------------------------------------ */
 /* ---- shared photo references — guard #181 · DO NOT EDIT ONE COPY --------------
    A specimen record cites its own frames by stem — "RM-0103_12" — wherever the
