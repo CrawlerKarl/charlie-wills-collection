@@ -1023,7 +1023,22 @@ var SPIN_FILTER_OPTIONS=[['','360°: all'],['yes','Has 360° spin'],['no','No 36
 var SPECIMEN_SORTS=[['idDesc','Newest'],['id','Catalog #'],['name','Name A–Z'],['species','Mineral'],['subtype','Type']];
 function specimenLocText(loc){if(!loc)return 'Locality unknown';var p=[loc.mine,loc.district,loc.state,loc.country].filter(Boolean);return p.length?p.join(', '):'Locality unknown';}
 function specimenSearchBlob(m){return ((m.name||'')+' '+((m.species||[]).join(' '))+' '+specimenLocText(m.locality)+' '+(m.label_text||'')+' '+(m.flavor||'')+' '+(m.notes||'')+' '+(m.id||'')).toLowerCase();}
-function specimenMatchesQuery(m,q){q=String(q==null?'':q).trim().toLowerCase();if(!q)return true;var b=m._sb||(m._sb=specimenSearchBlob(m));return b.indexOf(q)>=0;}
+/* ⭐ A query that NAMES a catalog id means THAT specimen and nothing else.
+   Ids are cited inside other specimens' prose (guard #187) and the blob carries
+   notes and flavor, so a plain substring search for "RM-0002" returned every
+   record that MENTIONS it and buried the one asked for — owner report, 2026-09-07.
+   Accepts what a person actually types: rm2, RM 2, rm-0002, RM0002, fs1.
+   ⚠️ The digits are ZERO-PADDED to four, so "RM-01" means RM-0001 — it is not a
+   prefix. That is deliberate: padding always resolves to exactly one specimen,
+   where a prefix reading of "RM-011" is genuinely ambiguous between RM-0011 and
+   the RM-011x range. Browsing a range is what the Catalog # sort and Show all are
+   for. A query with no digits ("fluorite", "rm") is not an id and still runs the
+   substring search, so ordinary text search is untouched. An id matching no
+   specimen yields the empty state rather than silently reverting to substring —
+   "there is no RM-9999" is the honest answer to that query. */
+var _SPECIMEN_ID_RE=/^(rm|fs)[\s\-_]*0*(\d{1,4})$/;
+function specimenIdQuery(q){var m=String(q==null?'':q).trim().toLowerCase().match(_SPECIMEN_ID_RE);return m?m[1].toUpperCase()+'-'+('0000'+m[2]).slice(-4):'';}
+function specimenMatchesQuery(m,q){q=String(q==null?'':q).trim().toLowerCase();if(!q)return true;var id=specimenIdQuery(q);if(id)return (m.id||'')===id;var b=m._sb||(m._sb=specimenSearchBlob(m));return b.indexOf(q)>=0;}
 function specimenSpinMatches(m,spin){var has=!!(m&&((m.spin&&m.spin.stem)||(m.spins&&m.spins.length)));if(spin==='yes')return has;if(spin==='no')return !has;return true;}
 function specimenSpeciesMatches(m,sel){if(!sel||!sel.length)return true;var sp=m.species||[];for(var i=0;i<sel.length;i++){if(sp.indexOf(sel[i])>=0)return true;}return false;}
 function specimenStateKey(m){return (m.locality&&m.locality.state)||'(unknown)';}
