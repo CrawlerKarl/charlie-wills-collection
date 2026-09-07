@@ -921,6 +921,27 @@ function shortFlavor(t){
   }
   return str;
 }
+/* ---- specimen grades (2026-09-07) — display-only, never priced -------------
+   Two words per specimen: how good an example this is (`visual_quality`, judged
+   against ordinary auction examples of the SAME species, never in the abstract)
+   and how hard it would be to replace (`rarity`). Both are ABSENT until graded,
+   so every caller renders nothing for an empty value — an ungraded specimen
+   shows no chip at all, not a "not graded" placeholder. The labels come from a
+   fixed lookup, so an unrecognised value renders '' rather than leaking a raw
+   enum onto a card. Styling is deliberately NEUTRAL in all three viewers: this
+   is a description of the object, not a buy/sell signal, and it must never read
+   like one. Display-only forever — neither field may reach the comps engine. */
+var _MIN_QUALITY_LABEL={below_typical:'Below typical',typical:'Typical',above_typical:'Above typical',exceptional:'Exceptional'};
+var _MIN_RARITY_LABEL={common:'Common',uncommon:'Uncommon',scarce:'Scarce',rare:'Rare'};
+function gradeChipHTML(visualQuality,rarity){
+  var q=_MIN_QUALITY_LABEL[String(visualQuality==null?'':visualQuality)]||'';
+  var r=_MIN_RARITY_LABEL[String(rarity==null?'':rarity)]||'';
+  if(!q&&!r)return '';
+  return '<span class="min-grades">'
+    +(q?'<span class="min-grade-chip min-grade-q" title="Visual quality, judged against ordinary examples of this species">'+q+'</span>':'')
+    +(r?'<span class="min-grade-chip min-grade-r" title="How hard this specimen would be to replace on the market today">'+r+'</span>':'')
+    +'</span>';
+}
 /* ---- end shared mineral card text ----------------------------------------- */
 /* ---- shared Charlie Wills story — guard #186 · DO NOT EDIT ONE COPY: this block is byte-identical in the
    dashboard Minerals tab (index.html), the private viewer (friends_viewer.js) and the public Charlie Wills
