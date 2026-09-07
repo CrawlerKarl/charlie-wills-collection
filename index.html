@@ -1044,11 +1044,50 @@ function specimenSpeciesMatches(m,sel){if(!sel||!sel.length)return true;var sp=m
 function specimenStateKey(m){return (m.locality&&m.locality.state)||'(unknown)';}
 function specimenSortTitle(m){return m.name||(m.species&&m.species[0])||m.id;}
 function specimenCompare(sort,a,b){
+  if(sort==='quality'||sort==='rarity'){var d=_specimenGradeRank(a,sort)-_specimenGradeRank(b,sort);return d||(a.id<b.id?-1:(a.id>b.id?1:0));}
   if(sort==='name')return String(specimenSortTitle(a)).localeCompare(String(specimenSortTitle(b)));
   if(sort==='species')return String((a.species&&a.species[0])||'').localeCompare(String((b.species&&b.species[0])||''))||(a.id<b.id?-1:1);
   if(sort==='subtype')return String(a.subtype||'').localeCompare(String(b.subtype||''))||(a.id<b.id?-1:1);
   if(sort==='idDesc')return a.id<b.id?1:(a.id>b.id?-1:0);
   return a.id<b.id?-1:(a.id>b.id?1:0);
+}
+/* ---- grade browsing (2026-09-07) --------------------------------------------
+   Quality and rarity are DATA on the specimen, so the predicates and the ordering
+   belong here beside the other filters. What differs per surface is only whether
+   the controls appear at all, and that is decided FROM THE DATA, not from a
+   per-viewer flag: the public Charlie Wills build strips both fields, so no
+   specimen there carries a grade, specimenGradeOptions() returns [] and
+   specimenSortsFor() omits the grade sorts. That is the "hide a control no
+   specimen can satisfy" gate the grades plan (§1d) asked for, and it means the
+   public site cannot grow a dead dropdown even by accident.
+   ⚠️ Order is by MERIT, not alphabetical — exceptional first, rare first — and an
+   ungraded specimen sorts LAST rather than sorting as if it were the lowest
+   grade, because "not judged yet" is not the same claim as "below typical".
+   Labels are read lazily from the guard #175 block's lookup so the words on a
+   filter chip and the words on a card can never drift; lazily because block
+   order within a file is not guaranteed. */
+var QUALITY_ORDER=['exceptional','above_typical','typical','below_typical'];
+var RARITY_ORDER=['rare','scarce','uncommon','common'];
+function specimenGradeLabel(kind,v){
+  var L=(kind==='rarity')?(typeof _MIN_RARITY_LABEL!=='undefined'?_MIN_RARITY_LABEL:null)
+                         :(typeof _MIN_QUALITY_LABEL!=='undefined'?_MIN_QUALITY_LABEL:null);
+  return (L&&L[v])||v;
+}
+function specimenGradeValue(m,kind){return (kind==='rarity'?m.rarity:m.visual_quality)||'';}
+function specimenGradeMatches(m,kind,sel){if(!sel||!sel.length)return true;return sel.indexOf(specimenGradeValue(m,kind))>=0;}
+function specimenGradeOptions(list,kind){
+  var order=(kind==='rarity')?RARITY_ORDER:QUALITY_ORDER,seen={},i;
+  for(i=0;i<(list||[]).length;i++){var v=specimenGradeValue(list[i],kind);if(v)seen[v]=1;}
+  return order.filter(function(v){return seen[v];}).map(function(v){return [v,specimenGradeLabel(kind,v)];});
+}
+function specimenHasGrades(list){return specimenGradeOptions(list,'quality').length>0||specimenGradeOptions(list,'rarity').length>0;}
+function specimenSortsFor(list){
+  if(!specimenHasGrades(list))return SPECIMEN_SORTS;
+  return SPECIMEN_SORTS.concat([['quality','Best first'],['rarity','Rarest first']]);
+}
+function _specimenGradeRank(m,kind){
+  var order=(kind==='rarity')?RARITY_ORDER:QUALITY_ORDER,i=order.indexOf(specimenGradeValue(m,kind));
+  return i<0?order.length:i;   /* ungraded sorts last, never as the lowest grade */
 }
 /* ---- end shared mineral search + filters ---------------------------------------- */
 function subLabel(t){return ({mineral:'Mineral',rock:'Rock',fossil:'Fossil',cut_stone:'Cut stone',meteorite:'Meteorite'})[t]||t||'';}
@@ -1146,7 +1185,7 @@ function toggleFilterPanel(){
   if(btn)btn.setAttribute('aria-expanded',S.filterOpen?'true':'false');
 }
 function filterBarHTML(){
-  var sorts=SPECIMEN_SORTS;
+  var sorts = specimenSortsFor(minData());   /* strips the grade sorts here: no specimen carries a grade on the public build */
   var so=sorts.map(function(x){return '<option value="'+x[0]+'"'+(S.sort===x[0]?' selected':'')+'>'+x[1]+'</option>';}).join('');
   var spins=SPIN_FILTER_OPTIONS;
   var spo=spins.map(function(o){return '<option value="'+o[0]+'"'+(S.spin===o[0]?' selected':'')+'>'+o[1]+'</option>';}).join('');
