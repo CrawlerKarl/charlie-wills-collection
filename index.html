@@ -485,6 +485,34 @@ function photoMoreHTML(photos,showAux,onclick){var n=photoAuxCount(photos);if(!n
 function videosOf(m){var v=(m&&m.videos)||[];var o=[];for(var i=0;i<v.length;i++)if(v[i]&&v[i].f)o.push(v[i]);return o;}
 function spinsOf(m){if(!m)return[];var s=m.spins;if(s&&s.length){var o=[];for(var i=0;i<s.length;i++)if(s[i]&&s[i].stem&&s[i].frames)o.push(s[i]);return o;}return(m.spin&&m.spin.stem&&m.spin.frames)?[m.spin]:[];}
 /* ---- end shared photo order ------------------------------------------------ */
+/* ---- shared thumb selection — guard #192 · DO NOT EDIT ONE COPY -------------
+   Byte-identical in the three viewers (dashboard Minerals tab · private/gated
+   viewer · public Charlie Wills viewer). Edit ONE copy, paste it verbatim into
+   the other two, run test_guard_192_thumb_selection.py.
+
+   The strip carries three KINDS of thumb — videos, then rotations, then photos
+   (the guard #188 order) — but the active mark used to be set by POSITION:
+   querySelectorAll('.min-thumb')[k] toggled against the PHOTO index. On a
+   specimen holding a video and a rotation, photo 0's mark therefore landed on
+   the video thumb, and centring that leftmost thumb scrolled the strip hard
+   left. Those are the two symptoms reported on RM-0064 (owner, 2026-09-07):
+   "the highlight is not always on the photo showing" and "the carousel goes
+   all the way to the left".
+
+   So a thumb carries its own IDENTITY in data-tk — 'v<i>' a video, 's<k>' a
+   rotation, 'p<i>' a photo — and the mark is set by key. Position stops
+   mattering, which also fixes a specimen carrying SEVERAL rotations: the one
+   selected is marked, not whichever happens to be first in the strip.
+
+   The block reads nothing from a viewer. The host passes its own strip element
+   and its own active-class name ('min-thumb-active' on the dashboard, 'on' in
+   the two viewers). When no thumb matches the key, nothing is marked and the
+   strip is LEFT ALONE — never scrolled to zero. ---- */
+function thumbKey(kind,i){return String(kind).charAt(0)+(i||0);}
+function thumbMark(strip,key,cls){if(!strip)return null;var ts=strip.querySelectorAll('.min-thumb'),act=null;for(var k=0;k<ts.length;k++){var on=ts[k].getAttribute('data-tk')===key;ts[k].classList.toggle(cls,on);if(on)act=ts[k];}return act;}
+function thumbCenter(strip,act){if(!strip||!act)return;var sr=strip.getBoundingClientRect(),ar=act.getBoundingClientRect();if(!sr.width)return;strip.scrollLeft+=(ar.left-sr.left)-(strip.clientWidth/2)+(ar.width/2);}
+function thumbShow(strip,key,cls){thumbCenter(strip,thumbMark(strip,key,cls));}
+/* ---- end shared thumb selection --------------------------------------------- */
 /* ---- shared photo references — guard #181 · DO NOT EDIT ONE COPY --------------
    A specimen record cites its own frames by stem — "RM-0103_12" — wherever the
    prose needs a witness, and once one is on the page it keeps going in shorthand:
@@ -1302,8 +1330,8 @@ function modalBody(m){
   var pos=multi?'<span class="min-photo-pos">📷 '+(pi+1)+' / '+P.length+'</span>':'';
   var full=P.length?'<button class="min-fullsize" title="Fullscreen — swipe to browse photos" aria-label="Fullscreen" onclick="event.stopPropagation();enterFullscreen()">⤢</button>':'';
   var spinChip=m.spin?'<button class="min-spin-chip" title="Play the 360° spin" onclick="event.stopPropagation();spinChipClick()">360°</button>':'';
-  var spinThumb=m.spin?'<span class="min-spin-thumbwrap" onclick="spinEnter()" title="360° spin — drag to rotate"><img class="min-thumb min-spin-thumb" src="images/minerals/'+esc(m.spin.stem)+'01_200.jpg" loading="lazy" alt="360° spin"><span class="min-spin-thumbtag">360°</span></span>':'';
-  var thumbs=(multi||m.spin)?'<div class="min-thumbs">'+spinThumb+P.map(function(p,i){return '<img class="min-thumb'+(i===pi?' on':'')+'" src="'+esc(img(p,200))+'" loading="lazy" alt="" onclick="photoShow('+i+')" onerror="if(!this._fb){this._fb=1;this.src=\''+img(p,1280)+'\'}else{this.style.display=\'none\'}">';}).join('')+photoMoreHTML(m.photos,!!window._showAux,'toggleAux()')+'</div>':'';
+  var spinThumb=m.spin?'<span class="min-spin-thumbwrap" onclick="spinEnter()" title="360° spin — drag to rotate"><img class="min-thumb min-spin-thumb" data-tk="'+thumbKey('spin',0)+'" src="images/minerals/'+esc(m.spin.stem)+'01_200.jpg" loading="lazy" alt="360° spin"><span class="min-spin-thumbtag">360°</span></span>':'';
+  var thumbs=(multi||m.spin)?'<div class="min-thumbs">'+spinThumb+P.map(function(p,i){return '<img class="min-thumb'+(i===pi?' on':'')+'" data-tk="'+thumbKey('photo',i)+'" src="'+esc(img(p,200))+'" loading="lazy" alt="" onclick="photoShow('+i+')" onerror="if(!this._fb){this._fb=1;this.src=\''+img(p,1280)+'\'}else{this.style.display=\'none\'}">';}).join('')+photoMoreHTML(m.photos,!!window._showAux,'toggleAux()')+'</div>':'';
   var n=(window._navIds||[]).length;
   var rocknav=n>1?'<div class="min-rocknav"><button class="min-rock-btn" onclick="navRock(-1)" aria-label="Previous">‹ Prev</button><span class="min-rock-pos">'+((window._navIdx||0)+1)+' / '+n+'</span><button class="min-rock-btn" onclick="navRock(1)" aria-label="Next">Next ›</button></div>':'';
   var species=(m.species||[]).map(function(sp){return '<a class="min-mindat" href="'+esc(mindat(sp))+'" target="_blank" rel="noopener">'+esc(sp)+'</a>';}).join(', ');
@@ -1335,8 +1363,9 @@ function modalBody(m){
 }
 function track(){return document.querySelector('#cw-modal .min-track');}
 function setSlideImg(sl,p){var im=sl&&sl.querySelector('img');if(im&&p){im._hi=0;im.style.transform='';im.src=img(p,1280);}}
-function scrollActiveThumb(){var box=document.getElementById('cw-modal');if(!box)return;var strip=box.querySelector('.min-thumbs');if(!strip)return;var act=strip.querySelector('.min-thumb.on');if(!act)return;var sr=strip.getBoundingClientRect(),ar=act.getBoundingClientRect();if(!sr.width)return;strip.scrollLeft+=(ar.left-sr.left)-(strip.clientWidth/2)+(ar.width/2);}
-function syncPhotoChrome(i){var box=document.getElementById('cw-modal');if(!box)return;var m=curM();if(!m)return;var P=photosOf(m);var pos=box.querySelector('.min-photo-pos');if(pos)pos.textContent='📷 '+(i+1)+' / '+P.length;var ts=box.querySelectorAll('.min-thumb');for(var k=0;k<ts.length;k++)ts[k].classList.toggle('on',k===i);scrollActiveThumb();}
+function thumbStrip(){var box=document.getElementById('cw-modal');return box?box.querySelector('.min-thumbs'):null;}
+function scrollActiveThumb(){var strip=thumbStrip();if(strip)thumbCenter(strip,strip.querySelector('.min-thumb.on'));}
+function syncPhotoChrome(i){var box=document.getElementById('cw-modal');if(!box)return;var m=curM();if(!m)return;var P=photosOf(m);var pos=box.querySelector('.min-photo-pos');if(pos)pos.textContent='📷 '+(i+1)+' / '+P.length;thumbShow(thumbStrip(),thumbKey('photo',i),'on');}
 function animateTo(dir,target){var m=curM();if(!m)return;var P=photosOf(m),N=P.length;if(N<2||window._anim)return;if(window._zm&&window._zm.s>1)zmReset();var tk=track();target=((target%N)+N)%N;if(!tk||tk.children.length<3){window._photoIdx=target;syncPhotoChrome(target);return;}if(target===(window._photoIdx||0))return;var s=tk.children;if(dir>0)setSlideImg(s[2],P[target]);else setSlideImg(s[0],P[target]);window._anim=true;tk.classList.add('min-anim');void tk.offsetWidth;tk.style.transform=dir>0?'translateX(-200%)':'translateX(0)';var fin=function(){if(!window._anim)return;tk.removeEventListener('transitionend',fin);clearTimeout(window._animT);window._photoIdx=target;tk.classList.remove('min-anim');if(dir>0)tk.appendChild(tk.children[0]);else tk.insertBefore(tk.children[2],tk.children[0]);tk.style.transform='translateX(-100%)';var c=tk.children;setSlideImg(c[0],P[((target-1)%N+N)%N]);setSlideImg(c[2],P[(target+1)%N]);syncPhotoChrome(target);window._anim=false;};tk.addEventListener('transitionend',fin);window._animT=setTimeout(fin,440);}
 function photoShow(i){var m=curM();if(!m)return;if(window._spin&&window._spin.on)spinExit();var N=photosOf(m).length;if(N<2)return;var cur=window._photoIdx||0;if(i===cur)return;animateTo(i>cur?1:-1,i);}
 function photoNav(d){var m=curM();if(!m)return;if(window._spin&&window._spin.on){spinExit();return;}if(photosOf(m).length<2)return;animateTo(d>0?1:-1,(window._photoIdx||0)+d);}
@@ -1370,8 +1399,8 @@ function spinPause(resumeMs){var S=spinSt();S.playing=false;if(S.rt){clearTimeou
 function spinChipUpdate(){var box=document.getElementById('cw-modal');if(!box)return;var ch=box.querySelector('.min-spin-chip');if(!ch)return;var S=window._spin;var N=spinN();if(!S||!S.on){ch.textContent='360°';ch.title='Play the 360° spin';ch.classList.remove('min-spin-live');return;}ch.classList.add('min-spin-live');if(S.loaded<N){ch.textContent='360° · '+Math.round(S.loaded/Math.max(N,1)*100)+'%';ch.title='Loading spin frames…';}else{ch.textContent=S.playing?'360° ❚❚':'360° ▶';ch.title=S.playing?'Pause the spin — drag the rock to rotate it':'Resume the spin';}}
 function spinPreload(){var m=curM();if(!m||!m.spin)return;var S=spinSt();if(S.imgs)return;var N=m.spin.frames;S.imgs=[];S.loaded=0;for(var i=0;i<N;i++)(function(){var im=new Image();im.onload=im.onerror=function(){S.loaded++;spinChipUpdate();if(S.loaded>=N&&S.on&&!S.playing&&!S.userPaused)spinPlay();};im.src=spinURL(m,S.imgs.length);S.imgs.push(im);})();}
 function spinEnter(){var m=curM();if(!m||!m.spin)return;var stage=document.querySelector('#cw-modal .min-stage');if(!stage)return;var S=spinSt();S.on=true;S.userPaused=false;stage.classList.add('min-spin-on');if(!stage.querySelector('.min-spin-layer')){var layer=document.createElement('div');layer.className='min-spin-layer';layer.innerHTML='<img class="min-spin-img" alt="360° spin">';var tr=stage.querySelector('.min-track');stage.insertBefore(layer,tr?tr.nextSibling:stage.firstChild);}
-if(window._zm&&window._zm.s>1)zmReset();spinShow(S.i||0);spinPreload();if(S.loaded>=m.spin.frames&&!S.playing)spinPlay();spinChipUpdate();var ths=document.querySelectorAll('#cw-modal .min-thumb');for(var k=0;k<ths.length;k++)ths[k].classList.remove('on');var sth=document.querySelector('#cw-modal .min-spin-thumb');if(sth)sth.classList.add('on');}
-function spinExit(){var S=window._spin;if(!S||!S.on)return;spinStop();S.on=false;var stage=document.querySelector('#cw-modal .min-stage');if(stage)stage.classList.remove('min-spin-on');var sth=document.querySelector('#cw-modal .min-spin-thumb');if(sth)sth.classList.remove('on');if(window._zm&&window._zm.s>1)zmReset();spinChipUpdate();syncPhotoChrome(window._photoIdx||0);}
+if(window._zm&&window._zm.s>1)zmReset();spinShow(S.i||0);spinPreload();if(S.loaded>=m.spin.frames&&!S.playing)spinPlay();spinChipUpdate();thumbShow(thumbStrip(),thumbKey('spin',0),'on');}
+function spinExit(){var S=window._spin;if(!S||!S.on)return;spinStop();S.on=false;var stage=document.querySelector('#cw-modal .min-stage');if(stage)stage.classList.remove('min-spin-on');if(window._zm&&window._zm.s>1)zmReset();spinChipUpdate();syncPhotoChrome(window._photoIdx||0);}
 function spinChipClick(){var m=curM();if(!m||!m.spin)return;var S=spinSt();if(!S.on){spinEnter();return;}if(S.loaded<m.spin.frames)return;if(S.playing){S.userPaused=true;spinPause();}else{S.userPaused=false;spinPlay();}}
 /* Locality map + imagery in the region block — data rides mineral_coords.js (public-id-filtered
    by the builder). mapHTML mirrors the private base viewer; locImgHTML shows a photo of the
