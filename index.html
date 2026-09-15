@@ -94,7 +94,7 @@ main{padding:18px 0 40px}
 .gtile{background:var(--card);border:1px solid var(--bdr);border-radius:14px;overflow:hidden;cursor:pointer;transition:border-color .15s,transform .15s;display:flex;flex-direction:column}
 .gtile:hover{border-color:var(--gold);transform:translateY(-2px)}
 .gtile-imgwrap{position:relative;aspect-ratio:4/3;background:var(--card2);overflow:hidden}
-.gtile-img{width:100%;height:100%;object-fit:cover;display:block}
+.gtile-img{width:100%;height:100%;object-fit:contain;background:#000;display:block}
 .gtile-badges{position:absolute;top:8px;left:8px;display:flex;gap:5px}
 .gtile-body{padding:13px 15px 15px;display:flex;flex-direction:column;gap:3px}
 .gtile-name{font-size:1.32rem;line-height:1.28;font-weight:700;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
@@ -125,7 +125,8 @@ main{padding:18px 0 40px}
 .modal-close:hover{border-color:var(--gold);color:var(--gold)}
 .modal h2{font-size:1.62rem;line-height:1.28;margin:10px 0 2px;padding-right:60px}
 .min-stage{position:relative;width:100%;aspect-ratio:4/3;max-height:min(56vh,540px);overflow:hidden;border-radius:10px;background:var(--card2);touch-action:pan-y;user-select:none}
-.min-track{display:flex;width:100%;height:100%;transform:translateX(-100%)}
+/* The track is sized by inset against the stage's USED box, not height:100%: WebKit (Safari, every iPhone browser) resolves a child's height:100% against the stage's unclamped aspect-ratio height and ignores max-height, so the photo overflowed and its bottom was cut off (RM-0120, 2026-09-15). Every rock photo frame letterboxes on black — the whole specimen is always in frame. */
+.min-track{position:absolute;inset:0;display:flex;transform:translateX(-100%)}
 .min-track.min-single{transform:translateX(0)}
 .min-track.min-anim{transition:transform .34s cubic-bezier(.22,.61,.36,1)}
 .min-slide{flex:0 0 100%;width:100%;height:100%;display:flex;align-items:center;justify-content:center;overflow:hidden}
@@ -143,7 +144,7 @@ main{padding:18px 0 40px}
 .min-thumbs{display:flex;gap:6px;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;margin-top:8px;-webkit-overflow-scrolling:touch;scrollbar-width:thin;scroll-behavior:smooth;padding-bottom:2px}
 .min-thumbs::-webkit-scrollbar{height:5px}.min-thumbs::-webkit-scrollbar-thumb{background:var(--bdr);border-radius:3px}
 .min-thumb-more{flex:0 0 auto;width:56px;height:42px;box-sizing:border-box;border:1px dashed var(--bdr);border-radius:6px;background:transparent;color:var(--muted,#9aa3ad);font-family:inherit;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;line-height:1;cursor:pointer;padding:0;scroll-snap-align:center;-webkit-tap-highlight-color:transparent}.min-thumb-more:hover,.min-thumb-more:focus-visible{border-color:var(--gold,#f59e0b);color:var(--gold,#f59e0b);outline:none}.min-thumb-more-n{font-weight:800;font-size:.82rem}.min-thumb-more-t{font-size:.52rem;letter-spacing:.06em;text-transform:uppercase;opacity:.85}
-.min-thumb{flex:0 0 auto;width:56px;height:42px;object-fit:cover;border-radius:5px;border:1px solid var(--bdr);cursor:pointer}
+.min-thumb{flex:0 0 auto;width:56px;height:42px;object-fit:contain;background:#000;border-radius:5px;border:1px solid var(--bdr);cursor:pointer}
 .min-thumb.on{border-color:var(--gold)}
 /* Rocks photo zoom (wheel/pinch). State: window._zm={s,tx,ty}. At s==1 one-finger drag = swipe
    (unchanged); at s>1 one-finger drag pans; two fingers always pinch. Touch handlers are
@@ -384,7 +385,7 @@ body.cw-fs-on{overflow:hidden}
 .related-card{min-width:0;padding:0;overflow:hidden;border:1px solid var(--bdr);border-radius:10px;background:var(--card2);color:var(--t1);text-align:left;cursor:pointer;font-family:inherit}
 .related-card:hover{border-color:var(--gold)}
 .related-card:focus-visible{outline:3px solid rgba(245,158,11,0.65);outline-offset:3px}
-.related-card img{width:100%;aspect-ratio:4/3;display:block;object-fit:cover}
+.related-card img{width:100%;aspect-ratio:4/3;display:block;object-fit:contain;background:#000}
 .related-card-copy{display:block;padding:8px}
 .related-card strong,.related-card span{display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden}
 .related-card strong{-webkit-line-clamp:2;font-size:0.8rem;line-height:1.25}
