@@ -198,6 +198,16 @@ main{padding:18px 0 40px}
 @media(min-width:769px){.min-thumbs{--tw:72px;--th:54px;padding-bottom:8px;scrollbar-width:thin;scrollbar-color:rgba(148,163,184,0.35) transparent}.min-thumbs::-webkit-scrollbar{display:block;height:6px}.min-thumbs::-webkit-scrollbar-thumb{background:rgba(148,163,184,0.35);border-radius:3px}}
 @media(prefers-reduced-motion:reduce){.min-thumb-in,.min-tgroup-in>.min-tgroup-h{animation:none}.min-spin-layer,.min-stage.min-spin-on .min-spin-layer{transition:none}.min-thumbs{scroll-behavior:auto}.min-thumb-more:hover{transform:none}}
 /* ---- end shared thumb strip CSS -------------------------------------------- */
+/* PUB-3 / MODAL-1 / A11Y-1 (2026-10-11) — Share button, phone-first head, tile focus ring. Outside every shared block;
+   none of these selectors is owned by the #219 thumb-strip CSS. Base rules sit BEFORE the phone @media block below on purpose. */
+.modal-title-row{display:flex;align-items:flex-start;gap:12px}
+.modal-title-row h2{flex:1;min-width:0;padding-right:0}
+.min-share-btn{flex:0 0 auto;min-height:42px;padding:8px 12px;font-size:0.82rem;border:1px solid rgba(20,184,166,0.5);border-radius:10px;background:rgba(20,184,166,0.12);color:#5eead4;font-weight:750;cursor:pointer}
+[data-theme="light"] .min-share-btn{color:#0f766e}
+.min-share-btn:hover,.min-share-btn:focus-visible{border-color:var(--gold);color:var(--gold)}
+.min-share-btn:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.min-phone-head{display:none}
+.gtile:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 .min-spin-badge{background:rgba(245,158,11,0.92);color:#1a1205;font-size:0.62rem;font-weight:800;padding:2px 6px;border-radius:6px}
 [data-theme="light"] .min-spin-badge{background:#d97706;color:#fff}
 .min-rocknav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:14px 0 4px;padding:11px 0;border-top:1px solid var(--bdr);border-bottom:1px solid var(--bdr)}
@@ -225,7 +235,7 @@ body.cw-fs-on{overflow:hidden}
 .modal.fs-on .min-nav{width:54px;height:54px;font-size:2.1rem;background:rgba(255,255,255,0.16)}
 .modal.fs-on .min-photo-pos{bottom:calc(16px + env(safe-area-inset-bottom,0));font-size:0.95rem;padding:5px 15px}
 .modal.fs-on .modal-close{position:fixed;top:calc(12px + env(safe-area-inset-top,0));right:14px;z-index:202;background:rgba(255,255,255,0.16);color:#fff;border-color:transparent}
-@media(max-width:600px){.min-stage{aspect-ratio:1/1;max-height:62vh}.modal{padding:14px 15px 20px}/* phone: the modal uses the whole width (owner, 2026-09-04). The close button is float:right+sticky on desktop; a grid container will not flow under a float, so at phone width the 62px button was pushing the whole dossier grid 62px narrower — the unused strip in the owner's screenshot. Overlay it. */.modal-bg{padding:0}.modal{border-radius:0;border-left:0;border-right:0;padding:10px 6px 20px;max-width:none}.modal-close{float:none;position:absolute;top:8px;right:8px;z-index:5}.min-stage{border-radius:0}.hdr-title{font-size:1.4rem}.mgrid{grid-template-columns:repeat(var(--mob-cols,2),1fr);gap:11px}.mgrid .gtile-name{font-size:1.12rem}.mgrid .gtile-sub{font-size:0.94rem}.mgrid .min-tile-flavor{display:none}.mgrid .gtile-body{padding:10px 11px}.mgrid.compact .gtile-name{font-size:0.9rem}.mgrid.compact .gtile-sub{font-size:0.78rem}.modal-close{width:62px;height:62px;font-size:2.4rem;border-radius:15px}.modal h2{padding-right:74px}.tc-hd .tt{display:none}.vt-grp{flex-shrink:0}#gs-grp{flex-shrink:0}.min-fullsize{width:56px;height:56px;font-size:1.85rem;border-radius:13px}.pf-shell{position:sticky;z-index:34;top:0;margin:0 -6px 10px;padding:8px 6px;background:var(--bg);box-shadow:0 8px 16px rgba(0,0,0,0.12)}.pf-search-row{display:grid;grid-template-columns:minmax(0,1fr) auto}.pf-mobile-toggle{display:block}.pf-advanced{display:none;margin-top:8px;padding:10px;border:1px solid var(--bdr);border-radius:11px;background:var(--card)}.pf-shell.open .pf-advanced{display:flex}.pf-advanced .pubms,.pf-advanced .pubms-trig,.pf-advanced .pf-sel{flex:1 1 calc(50% - 4px);min-width:0;width:100%}.pf-advanced .pf-clear{flex:1 1 100%}.pubms-drop{position:fixed;z-index:120;left:12px;right:12px;top:auto;bottom:12px;min-width:0;max-height:min(62vh,460px);border-radius:15px}}
+@media(max-width:600px){.min-stage{aspect-ratio:1/1;max-height:50vh}.modal{padding:14px 15px 20px}/* phone: the modal uses the whole width (owner, 2026-09-04). The close button is float:right+sticky on desktop; a grid container will not flow under a float, so at phone width the 62px button was pushing the whole dossier grid 62px narrower — the unused strip in the owner's screenshot. Overlay it. */.modal-bg{padding:0}.modal{border-radius:0;border-left:0;border-right:0;padding:10px 6px 20px;max-width:none}.modal-close{float:none;position:absolute;top:8px;right:8px;z-index:5}.min-stage{border-radius:0}.hdr-title{font-size:1.4rem}.mgrid{grid-template-columns:repeat(var(--mob-cols,2),1fr);gap:11px}.mgrid .gtile-name{font-size:1.12rem}.mgrid .gtile-sub{font-size:0.94rem}.mgrid .min-tile-flavor{display:none}.mgrid .gtile-body{padding:10px 11px}.mgrid.compact .gtile-name{font-size:0.9rem}.mgrid.compact .gtile-sub{font-size:0.78rem}.modal-close{width:62px;height:62px;font-size:2.4rem;border-radius:15px}.modal h2{padding-right:74px}.tc-hd .tt{display:none}.vt-grp{flex-shrink:0}#gs-grp{flex-shrink:0}.min-fullsize{width:56px;height:56px;font-size:1.85rem;border-radius:13px}.pf-shell{position:sticky;z-index:34;top:0;margin:0 -6px 10px;padding:8px 6px;background:var(--bg);box-shadow:0 8px 16px rgba(0,0,0,0.12)}.pf-search-row{display:grid;grid-template-columns:minmax(0,1fr) auto}.pf-mobile-toggle{display:block}.pf-advanced{display:none;margin-top:8px;padding:10px;border:1px solid var(--bdr);border-radius:11px;background:var(--card)}.pf-shell.open .pf-advanced{display:flex}.pf-advanced .pubms,.pf-advanced .pubms-trig,.pf-advanced .pf-sel{flex:1 1 calc(50% - 4px);min-width:0;width:100%}.pf-advanced .pf-clear{flex:1 1 100%}.pubms-drop{position:fixed;z-index:120;left:12px;right:12px;top:auto;bottom:12px;min-width:0;max-height:min(62vh,460px);border-radius:15px}/* MODAL-1: title + three facts sit between the stage and the thumb strip; the in-column h2 and its Share row are the desktop copy. `.min-phone-head .min-phone-title` outranks the generic `.modal h2` (0,1,1). */.min-phone-head{display:block;position:relative;margin:8px 2px 4px}.min-phone-head .min-phone-title{font-size:1.25rem;line-height:1.2;margin:0 0 4px;padding-right:68px;min-height:44px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}.min-phone-facts{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:0.9rem;color:var(--t2)}.min-phone-facts>span{min-width:0;overflow-wrap:anywhere}.min-share-phone{position:absolute;top:0;right:0;min-width:60px;min-height:44px}.modal-info h2,.modal-title-row h2{display:none}.modal-title-row{display:none}}
 /* footer */
 .site-ftr{border-top:1px solid var(--bdr);padding:22px 0 34px;margin-top:20px;color:var(--t3);font-size:0.84rem}
 .site-ftr .wrap{display:flex;flex-direction:column;gap:5px}
@@ -458,7 +468,7 @@ body.cw-fs-on{overflow:hidden}
 <main><div class="wrap"><div id="min-root"></div></div></main>
 <footer class="site-ftr"><div class="wrap">
   <div>In memory of <strong>Charles V. “Charlie” Wills</strong> — a lifelong rock hound of Calumet, Michigan and Bisbee, Arizona.</div>
-  <div>Shown here for viewing only. Photos &amp; specimen notes © the family.</div>
+  <div>Shared by link, for viewing only. Photographs and specimen notes © the collection's current steward, a family friend of Charlie's, shared here in his memory.</div>
 </div></footer>
 <div id="modal-wrap" class="hidden"></div>
 
@@ -1250,7 +1260,7 @@ var PROP2KEY={sub:'subtype',prov:'provenance',species:'species',state:'state'};
 function optionsFor(prop){
   var C=computeCounts(),data=minData(),key=PROP2KEY[prop],out=[];
   if(prop==='sub'){var order=['mineral','rock','fossil','cut_stone','meteorite'],pres={};data.forEach(function(m){if(m.subtype)pres[m.subtype]=1;});order.filter(function(k){return pres[k];}).forEach(function(k){out.push([k,subLabel(k),C.subtype[k]||0]);});}
-  else if(prop==='prov'){[['Charlie Wills','Charlie Wills'],['Own','From the family'],['(untagged)','Untagged']].forEach(function(o){if((C.provenance[o[0]]||0)>0||S.f.provenance.indexOf(o[0])>=0)out.push([o[0],o[1],C.provenance[o[0]]||0]);});}
+  else if(prop==='prov'){[['Charlie Wills','Charlie Wills'],['(untagged)','Untagged']].forEach(function(o){if((C.provenance[o[0]]||0)>0||S.f.provenance.indexOf(o[0])>=0)out.push([o[0],o[1],C.provenance[o[0]]||0]);});}
   else if(prop==='species'){var sp={};data.forEach(function(m){(m.species||[]).forEach(function(x){sp[x]=1;});});Object.keys(sp).forEach(function(x){out.push([x,x,C.species[x]||0]);});out.sort(function(a,b){return b[2]-a[2]||String(a[0]).localeCompare(String(b[0]));});}
   else if(prop==='state'){var stt={};data.forEach(function(m){stt[stateOf(m)]=1;});Object.keys(stt).forEach(function(s){out.push([s,(s==='(unknown)'?'Unknown':s),C.state[s]||0]);});out.sort(function(a,b){if(a[0]==='(unknown)')return 1;if(b[0]==='(unknown)')return -1;return b[2]-a[2]||String(a[0]).localeCompare(String(b[0]));});}
   return out;
@@ -1344,8 +1354,8 @@ function renderContent(){
     var rows=M.map(function(m){return '<tr class="cl" onclick="showMineral(\''+m.id+'\')"><td><strong>'+esc(title(m))+'</strong><div style="color:var(--t3);font-size:0.72rem">'+esc(m.id)+(m.provenance==='Charlie Wills'?' · CW':'')+'</div></td><td>'+esc(subLabel(m.subtype))+'</td><td>'+esc(locStr(m.locality))+'</td><td>'+esc(m.size||'—')+'</td></tr>';}).join('');
     el.innerHTML='<div style="overflow-x:auto"><table class="min-table"><thead><tr><th>Specimen</th><th>Type</th><th>Locality</th><th>Size</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
   }else{
-    var tiles=M.map(function(m){var h=hero(m);var src=h?img(h,400):PLACEHOLDER;return '<div class="gtile" onclick="showMineral(\''+m.id+'\')"><div class="gtile-imgwrap"><img class="gtile-img" src="'+esc(src)+'" loading="lazy" decoding="async" alt="'+esc(title(m))+'" onerror="this.onerror=null;this.src=\''+PLACEHOLDER+'\'"><div class="gtile-badges"><span class="min-sub-badge">'+esc(subLabel(m.subtype))+'</span>'+(m.provenance==='Charlie Wills'?'<span class="min-cw-badge" title="Charlie Wills collection">CW</span>':'')+(m.spin?'<span class="min-spin-badge" title="Has a 360° spin">360°</span>':'')+'</div></div><div class="gtile-body"><div class="gtile-name" title="'+esc(title(m))+'">'+esc(shortCardTitle(title(m)))+'</div><div class="gtile-sub" title="'+esc(locStr(m.locality))+'">'+esc(shortLoc(m.locality))+'</div>'+(shortFlavor(m.flavor)?'<div class="min-tile-flavor">'+esc(shortFlavor(m.flavor))+'</div>':'')+'</div></div>';}).join('');
-    el.innerHTML='<div class="mgrid'+(S.lvl>=2?' compact':'')+'" role="list">'+tiles+'</div>';applyGridSize();
+    var tiles=M.map(function(m){var h=hero(m);var src=h?img(h,400):PLACEHOLDER;return '<div class="gtile" role="button" tabindex="0" aria-label="'+esc(title(m)+', '+locStr(m.locality))+'" onclick="showMineral(\''+m.id+'\')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();showMineral(\''+m.id+'\');}"><div class="gtile-imgwrap"><img class="gtile-img" src="'+esc(src)+'" loading="lazy" decoding="async" alt="'+esc(title(m))+'" onerror="this.onerror=null;this.src=\''+PLACEHOLDER+'\'"><div class="gtile-badges"><span class="min-sub-badge">'+esc(subLabel(m.subtype))+'</span>'+(m.provenance==='Charlie Wills'?'<span class="min-cw-badge" title="Charlie Wills collection">CW</span>':'')+(m.spin?'<span class="min-spin-badge" title="Has a 360° spin">360°</span>':'')+'</div></div><div class="gtile-body"><div class="gtile-name" title="'+esc(title(m))+'">'+esc(shortCardTitle(title(m)))+'</div><div class="gtile-sub" title="'+esc(locStr(m.locality))+'">'+esc(shortLoc(m.locality))+'</div>'+(shortFlavor(m.flavor)?'<div class="min-tile-flavor">'+esc(shortFlavor(m.flavor))+'</div>':'')+'</div></div>';}).join('');
+    el.innerHTML='<div class="mgrid'+(S.lvl>=2?' compact':'')+'">'+tiles+'</div>';applyGridSize();
   }
 }
 /* The featured panel is the newest specimen — "newest" meaning the highest catalog id,
@@ -1396,11 +1406,22 @@ function render(){
     +'<button class="vtbtn" id="cv-grid" onclick="setView(\'grid\')" title="Gallery" aria-label="Gallery view">▦</button><button class="vtbtn" id="cv-table" onclick="setView(\'table\')" title="Table" aria-label="Table view">☰</button></div></div>'
     +'<div id="min-content"></div>';
   renderContent();syncViewBtns();refreshFilterBar();
+  if(!window._hashOpened){window._hashOpened=1;syncSpecimenFromLocation();}/* PUB-3: a shared #RM-xxxx link opens its specimen once the grid exists */
 }
 
 /* ------------------------------------------------------------------ modal + carousel */
 function curM(){var ids=window._navIds||[];return minData().find(function(x){return x.id===ids[window._navIdx||0];});}
 function slideHTML(p){return '<div class="min-slide"><img class="min-slide-img" src="'+esc(img(p,1280))+'" alt="" onerror="this.onerror=null;this.src=\''+PLACEHOLDER+'\'"></div>';}
+/* MODAL-1: the phone head's size is the measurement only — the record's `size` is often a paragraph of method (68 of 110 are >60 chars), and the
+   full text stays in the dossier's Size row. Reuses splitFact()'s value-first lead, then cuts at the first aside/sentence/comma. */
+function phoneSize(raw){
+  var s=splitFact(raw).lead.replace(/\*\*/g,'').replace(/[\u2B50\u26A0\u2705\uFE0F]+\s*/g,'').replace(/\s+/g,' ').trim();
+  var cut=s.search(/\s[\u2014\u2013]\s|\s\(|;\s/);if(cut>0)s=s.slice(0,cut);
+  var sent=s.match(/[a-z)]\.\s+(?=[A-Z0-9~])/);if(sent)s=s.slice(0,sent.index+1);
+  if(s.length>64){var c=s.indexOf(', ');if(c>=10)s=s.slice(0,c);}
+  if(s.length>64){var sp=s.lastIndexOf(' ',64);s=s.slice(0,sp>20?sp:64)+'\u2026';}
+  return s.replace(/[.,;:]+$/,'');
+}
 function modalBody(m){
   var P=photosOf(m);var pi=Math.min(Math.max(window._photoIdx||0,0),Math.max(P.length-1,0));var cur=P[pi];
   var heroZoom=cur?img(cur,(cur.hero?2560:1280)):'';
@@ -1420,6 +1441,11 @@ function modalBody(m){
     +factChip('Color',m.color)
     +factChip('Catalog #',m.catalog_no||m.id)
     +(String(m.habit||'').length>240?'':factChip('Habit',m.habit,'wide'));
+  /* MODAL-1: phone-first head — shown only at <=600px (CSS), between the stage and the thumb strip. Plain text, no links. */
+  var phoneSp=(m.species||[]).map(esc).join(', ');
+  var phoneHead='<div class="min-phone-head"><h2 class="min-phone-title">'+esc(title(m))/* TITLE-1: swap to displayName() */+'</h2>'
+    +'<div class="min-phone-facts">'+(phoneSp?'<span>'+phoneSp+'</span>':'')+'<span>'+esc(locStr(m.locality))+'</span>'+(phoneSize(m.size)?'<span>'+esc(phoneSize(m.size))+'</span>':'')+'</div>'
+    +'<button class="min-share-btn min-share-phone" type="button" onclick="shareSpecimen(this)">Share</button></div>';
   var labelBlock=m.label_text?'<div class="min-label"><div class="min-label-h">&#127991; Charlie&rsquo;s label</div><div class="min-label-body">'+esc(m.label_text)+'</div><div class="min-label-note">Transcribed exactly as written &mdash; spelling and all.</div></div>':'';
   var uv=uvHTML(m),ident=identificationHTML(m),region=regionCardHTML(m)+candMapHTML(m),related=relatedHTML(m);
   var habitCard=String(m.habit||'').length>240?dossierCard('In hand','Habit & character',richTextSkim(m.habit,'more')):'';
@@ -1430,10 +1456,10 @@ function modalBody(m){
   else if(colMain||colSide||flavorBand)dossier='<div class="modal-dossier dossier-single">'+flavorBand+'<div class="dossier-col">'+colMain+colSide+'</div></div>';
   return '<button class="modal-close" onclick="fsAwareClose()" aria-label="Close">×</button>'
     +'<div class="modal-grid">'
-    +'<div class="modal-media"><div class="min-stage'+(multi?' min-multi':'')+'"><div class="min-track'+(multi?'':' min-single')+'">'+slides+'</div>'+arrows+pos+spinChip+full+'</div>'+thumbs+rocknav+'</div>'
+    +'<div class="modal-media"><div class="min-stage'+(multi?' min-multi':'')+'"><div class="min-track'+(multi?'':' min-single')+'">'+slides+'</div>'+arrows+pos+spinChip+full+'</div>'+phoneHead+thumbs+rocknav+'</div>'
     +'<div class="modal-info">'
-    +'<h2>'+esc(title(m))+'</h2>'
-    +'<div class="badges"><span class="min-sub-badge" style="background:rgba(20,184,166,0.15);color:#2dd4bf">'+esc(subLabel(m.subtype))+'</span>'+(m.provenance?'<span class="min-source-badge">'+esc(m.provenance==='Charlie Wills'?'Charlie Wills collection':'From the family')+'</span>':'')+confidenceBadge(m)+'</div>'
+    +'<div class="modal-title-row"><h2>'+esc(title(m))+'</h2><button class="min-share-btn" type="button" onclick="shareSpecimen(this)">Share</button></div>'
+    +'<div class="badges"><span class="min-sub-badge" style="background:rgba(20,184,166,0.15);color:#2dd4bf">'+esc(subLabel(m.subtype))+'</span>'+(m.provenance==='Charlie Wills'?'<span class="min-source-badge">Charlie Wills collection</span>':'')+confidenceBadge(m)+'</div>'
     +'<div class="min-quick">'+quick+'</div>'
     +labelBlock
     +'</div>'
@@ -1469,16 +1495,18 @@ function spinURL(m,i){return 'images/minerals/'+m.spin.stem+('0'+(i+1)).slice(-2
 function spinSt(){return window._spin||(window._spin={on:false,i:0,imgs:null,loaded:0,playing:false,userPaused:false,t:null,rt:null});}
 function spinN(){var m=curM();return (m&&m.spin)?m.spin.frames:0;}
 function spinLayer(){var st=document.querySelector('#cw-modal .min-stage');return st?st.querySelector('.min-spin-img'):null;}
+/* MOTION-1: under prefers-reduced-motion the spin never starts by itself — poster frame, drag still scrubs, the chip still toggles play. */
+function spinReduced(){try{return !!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);}catch(e){return false;}}
 function spinStop(){var S=spinSt();if(S.t){clearInterval(S.t);S.t=null;}if(S.rt){clearTimeout(S.rt);S.rt=null;}S.playing=false;}
 function spinReset(){spinStop();window._spin=null;}
 function spinShow(i){var m=curM();if(!m||!m.spin)return;var S=spinSt();var N=m.spin.frames;S.i=((i%N)+N)%N;var im=spinLayer();if(im){var pre=S.imgs&&S.imgs[S.i];im.src=(pre&&pre.complete&&pre.naturalWidth)?pre.src:spinURL(m,S.i);}}
 function spinTick(){var box=document.getElementById('cw-modal');var wrap=document.getElementById('modal-wrap');var S=spinSt();if(!box||!S.on||(wrap&&wrap.classList.contains('hidden'))){spinStop();return;}if(!S.playing)return;if(window._zm&&window._zm.s>1)return;spinShow(S.i+1);}
 function spinPlay(){var m=curM();if(!m||!m.spin)return;var S=spinSt();if(S.t)clearInterval(S.t);/* museum pace (owner, 2026-08-29 — set to 6.5s, then slowed to 10s per revolution the same day) */var iv=Math.max(170,Math.min(430,Math.round(10000/m.spin.frames)));S.playing=true;S.t=setInterval(spinTick,iv);spinChipUpdate();}
-function spinPause(resumeMs){var S=spinSt();S.playing=false;if(S.rt){clearTimeout(S.rt);S.rt=null;}spinChipUpdate();if(resumeMs)S.rt=setTimeout(function(){var S2=spinSt();if(S2.on&&!S2.userPaused&&!S2.playing&&S2.loaded>=spinN()&&!(window._zm&&window._zm.s>1))spinPlay();},resumeMs);}
+function spinPause(resumeMs){var S=spinSt();S.playing=false;if(S.rt){clearTimeout(S.rt);S.rt=null;}spinChipUpdate();if(resumeMs)S.rt=setTimeout(function(){var S2=spinSt();if(S2.on&&!S2.userPaused&&!S2.playing&&S2.loaded>=spinN()&&!(window._zm&&window._zm.s>1)&&!spinReduced())spinPlay();},resumeMs);}
 function spinChipUpdate(){var box=document.getElementById('cw-modal');if(!box)return;var ch=box.querySelector('.min-spin-chip');if(!ch)return;var S=window._spin;var N=spinN();if(S&&S.on){var pp=box.querySelector('.min-photo-pos');if(pp)pp.textContent=stagePosLabel('spin',0,1);}if(!S||!S.on){ch.textContent='360°';ch.title='Play the 360° spin';ch.classList.remove('min-spin-live');return;}ch.classList.add('min-spin-live');if(S.loaded<N){ch.textContent='360° · '+Math.round(S.loaded/Math.max(N,1)*100)+'%';ch.title='Loading spin frames…';}else{ch.textContent=S.playing?'360° ❚❚':'360° ▶';ch.title=S.playing?'Pause the spin — drag the rock to rotate it':'Resume the spin';}}
-function spinPreload(){var m=curM();if(!m||!m.spin)return;var S=spinSt();if(S.imgs)return;var N=m.spin.frames;S.imgs=[];S.loaded=0;for(var i=0;i<N;i++)(function(){var im=new Image();im.onload=im.onerror=function(){S.loaded++;spinChipUpdate();if(S.loaded>=N&&S.on&&!S.playing&&!S.userPaused)spinPlay();};im.src=spinURL(m,S.imgs.length);S.imgs.push(im);})();}
+function spinPreload(){var m=curM();if(!m||!m.spin)return;var S=spinSt();if(S.imgs)return;var N=m.spin.frames;S.imgs=[];S.loaded=0;for(var i=0;i<N;i++)(function(){var im=new Image();im.onload=im.onerror=function(){S.loaded++;spinChipUpdate();if(S.loaded>=N&&S.on&&!S.playing&&!S.userPaused&&!spinReduced())spinPlay();};im.src=spinURL(m,S.imgs.length);S.imgs.push(im);})();}
 function spinEnter(){var m=curM();if(!m||!m.spin)return;var stage=document.querySelector('#cw-modal .min-stage');if(!stage)return;var S=spinSt();S.on=true;S.userPaused=false;stage.classList.add('min-spin-on');if(!stage.querySelector('.min-spin-layer')){var layer=document.createElement('div');layer.className='min-spin-layer';layer.innerHTML='<img class="min-spin-img" alt="360° spin">';var tr=stage.querySelector('.min-track');stage.insertBefore(layer,tr?tr.nextSibling:stage.firstChild);}
-if(window._zm&&window._zm.s>1)zmReset();spinShow(S.i||0);spinPreload();if(S.loaded>=m.spin.frames&&!S.playing)spinPlay();spinChipUpdate();thumbShow(thumbStrip(),thumbKey('spin',0),'on');}
+if(window._zm&&window._zm.s>1)zmReset();spinShow(S.i||0);spinPreload();if(S.loaded>=m.spin.frames&&!S.playing&&!spinReduced())spinPlay();spinChipUpdate();thumbShow(thumbStrip(),thumbKey('spin',0),'on');}
 function spinExit(){var S=window._spin;if(!S||!S.on)return;spinStop();S.on=false;var stage=document.querySelector('#cw-modal .min-stage');if(stage)stage.classList.remove('min-spin-on');if(window._zm&&window._zm.s>1)zmReset();spinChipUpdate();syncPhotoChrome(window._photoIdx||0);}
 function spinChipClick(){var m=curM();if(!m||!m.spin)return;var S=spinSt();if(!S.on){spinEnter();return;}if(S.loaded<m.spin.frames)return;if(S.playing){S.userPaused=true;spinPause();}else{S.userPaused=false;spinPlay();}}
 /* Locality map + imagery in the region block — data rides mineral_coords.js (public-id-filtered
@@ -1642,14 +1670,50 @@ stage.addEventListener('touchend',tEnd,{passive:true});
 stage.addEventListener('touchcancel',tEnd,{passive:true});
 if(m&&m.spin)spinEnter();
 }
-function fill(){var m=curM(),box=document.getElementById('cw-modal');if(!m||!box)return;clearTimeout(window._animT);window._anim=false;window._showAux=false;window._photoIdx=heroIdx(m);box.innerHTML=modalBody(m);box.scrollTop=0;bindStage();}
-function navRock(d){var ids=window._navIds||[],n=ids.length;if(n<2)return;window._navIdx=((window._navIdx||0)+d+n)%n;fill();}
+function fill(){var m=curM(),box=document.getElementById('cw-modal');if(!m||!box)return;clearTimeout(window._animT);window._anim=false;window._showAux=false;window._photoIdx=heroIdx(m);box.innerHTML=modalBody(m);box.setAttribute('aria-label',title(m));box.scrollTop=0;bindStage();}
+function navRock(d){var ids=window._navIds||[],n=ids.length;if(n<2)return;window._navIdx=((window._navIdx||0)+d+n)%n;fill();setSpecimenUrl(ids[window._navIdx],true);}
 /* Prev/Next follows the order the visitor is actually looking at (filtered() — newest-first
    by default), not the raw catalog order. Before this the newest specimen opened as "72 / 72",
    which reads badly when the Latest-addition panel is the front door. Falls back to minData()
    if the current view is empty so navigation can never be lost. */
-function showMineral(id){var M=filtered();if(!M.length||M.map(function(x){return x.id;}).indexOf(id)<0)M=minData();var ids=M.map(function(x){return x.id;}),idx=ids.indexOf(id);if(idx<0)return;var m=M[idx],wrap=document.getElementById('modal-wrap');if(!wrap)return;window._navIds=ids;window._navIdx=idx;window._showAux=false;window._photoIdx=heroIdx(m);wrap.innerHTML='<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal" id="cw-modal">'+modalBody(m)+'</div></div>';wrap.classList.remove('hidden');var bg=wrap.querySelector('.modal-bg');requestAnimationFrame(function(){if(bg)bg.classList.add('vis');});bindStage();if(!window._keyBound){window._keyBound=1;document.addEventListener('keydown',function(e){if(!document.getElementById('cw-modal'))return;if(e.key==='ArrowLeft'){if(e.shiftKey)navRock(-1);else photoNav(-1);}else if(e.key==='ArrowRight'){if(e.shiftKey)navRock(1);else photoNav(1);}else if(e.key==='Escape'){if(isFullscreen())exitFullscreen();else closeModal();}});}}
-function closeModal(){document.body.classList.remove('cw-fs-on');var w=document.getElementById('modal-wrap');if(!w)return;var bg=w.querySelector('.modal-bg');if(bg)bg.classList.remove('vis');setTimeout(function(){w.classList.add('hidden');w.innerHTML='';},160);}
+/* ---- PUB-3 URL state + Share (ported from the private viewer's friends_viewer.js, 2026-10-11) ---------------
+   `#RM-xxxx` is the whole contract: opening a specimen pushes it, Prev/Next replaces it, closing clears it,
+   Back/Forward and hand-edited hashes re-sync the modal. Only ids that exist in minData() are ever honoured.
+   Money-free by construction — the URL carries a catalogue id and nothing else. */
+function baseViewerUrl(){return location.pathname+location.search;}
+function specimenFromHash(){
+  var raw=location.hash?location.hash.slice(1):'';
+  if(!raw)return '';
+  try{raw=decodeURIComponent(raw);}catch(e){return '';}
+  return minData().some(function(m){return m.id===raw;})?raw:'';
+}
+function setSpecimenUrl(id,replace){
+  try{history[replace?'replaceState':'pushState']({cwSpecimen:id},'',baseViewerUrl()+'#'+encodeURIComponent(id));}catch(e){}
+}
+function fallbackCopy(text){
+  var area=document.createElement('textarea');
+  area.value=text;area.setAttribute('readonly','');area.style.position='fixed';area.style.opacity='0';
+  document.body.appendChild(area);area.select();
+  try{document.execCommand('copy');}catch(e){}
+  document.body.removeChild(area);
+}
+function shareSpecimen(btn){
+  var m=curM();if(!m)return;
+  var url=location.href.split('#')[0]+'#'+encodeURIComponent(m.id);
+  var done=function(){if(!btn)return;var old=btn.textContent;btn.textContent='Link copied';setTimeout(function(){if(btn)btn.textContent=old;},1600);};
+  if(navigator.share){navigator.share({title:title(m),text:title(m)+' \u2014 The Charlie Wills Collection',url:url}).catch(function(){});}
+  else if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(url).then(done).catch(function(){fallbackCopy(url);done();});}
+  else{fallbackCopy(url);done();}
+}
+function syncSpecimenFromLocation(){
+  var id=specimenFromHash();
+  if(id){var cur=document.getElementById('cw-modal')&&curM();if(!(cur&&cur.id===id))showMineral(id,false);}
+  else if(document.getElementById('cw-modal'))closeModal(true);
+}
+window.addEventListener('popstate',syncSpecimenFromLocation);
+window.addEventListener('hashchange',syncSpecimenFromLocation);
+function showMineral(id,updateUrl){var M=filtered();if(!M.length||M.map(function(x){return x.id;}).indexOf(id)<0)M=minData();var ids=M.map(function(x){return x.id;}),idx=ids.indexOf(id);if(idx<0)return;var m=M[idx],wrap=document.getElementById('modal-wrap');if(!wrap)return;if(updateUrl!==false)setSpecimenUrl(id,false);/* A11Y-1: remember the opener (the tile) — but never overwrite it with a Related card from inside an already-open modal */if(!document.getElementById('cw-modal'))window._lastMineralFocus=document.activeElement;window._navIds=ids;window._navIdx=idx;window._showAux=false;window._photoIdx=heroIdx(m);wrap.innerHTML='<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal" id="cw-modal" role="dialog" aria-modal="true" aria-label="'+esc(title(m))+'">'+modalBody(m)+'</div></div>';wrap.classList.remove('hidden');var bg=wrap.querySelector('.modal-bg');requestAnimationFrame(function(){if(bg)bg.classList.add('vis');var cl=wrap.querySelector('.modal-close');if(cl)cl.focus({preventScroll:true});});bindStage();if(!window._keyBound){window._keyBound=1;document.addEventListener('keydown',function(e){if(!document.getElementById('cw-modal'))return;if(e.key==='ArrowLeft'){if(e.shiftKey)navRock(-1);else photoNav(-1);}else if(e.key==='ArrowRight'){if(e.shiftKey)navRock(1);else photoNav(1);}else if(e.key==='Escape'){if(isFullscreen())exitFullscreen();else closeModal();}});}}
+function closeModal(keepUrl){document.body.classList.remove('cw-fs-on');if(!keepUrl&&specimenFromHash())history.replaceState({},'',baseViewerUrl());var w=document.getElementById('modal-wrap');if(!w)return;var bg=w.querySelector('.modal-bg');if(bg)bg.classList.remove('vis');setTimeout(function(){w.classList.add('hidden');w.innerHTML='';var prior=window._lastMineralFocus;if(prior&&prior!==document.body&&prior.isConnected&&prior.focus)prior.focus({preventScroll:true});},160);}
 function isFullscreen(){return document.body.classList.contains('cw-fs-on');}
 function enterFullscreen(){var b=document.getElementById('cw-modal');if(!b)return;b.classList.add('fs-on');document.body.classList.add('cw-fs-on');zmReset();}
 function exitFullscreen(){var b=document.getElementById('cw-modal');if(b)b.classList.remove('fs-on');document.body.classList.remove('cw-fs-on');zmReset();}
