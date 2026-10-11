@@ -141,11 +141,6 @@ main{padding:18px 0 40px}
 .min-fullsize:hover{background:var(--gold);color:#1a1205}
 .min-fullsize::after{content:'';position:absolute;inset:-8px}
 .min-stage.min-multi .min-slide-img{cursor:pointer}
-.min-thumbs{display:flex;gap:6px;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;margin-top:8px;-webkit-overflow-scrolling:touch;scrollbar-width:thin;scroll-behavior:smooth;padding-bottom:2px}
-.min-thumbs::-webkit-scrollbar{height:5px}.min-thumbs::-webkit-scrollbar-thumb{background:var(--bdr);border-radius:3px}
-.min-thumb-more{flex:0 0 auto;width:56px;height:42px;box-sizing:border-box;border:1px dashed var(--bdr);border-radius:6px;background:transparent;color:var(--muted,#9aa3ad);font-family:inherit;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;line-height:1;cursor:pointer;padding:0;scroll-snap-align:center;-webkit-tap-highlight-color:transparent}.min-thumb-more:hover,.min-thumb-more:focus-visible{border-color:var(--gold,#f59e0b);color:var(--gold,#f59e0b);outline:none}.min-thumb-more-n{font-weight:800;font-size:.82rem}.min-thumb-more-t{font-size:.52rem;letter-spacing:.06em;text-transform:uppercase;opacity:.85}
-.min-thumb{flex:0 0 auto;width:56px;height:42px;object-fit:contain;background:#000;border-radius:5px;border:1px solid var(--bdr);cursor:pointer}
-.min-thumb.on{border-color:var(--gold)}
 /* Rocks photo zoom (wheel/pinch). State: window._zm={s,tx,ty}. At s==1 one-finger drag = swipe
    (unchanged); at s>1 one-finger drag pans; two fingers always pinch. Touch handlers are
    passive:false on start/move so pinch/pan can preventDefault; vertical scroll at s==1 is preserved
@@ -155,8 +150,6 @@ main{padding:18px 0 40px}
 .min-stage.min-zoomed .min-slide-img{cursor:grab}
 .min-stage.min-zoomed .min-slide-img:active{cursor:grabbing}
 /* 360° spin mode — auto-rotating drag-to-scrub frame sequence */
-.min-spin-layer{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:var(--card2);z-index:1}
-.min-stage:not(.min-spin-on) .min-spin-layer{display:none}
 .modal.fs-on .min-spin-layer{background:#000}
 .min-spin-img{max-width:100%;max-height:100%;width:auto;height:auto;-webkit-user-drag:none;will-change:transform;transform-origin:50% 50%}
 .min-spin-chip{position:absolute;top:8px;left:8px;z-index:3;background:rgba(0,0,0,0.65);color:#fff;border:none;border-radius:11px;padding:5px 11px;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;min-height:28px}
@@ -164,9 +157,47 @@ main{padding:18px 0 40px}
 .min-spin-chip.min-spin-live{background:rgba(245,158,11,0.88);color:#1a1205}
 .min-spin-chip:hover{background:var(--gold);color:#1a1205}
 .min-stage.min-spin-on{cursor:ew-resize}
-.min-stage.min-spin-on .min-photo-pos{display:none}
-.min-spin-thumbwrap{position:relative;flex:0 0 auto;display:inline-block;line-height:0}
-.min-spin-thumbtag{position:absolute;bottom:3px;left:3px;background:rgba(0,0,0,0.72);color:#fff;font-size:0.55rem;font-weight:800;padding:1px 4px;border-radius:4px;pointer-events:none;line-height:1.3}
+/* ---- shared thumb strip CSS — guard #219 · DO NOT EDIT ONE COPY ------------
+   Byte-identical in the dashboard <style>, Scripts/private_rocks/friends_viewer.css and the
+   public viewer_template.html <style>. The surfaces carry no other rule for these selectors
+   (the private shell keeps only its guard #196 .min-thumb base rule, which this overrides).
+   Three hand-kept copies are how the dashboard's 360° label went unstyled and the private
+   site's "+N more" tile became a stock grey button. Edit one, paste it verbatim into the
+   other two, run test_guard_219_thumb_strip.py. */
+.min-thumbs{--tw:56px;--th:42px;display:flex;align-items:flex-end;gap:16px;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;margin-top:10px;padding:2px 12px 4px 2px;-webkit-overflow-scrolling:touch;scroll-behavior:smooth;scroll-snap-type:x proximity;scrollbar-width:none;-webkit-mask-image:linear-gradient(to right,transparent,#000 24px,#000 calc(100% - 24px),transparent);mask-image:linear-gradient(to right,transparent,#000 24px,#000 calc(100% - 24px),transparent)}
+.min-thumbs.min-at-start{-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 24px),transparent);mask-image:linear-gradient(to right,#000 calc(100% - 24px),transparent)}
+.min-thumbs.min-at-end{-webkit-mask-image:linear-gradient(to right,transparent,#000 24px);mask-image:linear-gradient(to right,transparent,#000 24px)}
+.min-thumbs.min-at-start.min-at-end{-webkit-mask-image:none;mask-image:none}
+.min-thumbs::-webkit-scrollbar{display:none}
+.min-tgroup{position:relative;flex:0 0 auto;display:flex;flex-direction:column;gap:5px}
+.min-tgroup+.min-tgroup::before{content:'';position:absolute;left:-9px;top:18px;bottom:2px;width:1px;background:var(--bdr)}
+.min-tgroup-h{font-size:0.6rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--t3);line-height:1.2;white-space:nowrap;padding-left:1px}
+.min-tgroup-row{display:flex;gap:6px;align-items:flex-end}
+.min-tgroup-row>span.min-thumb-in{display:flex}
+.min-thumb-wrap{position:relative;flex:0 0 auto;display:block;line-height:0;cursor:pointer}
+.min-thumb{flex:0 0 auto;display:block;width:var(--tw);height:var(--th);box-sizing:border-box;object-fit:contain;background:#000;border-radius:6px;border:1px solid var(--bdr);cursor:pointer;opacity:0.86;scroll-snap-align:center;transition:opacity .15s,border-color .15s,box-shadow .15s}
+.min-thumb:hover,.min-thumb-wrap:hover .min-thumb{opacity:1}
+.min-thumb.min-thumb-active,.min-thumb.on{opacity:1;border-color:var(--gold);box-shadow:0 0 0 1px var(--gold)}
+.min-thumb-badge{position:absolute;right:4px;bottom:4px;padding:1px 5px;border-radius:4px;background:rgba(3,7,18,0.82);color:#fff;font-size:0.6rem;font-weight:800;letter-spacing:0.03em;line-height:1.45;pointer-events:none;white-space:nowrap}
+.min-thumb-play{position:absolute;left:50%;top:50%;width:24px;height:24px;margin:-12px 0 0 -12px;border-radius:50%;background:rgba(0,0,0,0.62);box-shadow:0 0 0 1px rgba(255,255,255,0.35);pointer-events:none}
+.min-thumb-play::after{content:'';position:absolute;left:9px;top:7px;border-style:solid;border-width:5px 0 5px 8px;border-color:transparent transparent transparent #fff}
+.min-thumb-more{position:relative;flex:0 0 auto;width:var(--tw);height:var(--th);box-sizing:border-box;margin:6px 6px 0 0;padding:0;border:1px solid rgba(255,255,255,0.18);border-radius:6px;background:#000;color:#fff;font-family:inherit;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;line-height:1;cursor:pointer;scroll-snap-align:center;-webkit-tap-highlight-color:transparent;box-shadow:3px -3px 0 -1px var(--card2),3px -3px 0 0 rgba(255,255,255,0.16),6px -6px 0 -1px var(--card2),6px -6px 0 0 rgba(255,255,255,0.09);transition:transform .15s,border-color .15s}
+.min-thumb-more:hover,.min-thumb-more:focus-visible{transform:translateY(-1px);border-color:var(--gold);outline:none}
+.min-thumb-more-img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;border-radius:5px;opacity:0.4;pointer-events:none}
+.min-thumb-more-n{position:relative;font-weight:800;font-size:0.95rem;text-shadow:0 1px 3px rgba(0,0,0,0.85)}
+.min-thumb-less{margin:0;box-shadow:none;background:transparent;border-style:dashed;border-color:var(--bdr);color:var(--t3)}
+.min-thumb-less-i{font-size:1.05rem;font-weight:700}
+.min-thumb-less-t{font-size:0.56rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase}
+.min-thumb-less:hover,.min-thumb-less:focus-visible{color:var(--gold)}
+@keyframes minThumbIn{from{opacity:0;transform:translateX(16px) scale(0.94)}}
+.min-thumb-in{animation:minThumbIn .28s cubic-bezier(.22,.61,.36,1) backwards;animation-delay:calc(60ms + var(--i,0) * 35ms)}
+.min-tgroup-in>.min-tgroup-h{animation:minThumbIn .28s cubic-bezier(.22,.61,.36,1) backwards}
+.min-spin-layer{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:var(--card2);z-index:1;opacity:0;visibility:hidden;transition:opacity .2s ease,visibility 0s linear .2s}
+.min-stage.min-spin-on .min-spin-layer{opacity:1;visibility:visible;transition:opacity .2s ease,visibility 0s linear 0s}
+.min-photo-pos:empty{display:none}
+@media(min-width:769px){.min-thumbs{--tw:72px;--th:54px;padding-bottom:8px;scrollbar-width:thin;scrollbar-color:rgba(148,163,184,0.35) transparent}.min-thumbs::-webkit-scrollbar{display:block;height:6px}.min-thumbs::-webkit-scrollbar-thumb{background:rgba(148,163,184,0.35);border-radius:3px}}
+@media(prefers-reduced-motion:reduce){.min-thumb-in,.min-tgroup-in>.min-tgroup-h{animation:none}.min-spin-layer,.min-stage.min-spin-on .min-spin-layer{transition:none}.min-thumbs{scroll-behavior:auto}.min-thumb-more:hover{transform:none}}
+/* ---- end shared thumb strip CSS -------------------------------------------- */
 .min-spin-badge{background:rgba(245,158,11,0.92);color:#1a1205;font-size:0.62rem;font-weight:800;padding:2px 6px;border-radius:6px}
 [data-theme="light"] .min-spin-badge{background:#d97706;color:#fff}
 .min-rocknav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:14px 0 4px;padding:11px 0;border-top:1px solid var(--bdr);border-bottom:1px solid var(--bdr)}
@@ -462,7 +493,8 @@ function originFoldHTML(label,inner){if(!inner)return'';return'<details class="m
    `featured:true`, then the other whole-object frames, the macros, the label, and
    last the UV that shows a response. Frames that are EVIDENCE rather than viewing —
    scale/weight shots and UV where nothing answers the lamp — fold behind a "+N more"
-   tile at the end.
+   tile at the end, which previews the first of them under its count; a "Hide" tile
+   folds them away again (2026-10-11, guard #219 draws both inside its grouped strip).
    ⭐ 2026-09-07, owner-directed: `featured:true` floats a photo to the FRONT of the
    stills, whatever its kind, so the striking frames sit right behind the media. It
    used to mean only "a UV frame worth showing"; that meaning still holds (a featured
@@ -482,7 +514,9 @@ function _photoRank(p){return p.hero?-2:(p.featured?-1:(PHOTO_KIND_RANK[p.kind]!
 function _photoStable(a){return a.map(function(p,i){return{p:p,i:i};}).sort(function(x,y){return _photoRank(x.p)-_photoRank(y.p)||x.i-y.i;}).map(function(x){return x.p;});}
 function orderPhotos(photos,showAux){var main=[],aux=[];for(var i=0;i<(photos||[]).length;i++){var p=photos[i];if(!p)continue;(photoIsAux(p)?aux:main).push(p);}main=_photoStable(main);return showAux?main.concat(_photoStable(aux)):main;}
 function photoAuxCount(photos){var n=0;for(var i=0;i<(photos||[]).length;i++)if(photoIsAux(photos[i]))n++;return n;}
-function photoMoreHTML(photos,showAux,onclick){var n=photoAuxCount(photos);if(!n||showAux)return'';return'<button type="button" class="min-thumb-more" onclick="event.stopPropagation();'+onclick+'" title="Show the scale, weight and remaining UV frames ('+n+')" aria-label="Show '+n+' more photos"><span class="min-thumb-more-n">+'+n+'</span><span class="min-thumb-more-t">more</span></button>';}
+function photoAuxLabel(photos){var s=0,u=0;for(var i=0;i<(photos||[]).length;i++){var p=photos[i];if(!photoIsAux(p))continue;if(p.kind==='scale')s++;else u++;}return s&&u?'Scale & UV':(s?'Scale':(u?'UV':''));}
+function photoMoreHTML(photos,showAux,onclick,url){var n=photoAuxCount(photos);if(!n||showAux)return'';var A=_photoStable((photos||[]).filter(photoIsAux)),lab=photoAuxLabel(photos).replace('&','&amp;'),src=(url&&A[0])?String(url(A[0],200)).replace(/"/g,'&quot;'):'';return'<button type="button" class="min-thumb-more" onclick="event.stopPropagation();'+onclick+'" title="Show '+n+' more: '+lab+'" aria-label="Show '+n+' more photos: '+lab+'" aria-expanded="false">'+(src?'<img class="min-thumb-more-img" src="'+src+'" alt="" loading="lazy">':'')+'<span class="min-thumb-more-n">+'+n+'</span></button>';}
+function photoLessHTML(photos,showAux,onclick){var n=photoAuxCount(photos);if(!n||!showAux)return'';return'<button type="button" class="min-thumb-more min-thumb-less" onclick="event.stopPropagation();'+onclick+'" title="Fold these '+n+' frames away again" aria-label="Hide '+n+' photos" aria-expanded="true"><span class="min-thumb-less-i" aria-hidden="true">&lsaquo;</span><span class="min-thumb-less-t">Hide</span></button>';}
 function videosOf(m){var v=(m&&m.videos)||[];var o=[];for(var i=0;i<v.length;i++)if(v[i]&&v[i].f)o.push(v[i]);return o;}
 function spinsOf(m){if(!m)return[];var s=m.spins;if(s&&s.length){var o=[];for(var i=0;i<s.length;i++)if(s[i]&&s[i].stem&&s[i].frames)o.push(s[i]);return o;}return(m.spin&&m.spin.stem&&m.spin.frames)?[m.spin]:[];}
 /* ---- end shared photo order ------------------------------------------------ */
@@ -514,6 +548,45 @@ function thumbMark(strip,key,cls){if(!strip)return null;var ts=strip.querySelect
 function thumbCenter(strip,act){if(!strip||!act)return;var sr=strip.getBoundingClientRect(),ar=act.getBoundingClientRect();if(!sr.width)return;strip.scrollLeft+=(ar.left-sr.left)-(strip.clientWidth/2)+(ar.width/2);}
 function thumbShow(strip,key,cls){thumbCenter(strip,thumbMark(strip,key,cls));}
 /* ---- end shared thumb selection --------------------------------------------- */
+/* ---- shared thumb strip — guard #219 · DO NOT EDIT ONE COPY ----------------
+   Byte-identical in the three viewers (dashboard Minerals tab · private/gated
+   viewer · public Charlie Wills viewer). Edit ONE copy, paste it verbatim into
+   the other two, run test_guard_219_thumb_strip.py. Its CSS twin is the
+   "shared thumb strip CSS" block in each surface's stylesheet.
+
+   The strip under the stage is GROUPED by what each thumb shows, in the guard
+   #188 order, each group under a small label: Video, 360°, Photos (the hero,
+   featured frames and other whole-object views), Detail (macros), Label, and
+   then the evidence frames (scale shots, UV that shows nothing) folded behind a
+   stacked "+N" tile that previews the first of them. Unfolding animates the
+   revealed tiles in and scrolls them into view; a "Hide" tile folds them away
+   again. Owner, 2026-10-11: the 360° label and the "+N more" button "don't look
+   very good", and the photos under the main one needed better organising.
+
+   The block reads nothing from a viewer. The host passes its lists, its
+   active-class name ('min-thumb-active' / 'on'), its image-URL function and the
+   onclick text for each kind. Every thumb keeps its guard #192 data-tk key, so
+   marking and centring work exactly as before.
+   ⚠️ A fold toggle re-renders the modal, which puts the new strip back at the
+   far left. The host carries the old scroll position across with
+   thumbScrollTo() BEFORE it re-binds, or the reveal becomes a long smooth
+   scroll and the staggered entrance plays off-screen. ---- */
+var THUMB_GROUP_LABEL={photos:'Photos',detail:'Detail',label:'Label'};
+function thumbGroupOf(p){if(photoIsAux(p))return'aux';if(p.hero||p.featured||p.kind==='specimen')return'photos';return p.kind==='macro'?'detail':(p.kind==='label'?'label':'photos');}
+function _tsAttr(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
+function _tsGroup(key,head,inner,extra){return'<div class="min-tgroup min-tgroup-'+key+(extra?' '+extra:'')+'"><span class="min-tgroup-h">'+head+'</span><div class="min-tgroup-row">'+inner+'</div></div>';}
+function _tsVideos(o){var V=o.videos||[];if(!V.length)return'';return _tsGroup('video',V.length>1?'Videos':'Video',V.map(function(v,i){return'<span class="min-thumb-wrap" onclick="event.stopPropagation();'+o.on.video(i)+'" title="Play video '+(i+1)+'"><img class="min-thumb min-video-thumb'+(o.videoIdx===i?' '+o.cls:'')+'" data-tk="'+thumbKey('video',i)+'" src="'+_tsAttr(o.poster(v))+'" loading="lazy" alt="Video '+(i+1)+'"><span class="min-thumb-play" aria-hidden="true"></span></span>';}).join(''));}
+function _tsSpins(o){var S=o.spins||[];if(!S.length)return'';return _tsGroup('spin','360&deg;',S.map(function(sp,k){var t='360&deg; rotation'+(S.length>1?' '+(k+1)+' of '+S.length:'');return'<span class="min-thumb-wrap" onclick="'+o.on.spin(k)+'" title="'+t+' &mdash; drag to rotate"><img class="min-thumb min-spin-thumb" data-tk="'+thumbKey('spin',k)+'" src="'+_tsAttr(o.spinThumb(sp))+'" loading="lazy" alt="'+t+'"><span class="min-thumb-badge" aria-hidden="true">&#8635;'+(S.length>1?' '+(k+1):'')+'</span></span>';}).join(''));}
+function _tsPhoto(o,P,i,k,enter,alt){var p=P[i],fb=String(o.url(p,1280)).replace(/'/g,"\\'");return'<img class="min-thumb'+(i===o.current?' '+o.cls:'')+(enter?' min-thumb-in':'')+'" data-tk="'+thumbKey('photo',i)+'"'+(enter?' style="--i:'+k+'"':'')+' src="'+_tsAttr(o.url(p,200))+'" loading="lazy" alt="'+alt+' '+(k+1)+'" onclick="'+o.on.photo(i)+'" onerror="if(!this._fb){this._fb=1;this.src=\''+_tsAttr(fb)+'\'}else{this.style.display=\'none\'}">';}
+function _tsRuns(P){var runs=[],cur=null;for(var i=0;i<P.length;i++){var g=thumbGroupOf(P[i]);if(!cur||cur.g!==g){cur={g:g,ix:[]};runs.push(cur);}cur.ix.push(i);}return runs;}
+function thumbStripHTML(o){var P=o.photos||[],h=_tsVideos(o)+_tsSpins(o);_tsRuns(P).forEach(function(r){var aux=r.g==='aux',enter=aux&&!!o.enter,head=aux?_tsAttr(photoAuxLabel(o.all)):THUMB_GROUP_LABEL[r.g];var inner=r.ix.map(function(i,k){return _tsPhoto(o,P,i,k,enter,head);}).join('');if(aux){var less=photoLessHTML(o.all,o.showAux,o.on.fold);inner+=(enter&&less)?'<span class="min-thumb-in" style="--i:'+r.ix.length+'">'+less+'</span>':less;}h+=_tsGroup(r.g,head,inner,enter?'min-tgroup-in':'');});
+var more=photoMoreHTML(o.all,o.showAux,o.on.fold,o.url);if(more)h+=_tsGroup('fold',_tsAttr(photoAuxLabel(o.all)),more);return'<div class="min-thumbs min-at-start">'+h+'</div>';}
+function thumbReveal(strip,sel){if(!strip)return;var g=strip.querySelector(sel);if(!g)return;var sr=strip.getBoundingClientRect(),gr=g.getBoundingClientRect();if(!sr.width)return;strip.scrollLeft+=(gr.width+32>strip.clientWidth)?(gr.left-sr.left)-16:(gr.right-sr.right)+16;}
+function thumbStripEdges(s){if(!s||!s.classList)return;var x=s.scrollLeft,max=s.scrollWidth-s.clientWidth;s.classList.toggle('min-at-start',x<=2);s.classList.toggle('min-at-end',x>=max-2);}
+function thumbScrollTo(strip,x){if(!strip)return;strip.style.scrollBehavior='auto';strip.scrollLeft=x||0;strip.style.scrollBehavior='';}
+function stagePosLabel(kind,i,n){return kind==='spin'?(n>1?'Rotation '+(i+1)+' of '+n:''):(i+1)+' / '+n;}
+if(typeof document!=='undefined'&&!document._thumbStripBound){document._thumbStripBound=1;var _tsEdge=function(e){var t=e.target;if(!t||!t.classList)return;if(t.classList.contains('min-thumbs'))thumbStripEdges(t);else if(t.classList.contains('min-thumb')&&t.closest)thumbStripEdges(t.closest('.min-thumbs'));};document.addEventListener('scroll',_tsEdge,true);document.addEventListener('load',_tsEdge,true);}
+/* ---- end shared thumb strip ------------------------------------------------ */
 /* ---- shared photo references — guard #181 · DO NOT EDIT ONE COPY --------------
    A specimen record cites its own frames by stem — "RM-0103_12" — wherever the
    prose needs a witness, and once one is on the page it keeps going in shorthand:
@@ -1130,7 +1203,7 @@ function provOf(m){return m.provenance||'(untagged)';}
 function stateOf(m){return (m.locality&&m.locality.state)||'(unknown)';}
 function photosOf(m){return (m.photos&&m.photos.length)?orderPhotos(m.photos,!!window._showAux):(hero(m)?[hero(m)]:[]);}
 /* guard #188: expand the folded evidence frames IN PLACE — same specimen, same photo. */
-function toggleAux(){var m=curM(),box=document.getElementById('cw-modal');if(!m||!box)return;var cur=photosOf(m)[window._photoIdx||0];window._showAux=true;var P=photosOf(m),idx=0;for(var i=0;i<P.length;i++){if(cur&&P[i].f===cur.f){idx=i;break;}}window._photoIdx=idx;clearTimeout(window._animT);window._anim=false;box.innerHTML=modalBody(m);bindStage();if(window._spin&&window._spin.on)spinExit();}
+function toggleAux(){var m=curM(),box=document.getElementById('cw-modal');if(!m||!box)return;var cur=photosOf(m)[window._photoIdx||0];var open=!window._showAux;window._showAux=open;var P=photosOf(m),idx=0;for(var i=0;i<P.length;i++){if(cur&&P[i].f===cur.f){idx=i;break;}}window._photoIdx=idx;clearTimeout(window._animT);window._anim=false;var sl=(thumbStrip()||{}).scrollLeft;window._auxEnter=open;box.innerHTML=modalBody(m);window._auxEnter=false;thumbScrollTo(thumbStrip(),sl);bindStage();if(window._spin&&window._spin.on)spinExit();if(open)thumbReveal(thumbStrip(),'.min-tgroup-aux');}
 function showStem(f){var m=curM();if(!m)return;var P=photosOf(m),i;for(i=0;i<P.length;i++)if(P[i].f===f){photoShow(i);return;}if(!window._showAux){toggleAux();P=photosOf(m);for(i=0;i<P.length;i++)if(P[i].f===f){photoShow(i);return;}}}
 function prefJump(i){var m=curM();if(!m)return;var all=orderPhotos(m.photos||[],true);if(all[i])showStem(all[i].f);}
 function heroIdx(m){var P=photosOf(m);for(var i=0;i<P.length;i++){if(P[i]&&P[i].hero)return i;}return 0;}
@@ -1334,11 +1407,10 @@ function modalBody(m){
   var multi=P.length>1,N=P.length;
   var slides=multi?(slideHTML(P[(pi-1+N)%N])+slideHTML(cur)+slideHTML(P[(pi+1)%N])):(cur?slideHTML(cur):'<div class="min-slide"><img class="min-slide-img" src="'+PLACEHOLDER+'" alt=""></div>');
   var arrows=multi?'<button class="min-nav min-nav-prev" onclick="event.stopPropagation();photoNav(-1)" aria-label="Previous photo">‹</button><button class="min-nav min-nav-next" onclick="event.stopPropagation();photoNav(1)" aria-label="Next photo">›</button>':'';
-  var pos=multi?'<span class="min-photo-pos">📷 '+(pi+1)+' / '+P.length+'</span>':'';
+  var pos=multi?'<span class="min-photo-pos">'+stagePosLabel('photo',pi,P.length)+'</span>':'';
   var full=P.length?'<button class="min-fullsize" title="Fullscreen — swipe to browse photos" aria-label="Fullscreen" onclick="event.stopPropagation();enterFullscreen()">⤢</button>':'';
   var spinChip=m.spin?'<button class="min-spin-chip" title="Play the 360° spin" onclick="event.stopPropagation();spinChipClick()">360°</button>':'';
-  var spinThumb=m.spin?'<span class="min-spin-thumbwrap" onclick="spinEnter()" title="360° spin — drag to rotate"><img class="min-thumb min-spin-thumb" data-tk="'+thumbKey('spin',0)+'" src="images/minerals/'+esc(m.spin.stem)+'01_200.jpg" loading="lazy" alt="360° spin"><span class="min-spin-thumbtag">360°</span></span>':'';
-  var thumbs=(multi||m.spin)?'<div class="min-thumbs">'+spinThumb+P.map(function(p,i){return '<img class="min-thumb'+(i===pi?' on':'')+'" data-tk="'+thumbKey('photo',i)+'" src="'+esc(img(p,200))+'" loading="lazy" alt="" onclick="photoShow('+i+')" onerror="if(!this._fb){this._fb=1;this.src=\''+img(p,1280)+'\'}else{this.style.display=\'none\'}">';}).join('')+photoMoreHTML(m.photos,!!window._showAux,'toggleAux()')+'</div>':'';
+  var thumbs=(multi||m.spin)?thumbStripHTML({videos:[],spins:m.spin?[m.spin]:[],photos:P,all:m.photos,showAux:!!window._showAux,enter:!!window._auxEnter,current:pi,cls:'on',url:img,spinThumb:function(sp){return'images/minerals/'+sp.stem+'01_200.jpg';},on:{photo:function(i){return'photoShow('+i+')';},spin:function(){return'spinEnter()';},fold:'toggleAux()'}}):'';
   var n=(window._navIds||[]).length;
   var rocknav=n>1?'<div class="min-rocknav"><button class="min-rock-btn" onclick="navRock(-1)" aria-label="Previous">‹ Prev</button><span class="min-rock-pos">'+((window._navIdx||0)+1)+' / '+n+'</span><button class="min-rock-btn" onclick="navRock(1)" aria-label="Next">Next ›</button></div>':'';
   var species=(m.species||[]).map(function(sp){return '<a class="min-mindat" href="'+esc(mindat(sp))+'" target="_blank" rel="noopener">'+esc(sp)+'</a>';}).join(', ');
@@ -1372,7 +1444,7 @@ function track(){return document.querySelector('#cw-modal .min-track');}
 function setSlideImg(sl,p){var im=sl&&sl.querySelector('img');if(im&&p){im._hi=0;im.style.transform='';im.src=img(p,1280);}}
 function thumbStrip(){var box=document.getElementById('cw-modal');return box?box.querySelector('.min-thumbs'):null;}
 function scrollActiveThumb(){var strip=thumbStrip();if(strip)thumbCenter(strip,strip.querySelector('.min-thumb.on'));}
-function syncPhotoChrome(i){var box=document.getElementById('cw-modal');if(!box)return;var m=curM();if(!m)return;var P=photosOf(m);var pos=box.querySelector('.min-photo-pos');if(pos)pos.textContent='📷 '+(i+1)+' / '+P.length;thumbShow(thumbStrip(),thumbKey('photo',i),'on');}
+function syncPhotoChrome(i){var box=document.getElementById('cw-modal');if(!box)return;var m=curM();if(!m)return;var P=photosOf(m);var pos=box.querySelector('.min-photo-pos');if(pos)pos.textContent=stagePosLabel('photo',i,P.length);thumbShow(thumbStrip(),thumbKey('photo',i),'on');}
 function animateTo(dir,target){var m=curM();if(!m)return;var P=photosOf(m),N=P.length;if(N<2||window._anim)return;if(window._zm&&window._zm.s>1)zmReset();var tk=track();target=((target%N)+N)%N;if(!tk||tk.children.length<3){window._photoIdx=target;syncPhotoChrome(target);return;}if(target===(window._photoIdx||0))return;var s=tk.children;if(dir>0)setSlideImg(s[2],P[target]);else setSlideImg(s[0],P[target]);window._anim=true;tk.classList.add('min-anim');void tk.offsetWidth;tk.style.transform=dir>0?'translateX(-200%)':'translateX(0)';var fin=function(){if(!window._anim)return;tk.removeEventListener('transitionend',fin);clearTimeout(window._animT);window._photoIdx=target;tk.classList.remove('min-anim');if(dir>0)tk.appendChild(tk.children[0]);else tk.insertBefore(tk.children[2],tk.children[0]);tk.style.transform='translateX(-100%)';var c=tk.children;setSlideImg(c[0],P[((target-1)%N+N)%N]);setSlideImg(c[2],P[(target+1)%N]);syncPhotoChrome(target);window._anim=false;};tk.addEventListener('transitionend',fin);window._animT=setTimeout(fin,440);}
 function photoShow(i){var m=curM();if(!m)return;if(window._spin&&window._spin.on)spinExit();var N=photosOf(m).length;if(N<2)return;var cur=window._photoIdx||0;if(i===cur)return;animateTo(i>cur?1:-1,i);}
 function photoNav(d){var m=curM();if(!m)return;if(window._spin&&window._spin.on){spinExit();return;}if(photosOf(m).length<2)return;animateTo(d>0?1:-1,(window._photoIdx||0)+d);}
@@ -1403,7 +1475,7 @@ function spinShow(i){var m=curM();if(!m||!m.spin)return;var S=spinSt();var N=m.s
 function spinTick(){var box=document.getElementById('cw-modal');var wrap=document.getElementById('modal-wrap');var S=spinSt();if(!box||!S.on||(wrap&&wrap.classList.contains('hidden'))){spinStop();return;}if(!S.playing)return;if(window._zm&&window._zm.s>1)return;spinShow(S.i+1);}
 function spinPlay(){var m=curM();if(!m||!m.spin)return;var S=spinSt();if(S.t)clearInterval(S.t);/* museum pace (owner, 2026-08-29 — set to 6.5s, then slowed to 10s per revolution the same day) */var iv=Math.max(170,Math.min(430,Math.round(10000/m.spin.frames)));S.playing=true;S.t=setInterval(spinTick,iv);spinChipUpdate();}
 function spinPause(resumeMs){var S=spinSt();S.playing=false;if(S.rt){clearTimeout(S.rt);S.rt=null;}spinChipUpdate();if(resumeMs)S.rt=setTimeout(function(){var S2=spinSt();if(S2.on&&!S2.userPaused&&!S2.playing&&S2.loaded>=spinN()&&!(window._zm&&window._zm.s>1))spinPlay();},resumeMs);}
-function spinChipUpdate(){var box=document.getElementById('cw-modal');if(!box)return;var ch=box.querySelector('.min-spin-chip');if(!ch)return;var S=window._spin;var N=spinN();if(!S||!S.on){ch.textContent='360°';ch.title='Play the 360° spin';ch.classList.remove('min-spin-live');return;}ch.classList.add('min-spin-live');if(S.loaded<N){ch.textContent='360° · '+Math.round(S.loaded/Math.max(N,1)*100)+'%';ch.title='Loading spin frames…';}else{ch.textContent=S.playing?'360° ❚❚':'360° ▶';ch.title=S.playing?'Pause the spin — drag the rock to rotate it':'Resume the spin';}}
+function spinChipUpdate(){var box=document.getElementById('cw-modal');if(!box)return;var ch=box.querySelector('.min-spin-chip');if(!ch)return;var S=window._spin;var N=spinN();if(S&&S.on){var pp=box.querySelector('.min-photo-pos');if(pp)pp.textContent=stagePosLabel('spin',0,1);}if(!S||!S.on){ch.textContent='360°';ch.title='Play the 360° spin';ch.classList.remove('min-spin-live');return;}ch.classList.add('min-spin-live');if(S.loaded<N){ch.textContent='360° · '+Math.round(S.loaded/Math.max(N,1)*100)+'%';ch.title='Loading spin frames…';}else{ch.textContent=S.playing?'360° ❚❚':'360° ▶';ch.title=S.playing?'Pause the spin — drag the rock to rotate it':'Resume the spin';}}
 function spinPreload(){var m=curM();if(!m||!m.spin)return;var S=spinSt();if(S.imgs)return;var N=m.spin.frames;S.imgs=[];S.loaded=0;for(var i=0;i<N;i++)(function(){var im=new Image();im.onload=im.onerror=function(){S.loaded++;spinChipUpdate();if(S.loaded>=N&&S.on&&!S.playing&&!S.userPaused)spinPlay();};im.src=spinURL(m,S.imgs.length);S.imgs.push(im);})();}
 function spinEnter(){var m=curM();if(!m||!m.spin)return;var stage=document.querySelector('#cw-modal .min-stage');if(!stage)return;var S=spinSt();S.on=true;S.userPaused=false;stage.classList.add('min-spin-on');if(!stage.querySelector('.min-spin-layer')){var layer=document.createElement('div');layer.className='min-spin-layer';layer.innerHTML='<img class="min-spin-img" alt="360° spin">';var tr=stage.querySelector('.min-track');stage.insertBefore(layer,tr?tr.nextSibling:stage.firstChild);}
 if(window._zm&&window._zm.s>1)zmReset();spinShow(S.i||0);spinPreload();if(S.loaded>=m.spin.frames&&!S.playing)spinPlay();spinChipUpdate();thumbShow(thumbStrip(),thumbKey('spin',0),'on');}
