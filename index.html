@@ -113,7 +113,7 @@ main{padding:18px 0 40px}
 .min-table{width:100%;border-collapse:collapse;font-size:0.86rem}
 .min-table th{text-align:left;color:var(--t3);font-weight:500;font-size:0.72rem;padding:7px 9px;border-bottom:1px solid var(--bdr);white-space:nowrap}
 .min-table td{padding:9px;border-bottom:1px solid var(--bdr2);vertical-align:top}
-.min-table tr.cl{cursor:pointer}.min-table tr.cl:hover{background:var(--card2)}
+.min-table tr.cl{cursor:pointer}.min-table tr.cl:hover{background:var(--card2)}.min-table tr.cl:focus-visible{outline:2px solid var(--gold);outline-offset:-2px}
 .empty{text-align:center;padding:40px 20px;color:var(--t3)}
 /* modal */
 .modal-bg{position:fixed;inset:0;background:rgba(4,7,12,0.72);backdrop-filter:blur(3px);display:flex;align-items:flex-start;justify-content:center;padding:20px 12px;overflow-y:auto;z-index:100;opacity:0;transition:opacity .16s}
@@ -202,6 +202,9 @@ main{padding:18px 0 40px}
    none of these selectors is owned by the #219 thumb-strip CSS. Base rules sit BEFORE the phone @media block below on purpose. */
 .modal-title-row{display:flex;align-items:flex-start;gap:12px}
 .modal-title-row h2{flex:1;min-width:0;padding-right:0}
+/* TITLE-1: the full record name rides under the display name in the modal, muted, only when it differs */
+.min-full-name{font-size:.9rem;color:var(--t3);line-height:1.35;margin:-2px 0 8px;overflow-wrap:anywhere}
+.modal-info h2.min-title-long{font-size:clamp(1.35rem,2vw,1.75rem)}
 .min-share-btn{flex:0 0 auto;min-height:42px;padding:8px 12px;font-size:0.82rem;border:1px solid rgba(20,184,166,0.5);border-radius:10px;background:rgba(20,184,166,0.12);color:#5eead4;font-weight:750;cursor:pointer}
 [data-theme="light"] .min-share-btn{color:#0f766e}
 .min-share-btn:hover,.min-share-btn:focus-visible{border-color:var(--gold);color:var(--gold)}
@@ -311,6 +314,7 @@ body.cw-fs-on{overflow:hidden}
 .cw-feat-media{display:flex;justify-content:center;margin-bottom:14px}
 .cw-feat-media img{max-width:100%;max-height:460px;width:auto;border-radius:12px;border:1px solid var(--bdr);display:block}
 .cw-feat-name{font-size:1.5rem;font-weight:700;color:var(--t1);margin:0 0 4px}
+.cw-feat-sub{font-size:1rem;color:var(--t2);margin:2px 0 6px}
 .cw-feat-loc{font-size:0.95rem;color:var(--t2);margin-bottom:10px}
 .cw-feat-flavor{font-size:0.97rem;line-height:1.55;color:var(--t2);max-width:70ch;margin:0 auto 12px}
 .cw-feat-cta{display:inline-block;font-size:0.92rem;font-weight:700;color:var(--gold)}
@@ -472,8 +476,7 @@ body.cw-fs-on{overflow:hidden}
 </div></footer>
 <div id="modal-wrap" class="hidden"></div>
 
-<script src="world_map.js" defer></script>
-<script src="mineral_coords.js" defer></script>
+<!-- PUB-4: world_map.js (559 KB) + mineral_coords.js (213 KB) are no longer script tags: _loadMapBundles() injects them at idle or when a specimen opens. minerals.public.js stays deferred - the gallery cannot paint without it. -->
 <script src="minerals.public.js" defer></script>
 <script defer>
 /* ------------------------------------------------------------------ helpers */
@@ -989,7 +992,7 @@ function relatedHTML(m){
   var items=relatedFor(m);if(!items.length)return '';
   return '<section class="related"><h3>Related specimens</h3><div class="related-grid">'+items.map(function(x){
     var h=hero(x),src=h?img(h,400):PLACEHOLDER;
-    return '<button class="related-card" type="button" onclick="showMineral(\''+esc(x.id)+'\')"><img src="'+esc(src)+'" loading="lazy" alt="" onerror="this.onerror=null;this.src=\''+PLACEHOLDER+'\'"><span class="related-card-copy"><strong>'+esc(shortCardTitle(title(x)))+'</strong><span>'+esc(shortLoc(x.locality))+'</span></span></button>';
+    return '<button class="related-card" type="button" onclick="showMineral(\''+esc(x.id)+'\')"><img src="'+esc(src)+'" loading="lazy" alt="" onerror="this.onerror=null;this.src=\''+PLACEHOLDER+'\'"><span class="related-card-copy"><strong>'+esc(shortCardTitle(displayName(title(x),x.id)))+'</strong><span>'+esc(shortLoc(x.locality))+'</span></span></button>';
   }).join('')+'</div></section>';
 }
 var PLACEHOLDER="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27120%27 height=%2790%27%3E%3Crect width=%27120%27 height=%2790%27 fill=%27%23171e2c%27/%3E%3Cpath d=%27M35 30h50l14 22-38 40-40-40z%27 fill=%27none%27 stroke=%27%232dd4bf%27 stroke-width=%272%27 opacity=%27.5%27/%3E%3C/svg%3E";   // quotes percent-encoded: this URI is inlined inside onerror="…this.src='…'" (a raw quote there threw 'Unexpected identifier' on every 404 image, 2026-09-05)
@@ -997,7 +1000,7 @@ function minData(){return window.MINERALS||[];}
 function img(ph,size){return 'images/minerals/'+ph.f+'_'+size+'.jpg';}
 function hero(m){var ph=(m.photos||[]);return ph.filter(function(x){return x.hero;})[0]||ph[0]||null;}
 function mindat(sp){return 'https://www.mindat.org/search.php?search='+encodeURIComponent(sp);}
-function locStr(loc){if(!loc)return 'Locality unknown';var p=[loc.mine,loc.district,loc.state,loc.country].filter(Boolean);return p.length?p.join(', '):'Locality unknown';}
+function locStr(loc){if(!loc)return 'Locality not recorded';var p=[loc.mine,loc.district,loc.state,loc.country].filter(Boolean);return p.length?p.join(', '):'Locality not recorded';}
 function title(m){return m.name||(m.species&&m.species[0])||m.id;}
 /* ---- shared mineral card text — guard #175 · DO NOT EDIT ONE COPY ----------
    This block is byte-identical in three viewers — the collection dashboard's
@@ -1010,10 +1013,10 @@ function title(m){return m.name||(m.species&&m.species[0])||m.id;}
    is what made these impossible to keep identical before). Change it in one
    place and test_guard_175_mineral_card_text.py fails until the others match. */
 function shortLoc(loc){
-  if(!loc)return 'Locality unknown';
+  if(!loc)return 'Locality not recorded';
   var lead=String(loc.mine||loc.district||loc.state||loc.country||'').replace(/\s*\([^)]*\)\s*$/,'').trim();
   var tail=loc.country&&loc.country!==lead?loc.country:'';
-  return [lead,tail].filter(Boolean).join(' · ')||'Locality unknown';
+  return [lead,tail].filter(Boolean).join(' · ')||'Locality not recorded';
 }
 function shortCardTitle(full){
   full=String(full||'');
@@ -1065,6 +1068,53 @@ function gradeChipHTML(visualQuality,rarity){
     +(r?'<span class="min-grade-chip min-grade-r" title="How hard this specimen would be to replace on the market today">'+r+'</span>':'')
     +'</span>';
 }
+/* ---- display name (2026-10-11) -------------------------------------------
+   The SHORT name a head wants. A specimen's full `name` is a dossier sentence
+   ("Pink calcite, a rounded nodule of fine crystals … — Charlie's, no label");
+   a card, a modal head and a phone head want the species-and-colour phrase and
+   nothing else, and what was cut rides underneath as a one-line subtitle.
+   Same rule as the printed label sheet: cut at " — " when the tail is
+   provenance, else join it with a comma; past 60 chars cut at the first comma
+   unless that leaves a bare short head and the longer form still fits in 85;
+   a comma inside an open parenthesis drops that whole parenthetical; 110 is the
+   absolute safety valve. A hand-written override beats the rule where the rule
+   cuts away the one fact the name must carry. Both public functions take plain
+   values (the full name string, the catalog id) and share one splitter, so the
+   subtitle is by construction exactly what the name lost. ------------------ */
+var _DN_OVERRIDE={'RM-0130':'Furnace-grown copper dendrite (synthetic)','RM-0140':'Chalcedony, grey-lavender, green under shortwave UV'};
+var _DN_PROV=/^(?:charlie|the owner|owner|own\b|ex\b|no label|label)/i;
+function _displaySplit(full,id){
+  var n=String(full==null?'':full).replace(/\*\*|__|`/g,'').replace(/\s+/g,' ').trim();
+  var ov=_DN_OVERRIDE.hasOwnProperty(String(id))?_DN_OVERRIDE[String(id)]:'';
+  if(!n)return [ov||'Unnamed specimen',''];
+  var prov='',i=n.indexOf(' — ');
+  if(i>0){
+    var rest=n.slice(i+3).trim(),lead=n.slice(0,i).trim();
+    if(_DN_PROV.test(rest)||lead.length>12){n=lead;prov=rest;}
+    else n=lead+', '+rest;
+  }
+  var t=n,dots=false;
+  if(t.length>60){
+    var c=t.indexOf(',');
+    if(c>0){
+      var head=t.slice(0,c),open=head.lastIndexOf('('),close=head.lastIndexOf(')');
+      if(open>close)head=head.slice(0,open);
+      head=head.replace(/[\s,;:\-–—]+$/,'');
+      if(head&&!(head.length<=12&&t.length<=85))t=head;
+    }
+  }
+  if(t.length>110){
+    var cut=t.slice(0,109),sp=cut.lastIndexOf(' ');
+    if(sp>66)cut=cut.slice(0,sp);
+    t=cut.replace(/[\s,;:.\-–—(]+$/,'');
+    dots=true;
+  }
+  var more=n.slice(t.length).replace(/^[\s,;:\-–—]+/,'');
+  var sub=more&&prov?more+' — '+prov:(more||prov);
+  return [ov||(dots?t+'…':t),sub];
+}
+function displayName(full,id){return _displaySplit(full,id)[0];}
+function displaySub(full,id){return _displaySplit(full,id)[1];}
 /* ---- end shared mineral card text ----------------------------------------- */
 /* ---- shared Charlie Wills story — guard #186 · DO NOT EDIT ONE COPY: this block is byte-identical in the
    dashboard Minerals tab (index.html), the private viewer (friends_viewer.js) and the public Charlie Wills
@@ -1351,10 +1401,10 @@ function renderContent(){
   if(isDefaultView()&&M.length){var _f=newestM();if(_f&&M[0]&&M[0].id===_f.id)M=M.slice(1);}
   if(!M.length){el.innerHTML='<div class="empty">🔍 No specimens match your search or filters.</div>';return;}
   if(S.view==='table'){
-    var rows=M.map(function(m){return '<tr class="cl" onclick="showMineral(\''+m.id+'\')"><td><strong>'+esc(title(m))+'</strong><div style="color:var(--t3);font-size:0.72rem">'+esc(m.id)+(m.provenance==='Charlie Wills'?' · CW':'')+'</div></td><td>'+esc(subLabel(m.subtype))+'</td><td>'+esc(locStr(m.locality))+'</td><td>'+esc(m.size||'—')+'</td></tr>';}).join('');
+    var rows=M.map(function(m){return '<tr class="cl" tabindex="0" role="button" aria-label="'+esc(title(m)+', '+locStr(m.locality))+'" onclick="showMineral(\''+m.id+'\')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();showMineral(\''+m.id+'\');}"><td><strong title="'+esc(title(m))+'">'+esc(displayName(title(m),m.id))+'</strong><div style="color:var(--t3);font-size:0.72rem">'+esc(m.id)+(m.provenance==='Charlie Wills'?' · CW':'')+'</div></td><td>'+esc(subLabel(m.subtype))+'</td><td>'+esc(locStr(m.locality))+'</td><td>'+esc(m.size||'—')+'</td></tr>';}).join('');
     el.innerHTML='<div style="overflow-x:auto"><table class="min-table"><thead><tr><th>Specimen</th><th>Type</th><th>Locality</th><th>Size</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
   }else{
-    var tiles=M.map(function(m){var h=hero(m);var src=h?img(h,400):PLACEHOLDER;return '<div class="gtile" role="button" tabindex="0" aria-label="'+esc(title(m)+', '+locStr(m.locality))+'" onclick="showMineral(\''+m.id+'\')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();showMineral(\''+m.id+'\');}"><div class="gtile-imgwrap"><img class="gtile-img" src="'+esc(src)+'" loading="lazy" decoding="async" alt="'+esc(title(m))+'" onerror="this.onerror=null;this.src=\''+PLACEHOLDER+'\'"><div class="gtile-badges"><span class="min-sub-badge">'+esc(subLabel(m.subtype))+'</span>'+(m.provenance==='Charlie Wills'?'<span class="min-cw-badge" title="Charlie Wills collection">CW</span>':'')+(m.spin?'<span class="min-spin-badge" title="Has a 360° spin">360°</span>':'')+'</div></div><div class="gtile-body"><div class="gtile-name" title="'+esc(title(m))+'">'+esc(shortCardTitle(title(m)))+'</div><div class="gtile-sub" title="'+esc(locStr(m.locality))+'">'+esc(shortLoc(m.locality))+'</div>'+(shortFlavor(m.flavor)?'<div class="min-tile-flavor">'+esc(shortFlavor(m.flavor))+'</div>':'')+'</div></div>';}).join('');
+    var tiles=M.map(function(m){var h=hero(m);var src=h?img(h,400):PLACEHOLDER;return '<div class="gtile" role="button" tabindex="0" aria-label="'+esc(title(m)+', '+locStr(m.locality))+'" onclick="showMineral(\''+m.id+'\')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();showMineral(\''+m.id+'\');}"><div class="gtile-imgwrap"><img class="gtile-img" src="'+esc(src)+'" loading="lazy" decoding="async" alt="'+esc(title(m))+'" onerror="this.onerror=null;this.src=\''+PLACEHOLDER+'\'"><div class="gtile-badges"><span class="min-sub-badge">'+esc(subLabel(m.subtype))+'</span>'+(m.provenance==='Charlie Wills'?'<span class="min-cw-badge" title="Charlie Wills collection">CW</span>':'')+(m.spin?'<span class="min-spin-badge" title="Has a 360° spin">360°</span>':'')+'</div></div><div class="gtile-body"><div class="gtile-name" title="'+esc(title(m))+'">'+esc(shortCardTitle(displayName(title(m),m.id)))+'</div><div class="gtile-sub" title="'+esc(locStr(m.locality))+'">'+esc(shortLoc(m.locality))+'</div>'+(shortFlavor(m.flavor)?'<div class="min-tile-flavor">'+esc(shortFlavor(m.flavor))+'</div>':'')+'</div></div>';}).join('');
     el.innerHTML='<div class="mgrid'+(S.lvl>=2?' compact':'')+'">'+tiles+'</div>';applyGridSize();
   }
 }
@@ -1374,13 +1424,15 @@ function featuredHTML(){
   var badges='<span class="min-sub-badge">'+esc(subLabel(m.subtype))+'</span>'
     +(m.provenance==='Charlie Wills'?'<span class="min-cw-badge" title="Charlie Wills collection">CW</span>':'')
     +(m.spin?'<span class="min-spin-badge" title="Has a 360\u00b0 spin">360\u00b0</span>':'');
+  var featSub=displaySub(title(m),m.id);   /* TITLE-1: what the display name dropped rides under it */
   return '<section class="cw-feat" tabindex="0" role="button" aria-label="Latest addition: '+esc(title(m))+'"'
     +' onclick="showMineral(\''+m.id+'\')"'
     +' onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();showMineral(\''+m.id+'\');}">'
     +'<span class="cw-feat-tag">Latest addition</span>'
     +'<div class="cw-feat-media"><img src="'+esc(img(h,1280))+'" alt="'+esc(title(m))+'" loading="eager" decoding="async" onerror="this.onerror=null;this.src=\''+PLACEHOLDER+'\'"></div>'
     +'<div class="cw-feat-badges">'+badges+'</div>'
-    +'<div class="cw-feat-name">'+esc(title(m))+'</div>'
+    +'<div class="cw-feat-name">'+esc(displayName(title(m),m.id))+'</div>'
+    +(featSub?'<div class="cw-feat-sub">'+esc(featSub.charAt(0).toUpperCase()+featSub.slice(1))+'</div>':'')
     +'<div class="cw-feat-loc">'+locLineHTML(m)+'</div>'
     +(shortFlavor(m.flavor)?'<p class="cw-feat-flavor">'+esc(shortFlavor(m.flavor))+'</p>':'')
     +'<span class="cw-feat-cta">View specimen \u2192</span>'
@@ -1400,12 +1452,14 @@ function render(){
   var root=document.getElementById('min-root');if(!root)return;
   var M=minData();
   if(!M.length){root.innerHTML='<div class="empty">Loading specimens…</div>';if((window._retry=(window._retry||0)+1)<15)setTimeout(render,250);return;}
+  preloadHeroes();/* PUB-4: first thing, before the grid is built */
   root.innerHTML=storyHTML()+featuredHTML()+filterBarHTML()
     +'<div class="tc-hd"><span class="tt">Specimens</span><span class="tn" id="min-count">'+M.length+' specimens</span>'
     +'<div class="vt-grp"><span id="gs-grp"><button class="vtbtn" id="gs-dec" onclick="setGridSize(-1)" title="Smaller tiles" aria-label="Smaller tiles">−</button><button class="vtbtn" id="gs-inc" onclick="setGridSize(1)" title="Larger tiles" aria-label="Larger tiles">+</button></span>'
     +'<button class="vtbtn" id="cv-grid" onclick="setView(\'grid\')" title="Gallery" aria-label="Gallery view">▦</button><button class="vtbtn" id="cv-table" onclick="setView(\'table\')" title="Table" aria-label="Table view">☰</button></div></div>'
     +'<div id="min-content"></div>';
   renderContent();syncViewBtns();refreshFilterBar();
+  scheduleGeoIdle();/* PUB-4: the map bundles load after this first render, at idle */
   if(!window._hashOpened){window._hashOpened=1;syncSpecimenFromLocation();}/* PUB-3: a shared #RM-xxxx link opens its specimen once the grid exists */
 }
 
@@ -1443,7 +1497,8 @@ function modalBody(m){
     +(String(m.habit||'').length>240?'':factChip('Habit',m.habit,'wide'));
   /* MODAL-1: phone-first head — shown only at <=600px (CSS), between the stage and the thumb strip. Plain text, no links. */
   var phoneSp=(m.species||[]).map(esc).join(', ');
-  var phoneHead='<div class="min-phone-head"><h2 class="min-phone-title">'+esc(title(m))/* TITLE-1: swap to displayName() */+'</h2>'
+  var dispName=displayName(title(m),m.id);   /* TITLE-1: the head name; the full record name rides under it when it differs */
+  var phoneHead='<div class="min-phone-head"><h2 class="min-phone-title">'+esc(dispName)+'</h2>'
     +'<div class="min-phone-facts">'+(phoneSp?'<span>'+phoneSp+'</span>':'')+'<span>'+esc(locStr(m.locality))+'</span>'+(phoneSize(m.size)?'<span>'+esc(phoneSize(m.size))+'</span>':'')+'</div>'
     +'<button class="min-share-btn min-share-phone" type="button" onclick="shareSpecimen(this)">Share</button></div>';
   var labelBlock=m.label_text?'<div class="min-label"><div class="min-label-h">&#127991; Charlie&rsquo;s label</div><div class="min-label-body">'+esc(m.label_text)+'</div><div class="min-label-note">Transcribed exactly as written &mdash; spelling and all.</div></div>':'';
@@ -1458,7 +1513,8 @@ function modalBody(m){
     +'<div class="modal-grid">'
     +'<div class="modal-media"><div class="min-stage'+(multi?' min-multi':'')+'"><div class="min-track'+(multi?'':' min-single')+'">'+slides+'</div>'+arrows+pos+spinChip+full+'</div>'+phoneHead+thumbs+rocknav+'</div>'
     +'<div class="modal-info">'
-    +'<div class="modal-title-row"><h2>'+esc(title(m))+'</h2><button class="min-share-btn" type="button" onclick="shareSpecimen(this)">Share</button></div>'
+    +'<div class="modal-title-row"><h2'+(dispName.length>60?' class="min-title-long"':'')+'>'+esc(dispName)+'</h2><button class="min-share-btn" type="button" onclick="shareSpecimen(this)">Share</button></div>'
+    +(title(m)!==dispName?'<div class="min-full-name">'+esc(title(m))+'</div>':'')
     +'<div class="badges"><span class="min-sub-badge" style="background:rgba(20,184,166,0.15);color:#2dd4bf">'+esc(subLabel(m.subtype))+'</span>'+(m.provenance==='Charlie Wills'?'<span class="min-source-badge">Charlie Wills collection</span>':'')+confidenceBadge(m)+'</div>'
     +'<div class="min-quick">'+quick+'</div>'
     +labelBlock
@@ -1509,6 +1565,65 @@ function spinEnter(){var m=curM();if(!m||!m.spin)return;var stage=document.query
 if(window._zm&&window._zm.s>1)zmReset();spinShow(S.i||0);spinPreload();if(S.loaded>=m.spin.frames&&!S.playing&&!spinReduced())spinPlay();spinChipUpdate();thumbShow(thumbStrip(),thumbKey('spin',0),'on');}
 function spinExit(){var S=window._spin;if(!S||!S.on)return;spinStop();S.on=false;var stage=document.querySelector('#cw-modal .min-stage');if(stage)stage.classList.remove('min-spin-on');if(window._zm&&window._zm.s>1)zmReset();spinChipUpdate();syncPhotoChrome(window._photoIdx||0);}
 function spinChipClick(){var m=curM();if(!m||!m.spin)return;var S=spinSt();if(!S.on){spinEnter();return;}if(S.loaded<m.spin.frames)return;if(S.playing){S.userPaused=true;spinPause();}else{S.userPaused=false;spinPlay();}}
+/* PUB-4 (2026-10-11) - the map data is loaded LAST, not first. world_map.js (559 KB) and mineral_coords.js (213 KB) were two
+   <script defer> tags every visitor paid for before the first paint, although only an OPEN specimen draws a map. Now
+   _loadMapBundles() injects both exactly once and returns a promise: at idle after the first render (scheduleGeoIdle), or the
+   moment a specimen opens (showMineral / fill). mapHTML / locImgHTML / candMapHTML already return '' while WORLD_MAP /
+   MINERAL_COORDS / MINERAL_CANDIDATES are undefined, so a modal opened before the bundles land is simply the no-map modal, and
+   geoArrived() then redraws the dossier of the OPEN modal in place (photo, zoom and 360 state are not touched).
+   Which records draw a map? A recorded locality draws the locality map; an unlocalized one draws the candidate-origin map, whose
+   pins live in the same bundle, so they cannot be seen before it arrives and an unlocalized record is assumed to have them (the
+   builder emits one for every such record - 98 of 98 on 2026-10-11). Once the bundle is in, the answer is exact. */
+var _geoP=null;
+function geoReady(){return !!(window.WORLD_MAP&&window.MINERAL_COORDS&&window.MINERAL_CANDIDATES);}
+function _loadMapBundles(){
+  if(_geoP)return _geoP;
+  if(geoReady())return (_geoP=Promise.resolve(true));
+  function one(src){return new Promise(function(done){var s=document.createElement('script');s.src=src;s.async=true;s.onload=function(){done(true);};s.onerror=function(){if(s.parentNode)s.parentNode.removeChild(s);done(false);};document.head.appendChild(s);});}
+  _geoP=Promise.all([one('world_map.js'),one('mineral_coords.js')]).then(function(ok){
+    var good=ok[0]&&ok[1];
+    if(!good)_geoP=null;   /* a failed fetch may be retried by the next trigger (idle or a modal open) - never a loop */
+    else geoArrived();
+    return good;
+  });
+  return _geoP;
+}
+function geoArrived(){
+  var box=document.getElementById('cw-modal');if(!box)return;
+  var m=curM();if(!m)return;
+  var C=window.MINERAL_COORDS,K=window.MINERAL_CANDIDATES;
+  if(!((C&&C[m.id])||(K&&K[m.id])))return;   /* the open record has no map to add */
+  var grid=box.querySelector('.modal-grid');if(!grid)return;
+  var t=document.createElement('template');t.innerHTML=modalBody(m);   /* inert: nothing in it loads until it is adopted */
+  var nu=t.content.querySelector('.modal-dossier');if(!nu)return;
+  var old=box.querySelector('.modal-dossier');
+  if(old){   /* keep any disclosure the visitor already opened */
+    var was={};[].forEach.call(old.querySelectorAll('details'),function(d){var sm=d.querySelector('summary');if(d.open&&sm)was[sm.textContent]=1;});
+    [].forEach.call(nu.querySelectorAll('details'),function(d){var sm=d.querySelector('summary');if(sm&&was[sm.textContent])d.open=true;});
+    old.parentNode.replaceChild(nu,old);
+  }else grid.appendChild(nu);
+}
+function scheduleGeoIdle(){
+  if(window._geoIdle)return;window._geoIdle=1;
+  var go=function(){_loadMapBundles();},armed=0;
+  var arm=function(){if(armed++)return;if(window.requestIdleCallback)window.requestIdleCallback(go,{timeout:3000});};
+  setTimeout(go,3000);   /* the trigger where there is no requestIdleCallback (Safari), and the backstop for a hidden tab, which never paints */
+  /* wait for the paint entry, so the first paint never waits on - or races - the map data; two rAFs where paint timing is missing */
+  var watching=0;
+  try{new PerformanceObserver(function(list,ob){if(list.getEntriesByName('first-contentful-paint').length){ob.disconnect();arm();}}).observe({type:'paint',buffered:true});watching=1;}catch(e){}
+  if(!watching&&window.requestAnimationFrame)requestAnimationFrame(function(){requestAnimationFrame(arm);});
+}
+/* PUB-4: the first four images the default gallery paints - the "Latest addition" hero (1280) and the first three tiles (400) -
+   depend on the data (newest = highest catalog id), so the preload hints are emitted from render(), before the grid is built. */
+function preloadHeroes(){
+  if(window._heroPre)return;window._heroPre=1;
+  try{
+    var M=filtered(),urls=[];
+    if(isDefaultView()&&M.length){var f=newestM(),hf=f&&hero(f);if(hf)urls.push([img(hf,1280),'high']);if(f&&M[0]&&M[0].id===f.id)M=M.slice(1);}   /* same drop as renderContent() */
+    for(var i=0;i<M.length&&urls.length<4;i++){var h=hero(M[i]);if(h)urls.push([img(h,400),'']);}
+    urls.forEach(function(u){var l=document.createElement('link');l.rel='preload';l.as='image';l.href=u[0];if(u[1])l.setAttribute('fetchpriority',u[1]);document.head.appendChild(l);});
+  }catch(e){}
+}
 /* Locality map + imagery in the region block — data rides mineral_coords.js (public-id-filtered
    by the builder). mapHTML mirrors the private base viewer; locImgHTML shows a photo of the
    mine/area (or a generated terrain map) with its caption incl. any required photo credit. */
@@ -1670,7 +1785,7 @@ stage.addEventListener('touchend',tEnd,{passive:true});
 stage.addEventListener('touchcancel',tEnd,{passive:true});
 if(m&&m.spin)spinEnter();
 }
-function fill(){var m=curM(),box=document.getElementById('cw-modal');if(!m||!box)return;clearTimeout(window._animT);window._anim=false;window._showAux=false;window._photoIdx=heroIdx(m);box.innerHTML=modalBody(m);box.setAttribute('aria-label',title(m));box.scrollTop=0;bindStage();}
+function fill(){var m=curM(),box=document.getElementById('cw-modal');if(!m||!box)return;clearTimeout(window._animT);window._anim=false;window._showAux=false;window._photoIdx=heroIdx(m);if(!geoReady())_loadMapBundles();box.innerHTML=modalBody(m);box.setAttribute('aria-label',title(m));box.scrollTop=0;bindStage();}
 function navRock(d){var ids=window._navIds||[],n=ids.length;if(n<2)return;window._navIdx=((window._navIdx||0)+d+n)%n;fill();setSpecimenUrl(ids[window._navIdx],true);}
 /* Prev/Next follows the order the visitor is actually looking at (filtered() — newest-first
    by default), not the raw catalog order. Before this the newest specimen opened as "72 / 72",
@@ -1712,7 +1827,7 @@ function syncSpecimenFromLocation(){
 }
 window.addEventListener('popstate',syncSpecimenFromLocation);
 window.addEventListener('hashchange',syncSpecimenFromLocation);
-function showMineral(id,updateUrl){var M=filtered();if(!M.length||M.map(function(x){return x.id;}).indexOf(id)<0)M=minData();var ids=M.map(function(x){return x.id;}),idx=ids.indexOf(id);if(idx<0)return;var m=M[idx],wrap=document.getElementById('modal-wrap');if(!wrap)return;if(updateUrl!==false)setSpecimenUrl(id,false);/* A11Y-1: remember the opener (the tile) — but never overwrite it with a Related card from inside an already-open modal */if(!document.getElementById('cw-modal'))window._lastMineralFocus=document.activeElement;window._navIds=ids;window._navIdx=idx;window._showAux=false;window._photoIdx=heroIdx(m);wrap.innerHTML='<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal" id="cw-modal" role="dialog" aria-modal="true" aria-label="'+esc(title(m))+'">'+modalBody(m)+'</div></div>';wrap.classList.remove('hidden');var bg=wrap.querySelector('.modal-bg');requestAnimationFrame(function(){if(bg)bg.classList.add('vis');var cl=wrap.querySelector('.modal-close');if(cl)cl.focus({preventScroll:true});});bindStage();if(!window._keyBound){window._keyBound=1;document.addEventListener('keydown',function(e){if(!document.getElementById('cw-modal'))return;if(e.key==='ArrowLeft'){if(e.shiftKey)navRock(-1);else photoNav(-1);}else if(e.key==='ArrowRight'){if(e.shiftKey)navRock(1);else photoNav(1);}else if(e.key==='Escape'){if(isFullscreen())exitFullscreen();else closeModal();}});}}
+function showMineral(id,updateUrl){var M=filtered();if(!M.length||M.map(function(x){return x.id;}).indexOf(id)<0)M=minData();var ids=M.map(function(x){return x.id;}),idx=ids.indexOf(id);if(idx<0)return;var m=M[idx],wrap=document.getElementById('modal-wrap');if(!wrap)return;if(updateUrl!==false)setSpecimenUrl(id,false);/* A11Y-1: remember the opener (the tile) — but never overwrite it with a Related card from inside an already-open modal */if(!document.getElementById('cw-modal'))window._lastMineralFocus=document.activeElement;window._navIds=ids;window._navIdx=idx;window._showAux=false;window._photoIdx=heroIdx(m);if(!geoReady())_loadMapBundles();/* PUB-4: map data requested before the modal renders; geoArrived() redraws the dossier when it lands */wrap.innerHTML='<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal" id="cw-modal" role="dialog" aria-modal="true" aria-label="'+esc(title(m))+'">'+modalBody(m)+'</div></div>';wrap.classList.remove('hidden');var bg=wrap.querySelector('.modal-bg');requestAnimationFrame(function(){if(bg)bg.classList.add('vis');var cl=wrap.querySelector('.modal-close');if(cl)cl.focus({preventScroll:true});});bindStage();if(!window._keyBound){window._keyBound=1;document.addEventListener('keydown',function(e){if(!document.getElementById('cw-modal'))return;if(e.key==='ArrowLeft'){if(e.shiftKey)navRock(-1);else photoNav(-1);}else if(e.key==='ArrowRight'){if(e.shiftKey)navRock(1);else photoNav(1);}else if(e.key==='Escape'){if(isFullscreen())exitFullscreen();else closeModal();}});}}
 function closeModal(keepUrl){document.body.classList.remove('cw-fs-on');if(!keepUrl&&specimenFromHash())history.replaceState({},'',baseViewerUrl());var w=document.getElementById('modal-wrap');if(!w)return;var bg=w.querySelector('.modal-bg');if(bg)bg.classList.remove('vis');setTimeout(function(){w.classList.add('hidden');w.innerHTML='';var prior=window._lastMineralFocus;if(prior&&prior!==document.body&&prior.isConnected&&prior.focus)prior.focus({preventScroll:true});},160);}
 function isFullscreen(){return document.body.classList.contains('cw-fs-on');}
 function enterFullscreen(){var b=document.getElementById('cw-modal');if(!b)return;b.classList.add('fs-on');document.body.classList.add('cw-fs-on');zmReset();}
