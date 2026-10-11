@@ -392,6 +392,26 @@ body.cw-fs-on{overflow:hidden}
 .cw-feat-flavor{font-size:0.97rem;line-height:1.55;color:var(--t2);max-width:70ch;margin:0 auto 12px}
 .cw-feat-cta{display:inline-block;font-size:0.92rem;font-weight:700;color:var(--gold)}
 .cw-feat-badges{display:flex;gap:7px;justify-content:center;margin-bottom:10px;flex-wrap:wrap}
+/* PUB-5 "Start here": five owner-picked objects in one row. Photos letterbox on black like every
+   rock photo (guard #196); names clamp to two lines; the reason is the owner's own sentence. */
+.cw-start{background:var(--card);border:1px solid var(--bdr);border-radius:16px;padding:16px 18px 18px;margin-bottom:16px}
+.cw-start-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.cw-start-h{font-size:1.12rem;font-weight:800;margin:0;color:var(--t1)}
+.cw-start-lead{font-size:0.92rem;color:var(--t2);margin:0}
+.cw-start-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}/* five across from ~1100px, 3+2 on a tablet; a phone scrolls the row instead */
+.cw-start-tile{display:flex;flex-direction:column;gap:6px;cursor:pointer;border-radius:12px;padding:6px;transition:background-color .15s,transform .15s}
+.cw-start-tile:hover{background:var(--card2);transform:translateY(-2px)}
+.cw-start-tile:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.cw-start-img{position:relative;aspect-ratio:4/3;border-radius:10px;overflow:hidden;background:#000;border:1px solid var(--bdr)}
+.cw-start-img img{width:100%;height:100%;object-fit:contain;background:#000;display:block}
+.cw-start-spin{position:absolute;top:6px;right:6px}
+.cw-start-name{font-size:0.98rem;font-weight:700;color:var(--t1);line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.cw-start-why{font-size:0.85rem;line-height:1.4;color:var(--t2);display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden}
+@media(max-width:760px){
+  .cw-start{padding:14px 12px 12px}
+  .cw-start-row{display:flex;overflow-x:auto;gap:10px;scroll-snap-type:x mandatory;padding-bottom:4px;-webkit-overflow-scrolling:touch}
+  .cw-start-tile{flex:0 0 min(72vw,260px);scroll-snap-align:start}
+}
 @media(max-width:640px){
   .cw-feat{padding:15px 14px 17px}
   .cw-feat-media img{max-height:300px}
@@ -1425,6 +1445,10 @@ function syncFeatured(){
   var cur=document.querySelector('section.cw-feat'),want=isDefaultView();
   if(want&&!cur){var bar=document.querySelector('.pf-shell');if(bar)bar.insertAdjacentHTML('beforebegin',featuredHTML());}
   else if(!want&&cur){cur.parentNode.removeChild(cur);}
+  /* PUB-5: the Start-here row follows the same rule and always sits between the panel and the filter bar */
+  var st=document.querySelector('section.cw-start');
+  if(want&&!st){var bar2=document.querySelector('.pf-shell');if(bar2)bar2.insertAdjacentHTML('beforebegin',startHereHTML());}
+  else if(!want&&st){st.parentNode.removeChild(st);}
 }
 function renderContent(){
   var el=document.getElementById('min-content');if(!el)return;
@@ -1474,6 +1498,40 @@ function featuredHTML(){
     +'<span class="cw-feat-cta">View specimen \u2192</span>'
     +'</section>';
 }
+/* ---- "Start here" (PUB-5; the owner picked these five on 2026-10-11) -------------------
+   Five objects that explain the collection to a first-time visitor, between the Latest
+   addition and the gallery, on the DEFAULT view only — it steps aside under any search,
+   filter or sort exactly as the Latest-addition panel does (syncFeatured()). Each entry is
+   an id the public bundle carries plus the owner's one-line reason; to swap a pick, edit
+   this list. An id the bundle lacks, or one without a hero photo, is skipped silently. */
+var START_HERE=[
+  {id:'RM-0001',why:"Where it starts: native copper from the Caledonia Mine, in Charlie’s own hand. He was a mining electrician in Copper Country."},
+  {id:'RM-0088',why:"His most complete label — WULFENITE / 19 TIGER / A ARIZ — and the place held up: Tiger, Arizona, where wulfenite is the classic."},
+  {id:'RM-0072',why:"A label that corrects itself: GALENA struck through, FLORITE written beneath. The place it names is disputed, and the record says why."},
+  {id:'RM-0032',why:"One Midwest geode, split into two matching halves — the family of quartz-lined cavities that runs through the collection."},
+  {id:'RM-0103',why:"An open question: the label says hematite, the streak says otherwise. The species stays empty until a test settles it."}
+];
+function startHereHTML(){
+  if(!isDefaultView())return '';
+  var byId={};minData().forEach(function(m){byId[m.id]=m;});
+  var tiles=START_HERE.map(function(e){
+    var m=byId[e.id];if(!m)return '';var h=hero(m);if(!h)return '';
+    var name=shortCardTitle(displayName(title(m),m.id));
+    return '<div class="cw-start-tile" role="button" tabindex="0" aria-label="'+esc(title(m)+'. '+e.why)+'"'
+      +' onclick="showMineral(\''+m.id+'\')"'
+      +' onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();showMineral(\''+m.id+'\');}">'
+      +'<div class="cw-start-img"><img src="'+esc(img(h,400))+'" alt="'+esc(title(m))+'" loading="lazy" decoding="async" onerror="this.onerror=null;this.src=\''+PLACEHOLDER+'\'">'
+      +(m.spin?'<span class="min-spin-badge cw-start-spin" title="Has a 360° spin">360°</span>':'')+'</div>'
+      +'<div class="cw-start-name" title="'+esc(title(m))+'">'+esc(name)+'</div>'
+      +'<div class="cw-start-why">'+esc(e.why)+'</div>'
+      +'</div>';
+  }).join('');
+  if(!tiles)return '';
+  return '<section class="cw-start" aria-labelledby="cw-start-h">'
+    +'<div class="cw-start-head"><h2 id="cw-start-h" class="cw-start-h">Start here</h2>'
+    +'<p class="cw-start-lead">Five pieces that explain the collection — open any one.</p></div>'
+    +'<div class="cw-start-row">'+tiles+'</div></section>';
+}
 function storyHTML(){
   return '<section class="cw-story">'
     +'<figure class="cw-story-photo"><a href="images/minerals/charlie_wills_1957_article.jpg" target="_blank" rel="noopener" title="Open full size"><img src="images/minerals/charlie_wills_1957_article.jpg" loading="eager" alt="1957 Detroit Times feature ‘Rock Hound An Expert Now’ — Charles V. Wills and his wife Ann showing rock specimens to his grandson Thomas J. Herman"></a><figcaption><em>Detroit Times</em>, April 30, 1957 · tap to enlarge</figcaption></figure>'
@@ -1489,7 +1547,7 @@ function render(){
   var M=minData();
   if(!M.length){root.innerHTML='<div class="empty">Loading specimens…</div>';if((window._retry=(window._retry||0)+1)<15)setTimeout(render,250);return;}
   preloadHeroes();/* PUB-4: first thing, before the grid is built */
-  root.innerHTML=storyHTML()+featuredHTML()+filterBarHTML()
+  root.innerHTML=storyHTML()+featuredHTML()+startHereHTML()+filterBarHTML()
     +'<div class="tc-hd"><span class="tt">Specimens</span><span class="tn" id="min-count">'+M.length+' specimens</span>'
     +'<div class="vt-grp"><span id="gs-grp"><button class="vtbtn" id="gs-dec" onclick="setGridSize(-1)" title="Smaller tiles" aria-label="Smaller tiles">−</button><button class="vtbtn" id="gs-inc" onclick="setGridSize(1)" title="Larger tiles" aria-label="Larger tiles">+</button></span>'
     +'<button class="vtbtn" id="cv-grid" onclick="setView(\'grid\')" title="Gallery" aria-label="Gallery view">▦</button><button class="vtbtn" id="cv-table" onclick="setView(\'table\')" title="Table" aria-label="Table view">☰</button></div></div>'
