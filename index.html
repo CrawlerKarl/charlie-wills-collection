@@ -40,7 +40,7 @@ main{padding:18px 0 40px;min-height:100vh;min-height:100svh}   /* the footer sta
 .pubms-drop{display:none;position:absolute;z-index:40;top:calc(100% + 5px);left:0;min-width:230px;max-height:320px;overflow:auto;background:var(--card);border:1px solid var(--bdr);border-radius:10px;box-shadow:0 12px 32px rgba(0,0,0,0.4);padding:6px}
 .pubms-opt .oc{margin-left:auto;color:var(--t3);font-size:0.76rem}
 .pf-clear{background:transparent;border:1px solid var(--bdr);color:var(--t2);font-size:0.95rem;padding:11px 15px;border-radius:var(--r-sm);cursor:pointer;min-height:48px}
-.pf-clear:hover{border-color:var(--red);color:var(--red)}
+@media(hover:hover){.pf-clear:hover{border-color:var(--red);color:var(--red)}}
 /* toolbar (count + view) */
 .tc-hd{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
 .tc-hd .tn{font-size:0.92rem;color:var(--t3)}
@@ -65,8 +65,10 @@ main{padding:18px 0 40px;min-height:100vh;min-height:100svh}   /* the footer sta
 .min-table{width:100%;border-collapse:collapse;font-size:0.86rem}
 .min-table tr.cl:focus-visible{outline:2px solid var(--gold);outline-offset:-2px}
 .empty{text-align:center;padding:40px 20px;color:var(--t3)}
+.empty .pf-clear{margin-top:16px}   /* polish pass 6: the empty state carries its own way out (the Filters panel is folded away on a phone) */
 /* modal */
 .hidden{display:none}
+#cw-modal:focus{outline:none}   /* polish pass 6: the dialog takes focus itself when a shared link opens it with no interaction (no Close-button ring on a phone) */
 .modal{background:var(--card);border:1px solid var(--bdr);border-radius:16px;max-width:680px;width:100%;padding:18px 20px 24px;position:relative;box-shadow:0 24px 60px rgba(0,0,0,0.5)}
 .modal-close{position:sticky;float:right;top:0;z-index:10;background:var(--card2);border:1px solid var(--bdr);color:var(--t1);width:50px;height:50px;border-radius:13px;font-size:1.9rem;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center}
 .modal h2{font-size:1.62rem;line-height:1.28;margin:10px 0 2px;padding-right:60px}
@@ -79,12 +81,12 @@ main{padding:18px 0 40px;min-height:100vh;min-height:100svh}   /* the footer sta
 /* 360° spin mode — auto-rotating drag-to-scrub frame sequence */
 .min-spin-chip{position:absolute;top:8px;left:8px;z-index:3;background:rgba(0,0,0,0.65);color:#fff;border:none;border-radius:11px;padding:5px 11px;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;min-height:28px}
 .min-spin-chip.min-spin-live{background:rgba(245,158,11,0.88);color:#1a1205}
-.min-spin-chip:hover{background:var(--gold);color:#1a1205}
+@media(hover:hover){.min-spin-chip:hover{background:var(--gold);color:#1a1205}}
 /* phone list view (polish pass 5): at <=600px the 4-column Table view is photo cards - the private List view's rows, with the public
    facts (short title / species . locality / size). The table itself still renders on wider screens. */
 .pl-list{display:grid;gap:9px}
 .pl-row{width:100%;min-width:0;display:grid;grid-template-columns:92px minmax(0,1fr) 18px;gap:10px;align-items:center;padding:7px;overflow:hidden;border:1px solid var(--bdr);border-radius:10px;background:var(--card);color:var(--t1);font:inherit;text-align:left;cursor:pointer;transition:border-color .15s}
-.pl-row:hover{border-color:var(--gold)}
+@media(hover:hover){.pl-row:hover{border-color:var(--gold)}}
 .pl-row:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 .pl-row:active{transform:scale(.985);transition:transform .08s ease-out}
 .pl-img{width:92px;aspect-ratio:4/3;display:block;object-fit:contain;border-radius:7px;background:#000}
@@ -119,7 +121,7 @@ a{color:#2dd4bf}
 .hdr-title{font-size:1.7rem;font-weight:800;letter-spacing:-0.01em;margin:2px 0 3px;line-height:1.15}
 .hdr-sub{font-size:0.92rem;color:var(--t2);margin:0}
 .theme-btn{margin-left:auto;background:var(--card2);border:1px solid var(--bdr);color:var(--t2);width:40px;height:40px;border-radius:10px;cursor:pointer;font-size:1.05rem;display:flex;align-items:center;justify-content:center}
-.theme-btn:hover{border-color:var(--gold);color:var(--gold)}
+@media(hover:hover){.theme-btn:hover{border-color:var(--gold);color:var(--gold)}}
 .sc.gn .sv{color:var(--teal)}
 .sc.cy .sv{color:var(--cyn)}
 .cw-story-photo{margin:0}
@@ -136,20 +138,20 @@ a{color:#2dd4bf}
 .pf-in:focus{outline:none;border-color:var(--gold)}
 .pf-search-wrap .pf-in{flex:1;width:100%;min-width:0;padding-right:38px}
 .pf-in::-webkit-search-cancel-button{display:none}
-.pf-x:hover{color:var(--gold)}
+@media(hover:hover){.pf-x:hover{color:var(--gold)}}
 .pubms{position:relative}
 .pubms-trig{background:var(--card2);border:1px solid var(--bdr);color:var(--t1);font-size:1rem;padding:11px 15px;border-radius:var(--r-sm);cursor:pointer;min-height:48px;display:flex;align-items:center;gap:6px;white-space:nowrap}
-.pubms-trig:hover{border-color:var(--gold)}
+@media(hover:hover){.pubms-trig:hover{border-color:var(--gold)}}
 .pubms-trig .cnt{background:var(--teal);color:#04201c;font-size:0.74rem;font-weight:800;border-radius:8px;padding:0 7px;line-height:1.5}
 .pubms.open .pubms-drop{display:block}
 .pubms-opt{display:flex;align-items:center;gap:10px;padding:11px 10px;border-radius:7px;cursor:pointer;font-size:0.98rem}
-.pubms-opt:hover{background:var(--card2)}
+@media(hover:hover){.pubms-opt:hover{background:var(--card2)}}
 .pubms-opt input{accent-color:var(--gold);width:18px;height:18px}
 .pf-sel{background:var(--card2);border:1px solid var(--bdr);color:var(--t1);font-size:1rem;padding:12px 32px 12px 14px;border-radius:var(--r-sm);cursor:pointer;min-height:48px;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 4.5l3.5 3.5 3.5-3.5' fill='none' stroke='%2394a3b8' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
 .tc-hd .tt{font-size:1.05rem;font-weight:700}
 #gs-grp{display:flex;gap:5px;flex-shrink:0}
 .vtbtn:disabled{opacity:.4;cursor:default}
-.gtile:hover{border-color:var(--gold);transform:translateY(-2px)}
+@media(hover:hover){.gtile:hover{border-color:var(--gold);transform:translateY(-2px)}}
 .gtile-badges{position:absolute;top:8px;left:8px;display:flex;gap:5px}
 .min-cw-badge{font-size:0.76rem;font-weight:700;letter-spacing:0.03em;background:rgba(20,184,166,0.9);color:#04201c;padding:3px 9px;border-radius:6px}
 .mgrid.compact{gap:11px}
@@ -162,7 +164,7 @@ a{color:#2dd4bf}
 .min-table th{text-align:left;color:var(--t3);font-weight:500;font-size:0.72rem;padding:7px 9px;border-bottom:1px solid var(--bdr);white-space:nowrap}
 .min-table td{padding:9px;border-bottom:1px solid var(--bdr2);vertical-align:top}
 .min-table tr.cl{cursor:pointer}
-.min-table tr.cl:hover{background:var(--card2)}
+@media(hover:hover){.min-table tr.cl:hover{background:var(--card2)}}
 .modal-bg{position:fixed;inset:0;background:rgba(4,7,12,0.72);display:flex;align-items:flex-start;justify-content:center;padding:20px 12px;overflow-y:auto;z-index:100;opacity:0;transition:opacity .16s}
 .modal-bg.vis{opacity:1}
 /* MOTION-4: NO backdrop-filter here. A full-viewport blur(3px) was re-run on every frame the carousel slid (measured 1280x900, 4x CPU throttle: 33-50ms frames; 17ms with it off, and the page behind a centred column is a plain dark ground, so nothing blurred was ever visible). */
@@ -178,7 +180,7 @@ a{color:#2dd4bf}
 .modal.min-swap-in>:not(.modal-close){animation:minSwapIn .07s ease-out}
 @keyframes minSwapIn{from{opacity:0}}
 .modal-close::after{content:'';position:absolute;inset:-6px}
-.modal-close:hover{border-color:var(--gold);color:var(--gold)}
+@media(hover:hover){.modal-close:hover{border-color:var(--gold);color:var(--gold)}}
 .modal-close:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 .min-stage{position:relative;width:100%;aspect-ratio:4/3;max-height:min(56vh,540px);overflow:hidden;border-radius:10px;background:#000;touch-action:pan-y;user-select:none}
 .min-track.min-single{transform:translateX(0)}
@@ -190,12 +192,12 @@ a{color:#2dd4bf}
 @media(prefers-reduced-motion:reduce){.min-track.min-anim{transition:none}.modal-bg .modal{transform:none;transition:none}.modal-bg,.modal-bg.out{transition:none}.modal-bg.out .modal{transform:none;transition:none}.modal.min-swap-out>:not(.modal-close),.modal.min-swap-in>:not(.modal-close){transition:none;animation:none}}
 .min-nav{position:absolute;top:50%;transform:translateY(-50%);width:40px;height:40px;border-radius:50%;border:none;background:rgba(0,0,0,0.45);color:#fff;font-size:1.6rem;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:3;padding:0}
 .min-nav::after{content:'';position:absolute;inset:-6px}
-.min-nav:hover,.min-nav:active{background:var(--gold);color:#1a1205}
+.min-nav:active{background:var(--gold);color:#1a1205}@media(hover:hover){.min-nav:hover{background:var(--gold);color:#1a1205}}
 .min-nav-prev{left:6px}
 .min-nav-next{right:6px}
 .min-photo-pos{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.6);color:#fff;font-size:0.74rem;font-weight:600;padding:3px 11px;border-radius:11px;z-index:3;pointer-events:none}
 .min-fullsize{position:absolute;bottom:8px;right:8px;width:46px;height:46px;border-radius:11px;background:rgba(0,0,0,0.5);color:#fff;font-size:1.5rem;display:flex;align-items:center;justify-content:center;text-decoration:none;z-index:3}
-.min-fullsize:hover{background:var(--gold);color:#1a1205}
+@media(hover:hover){.min-fullsize:hover{background:var(--gold);color:#1a1205}}
 .min-fullsize::after{content:'';position:absolute;inset:-8px}
 .min-stage.min-multi .min-slide-img{cursor:pointer}
 .min-slide-img{will-change:transform;transform-origin:50% 50%}
@@ -210,7 +212,7 @@ a{color:#2dd4bf}
 [data-theme="light"] .min-spin-badge{background:#b45309;color:#fff}
 .min-rocknav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:14px 0 4px;padding:11px 0;border-top:1px solid var(--bdr);border-bottom:1px solid var(--bdr)}
 .min-rock-btn{background:var(--card2);border:1px solid var(--bdr);color:var(--t1);font-size:0.95rem;font-weight:600;padding:9px 14px;border-radius:10px;cursor:pointer;min-height:44px}
-.min-rock-btn:hover{border-color:var(--gold);color:var(--gold)}
+@media(hover:hover){.min-rock-btn:hover{border-color:var(--gold);color:var(--gold)}}
 .min-rock-pos{font-size:0.92rem;font-weight:700;color:var(--t2);white-space:nowrap}
 .min-mindat{color:#2dd4bf;text-decoration:underline dotted}
 .modal .badges{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
@@ -263,7 +265,7 @@ a{color:#2dd4bf}
 .min-origin-chip-x .min-origin-l{text-decoration:line-through}
 .min-origin-fold{margin-top:4px}
 .min-origin-fold>summary{cursor:pointer;font-size:0.82rem;font-weight:700;color:var(--t2);padding:6px 0}
-.min-origin-fold>summary:hover{color:var(--gold,#f59e0b)}
+@media(hover:hover){.min-origin-fold>summary:hover{color:var(--gold,#f59e0b)}}
 .min-origin-fold .min-cand-sub{margin-top:8px}
 .min-cpin{stroke:#0b1220}
 .min-cpin-l,.min-cpin-bg-l{fill:#22c55e;background:#22c55e}
@@ -277,7 +279,7 @@ a{color:#2dd4bf}
 .min-cand-lh-l{color:#4ade80;background:rgba(34,197,94,0.12)}
 .min-cand-lh-p{color:#fbbf24;background:rgba(245,158,11,0.12)}
 .min-cand-lh-o{color:#a8b3c4;background:rgba(148,163,184,0.14)}
-.cw-story .cw-story-more>summary:hover{color:var(--gold)}
+@media(hover:hover){.cw-story .cw-story-more>summary:hover{color:var(--gold)}}
 .cw-story .cw-story-more[open]>summary{margin-bottom:10px}
 .rt:last-child{margin-bottom:0}
 .rt.rt-lead{color:var(--t2)}
@@ -309,7 +311,7 @@ a{color:#2dd4bf}
 .ident-inf-conf{margin-left:6px;padding:1px 7px;border-radius:9px;background:var(--bdr);color:var(--t3);font-size:0.62rem;font-weight:800;letter-spacing:0.05em;text-transform:uppercase;vertical-align:1px}
 .min-cand-inftag{display:inline-block;margin-left:6px;padding:1px 6px;border-radius:9px;background:var(--bdr);color:var(--t3);font-size:0.62rem;font-weight:800;letter-spacing:0.04em;text-transform:uppercase}
 .related h3{margin:0 0 10px;font-size:0.8rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--teal)}
-.related-card:hover{border-color:var(--gold)}
+@media(hover:hover){.related-card:hover{border-color:var(--gold)}}
 .modal.fs-on>.modal-grid{display:block !important}
 .modal.fs-on .modal-info,.modal.fs-on .modal-dossier,.modal.fs-on .modal-media>*:not(.min-stage){display:none}
 @media(max-width:600px){.dossier-col{gap:16px}.related-grid::-webkit-scrollbar{display:none}}
@@ -331,9 +333,9 @@ a{color:#2dd4bf}
 [data-theme="light"] .min-cx-l{stroke:#475569}
 [data-theme="light"] .min-cx-pin{fill:#cbd5e1;stroke:#64748b}
 /* polish pass 4 (2026-10-12, guard #225): hover where there was none, folds that fade open, a phone table that fits, hit areas that a thumb can find. */
-a.min-mindat:hover,a.min-mindat:focus-visible{text-decoration-style:solid}
-.vtbtn:not(.on):not(:disabled):hover{border-color:var(--gold);color:var(--gold)}
-.pf-sel:hover{border-color:var(--gold)}
+a.min-mindat:focus-visible{text-decoration-style:solid}@media(hover:hover){a.min-mindat:hover{text-decoration-style:solid}}
+@media(hover:hover){.vtbtn:not(.on):not(:disabled):hover{border-color:var(--gold);color:var(--gold)}}
+@media(hover:hover){.pf-sel:hover{border-color:var(--gold)}}
 .min-more[open]>*:not(summary),.mq-more[open]>*:not(summary){animation:minFoldIn .18s ease-out}
 @keyframes minFoldIn{from{opacity:0}}
 .pubms.open .pubms-drop{animation:minFoldIn .12s ease-out}   /* the Type / Mineral / Locality panel fades in instead of popping */
@@ -369,19 +371,19 @@ img.rv.rv-on{opacity:1}
 .min-tgroup-row>span.min-thumb-in{display:flex}
 .min-thumb-wrap{position:relative;flex:0 0 auto;display:block;line-height:0;cursor:pointer}
 .min-thumb{flex:0 0 auto;display:block;width:var(--tw);height:var(--th);box-sizing:border-box;object-fit:contain;background:#000;border-radius:6px;border:1px solid var(--bdr);cursor:pointer;opacity:0.86;scroll-snap-align:center;transition:opacity .15s,border-color .15s,box-shadow .15s}
-.min-thumb:hover,.min-thumb-wrap:hover .min-thumb{opacity:1}
+@media(hover:hover){.min-thumb:hover,.min-thumb-wrap:hover .min-thumb{opacity:1}}
 .min-thumb.min-thumb-active,.min-thumb.on{opacity:1;border-color:var(--gold);box-shadow:0 0 0 1px var(--gold)}
 .min-thumb-badge{position:absolute;right:4px;bottom:4px;padding:1px 5px;border-radius:4px;background:rgba(3,7,18,0.82);color:#fff;font-size:0.6rem;font-weight:800;letter-spacing:0.03em;line-height:1.45;pointer-events:none;white-space:nowrap}
 .min-thumb-play{position:absolute;left:50%;top:50%;width:24px;height:24px;margin:-12px 0 0 -12px;border-radius:50%;background:rgba(0,0,0,0.62);box-shadow:0 0 0 1px rgba(255,255,255,0.35);pointer-events:none}
 .min-thumb-play::after{content:'';position:absolute;left:9px;top:7px;border-style:solid;border-width:5px 0 5px 8px;border-color:transparent transparent transparent #fff}
 .min-thumb-more{position:relative;flex:0 0 auto;width:var(--tw);height:var(--th);box-sizing:border-box;margin:6px 6px 0 0;padding:0;border:1px solid rgba(255,255,255,0.18);border-radius:6px;background:#000;color:#fff;font-family:inherit;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;line-height:1;cursor:pointer;scroll-snap-align:center;-webkit-tap-highlight-color:transparent;box-shadow:3px -3px 0 -1px var(--card2),3px -3px 0 0 rgba(255,255,255,0.16),6px -6px 0 -1px var(--card2),6px -6px 0 0 rgba(255,255,255,0.09);transition:transform .15s,border-color .15s}
-.min-thumb-more:hover,.min-thumb-more:focus-visible{transform:translateY(-1px);border-color:var(--gold);outline:none}
+.min-thumb-more:focus-visible{transform:translateY(-1px);border-color:var(--gold);outline:none}@media(hover:hover){.min-thumb-more:hover{transform:translateY(-1px);border-color:var(--gold);outline:none}}
 .min-thumb-more-img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;border-radius:5px;opacity:0.4;pointer-events:none}
 .min-thumb-more-n{position:relative;font-weight:800;font-size:0.95rem;text-shadow:0 1px 3px rgba(0,0,0,0.85)}
 .min-thumb-less{margin:0;box-shadow:none;background:transparent;border-style:dashed;border-color:var(--bdr);color:var(--t3)}
 .min-thumb-less-i{font-size:1.05rem;font-weight:700}
 .min-thumb-less-t{font-size:0.56rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase}
-.min-thumb-less:hover,.min-thumb-less:focus-visible{color:var(--gold)}
+.min-thumb-less:focus-visible{color:var(--gold)}@media(hover:hover){.min-thumb-less:hover{color:var(--gold)}}
 @keyframes minThumbIn{from{opacity:0;transform:translateX(16px) scale(0.94)}}
 .min-thumb-in{animation:minThumbIn .28s cubic-bezier(.22,.61,.36,1) backwards;animation-delay:calc(60ms + var(--i,0) * 35ms)}
 .min-tgroup-in>.min-tgroup-h{animation:minThumbIn .28s cubic-bezier(.22,.61,.36,1) backwards}
@@ -399,7 +401,7 @@ img.rv.rv-on{opacity:1}
 .modal-info h2.min-title-long{font-size:clamp(1.35rem,2vw,1.75rem)}
 .min-share-btn{flex:0 0 auto;min-width:5.5em;min-height:42px;padding:8px 12px;font-size:0.82rem;border:1px solid rgba(20,184,166,0.5);border-radius:10px;background:rgba(20,184,166,0.12);color:#5eead4;font-weight:750;cursor:pointer}
 [data-theme="light"] .min-share-btn{color:#0f766e}
-.min-share-btn:hover,.min-share-btn:focus-visible{border-color:var(--gold);color:var(--gold)}
+.min-share-btn:focus-visible{border-color:var(--gold);color:var(--gold)}@media(hover:hover){.min-share-btn:hover{border-color:var(--gold);color:var(--gold)}}
 .min-share-btn:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 .min-phone-head{display:none}
 .gtile:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
@@ -457,7 +459,7 @@ body.cw-fs-on{overflow:hidden}
    what the list is showing. renderContent() drops this specimen from the grid so
    the same rock never appears twice on one screen. */
 .cw-feat{background:var(--card);border:1px solid var(--bdr);border-radius:16px;padding:20px 20px 22px;margin-bottom:16px;cursor:pointer;transition:border-color .15s,transform .15s;text-align:center}
-.cw-feat:hover{border-color:var(--gold);transform:translateY(-2px)}
+@media(hover:hover){.cw-feat:hover{border-color:var(--gold);transform:translateY(-2px)}}
 .cw-feat:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
 .cw-feat-tag{display:inline-block;font-size:0.72rem;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;background:rgba(20,184,166,0.9);color:#04201c;padding:4px 11px;border-radius:7px;margin-bottom:12px}
 .cw-feat-media{display:flex;justify-content:center;margin-bottom:14px}
@@ -478,7 +480,7 @@ body.cw-fs-on{overflow:hidden}
 .cw-start-lead{font-size:0.92rem;color:var(--t2);margin:0}
 .cw-start-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}/* five across from ~1100px, 3+2 on a tablet; a phone scrolls the row instead */
 .cw-start-tile{display:flex;flex-direction:column;gap:6px;cursor:pointer;border-radius:12px;padding:6px;transition:background-color .15s,transform .15s}
-.cw-start-tile:hover{background:var(--card2);transform:translateY(-2px)}
+@media(hover:hover){.cw-start-tile:hover{background:var(--card2);transform:translateY(-2px)}}
 .cw-start-tile:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 .cw-start-tile:active{transform:scale(.985);transition:transform .08s ease-out}
 @media(prefers-reduced-motion:reduce){.cw-start-tile:active{transform:none;transition:none}}
@@ -529,7 +531,7 @@ body.cw-fs-on{overflow:hidden}
 .mq-more{margin-top:5px;width:100%}
 .mq-more>summary{display:inline-flex;align-items:center;gap:5px;cursor:pointer;list-style:none;color:var(--t3);font-size:0.76rem;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;padding:3px 0;min-height:44px;-webkit-user-select:none;user-select:none}
 .mq-more>summary::before{content:'▸';font-size:0.68rem;transition:transform .15s ease}
-.mq-more>summary:hover{color:var(--gold)}
+@media(hover:hover){.mq-more>summary:hover{color:var(--gold)}}
 .rt-more{margin-top:8px}
 .min-field .mf-v .rt-lead{margin:0}
 @media(prefers-reduced-motion:reduce){.mq-more>summary::before{transition:none}}
@@ -1267,7 +1269,7 @@ function displaySub(full,id){return _displaySplit(full,id)[1];}
    dropdown looks the same everywhere without a fourth copy of the CSS. ---------------------------- */
 function charlieStoryBodyHTML(img){
   var I=function(n){return img?img(n):('images/minerals/'+n);};
-  return '<div class="cw-bio"><style>.cw-bio{font-size:0.95rem;line-height:1.62;color:var(--t2)}.cw-bio p{margin:0 0 10px}.cw-bio a{color:#2dd4bf}.cw-bio strong{color:var(--t1)}.cw-bio h3{font-size:0.95rem;font-weight:800;margin:16px 0 6px;color:var(--t1)}.cw-bio blockquote{margin:0;padding:10px 14px;border-left:3px solid #2dd4bf;background:rgba(45,212,191,0.06);border-radius:0 10px 10px 0}.cw-bio blockquote p{font-size:0.9rem;line-height:1.6;color:var(--t2)}.cw-bio .cw-art-hd{font-size:0.78rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--t3);margin:8px 0 4px}.cw-bio .cw-note{font-size:0.82rem;color:var(--t3);margin-top:8px}.cw-bio ul.cw-src{margin:6px 0 4px;padding-left:20px}.cw-bio ul.cw-src li{font-size:0.88rem;line-height:1.58;color:var(--t2);margin:0 0 8px}.cw-bio ul.cw-src li strong{color:var(--t1)}.cw-bio .cw-clips{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin:8px 0 4px;align-items:start}.cw-bio .cw-clips figure{margin:0;background:var(--card2,rgba(255,255,255,0.03));border:1px solid var(--bdr);border-radius:10px;padding:8px}.cw-bio .cw-clips img{width:100%;height:auto;display:block;border-radius:6px;cursor:zoom-in}.cw-bio .cw-clips figcaption{font-size:0.76rem;line-height:1.4;color:var(--t3);margin-top:6px}</style>'
+  return '<div class="cw-bio"><style>.cw-bio{font-size:0.95rem;line-height:1.62;color:var(--t2);max-width:48rem}.cw-bio p{margin:0 0 10px}.cw-bio a{color:#2dd4bf}.cw-bio strong{color:var(--t1)}.cw-bio h3{font-size:0.95rem;font-weight:800;margin:16px 0 6px;color:var(--t1)}.cw-bio blockquote{margin:0;padding:10px 14px;border-left:3px solid #2dd4bf;background:rgba(45,212,191,0.06);border-radius:0 10px 10px 0}.cw-bio blockquote p{font-size:0.9rem;line-height:1.6;color:var(--t2)}.cw-bio .cw-art-hd{font-size:0.78rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--t3);margin:8px 0 4px}.cw-bio .cw-note{font-size:0.82rem;color:var(--t3);margin-top:8px}.cw-bio ul.cw-src{margin:6px 0 4px;padding-left:20px}.cw-bio ul.cw-src li{font-size:0.88rem;line-height:1.58;color:var(--t2);margin:0 0 8px}.cw-bio ul.cw-src li strong{color:var(--t1)}.cw-bio .cw-clips{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin:8px 0 4px;align-items:start}.cw-bio .cw-clips figure{margin:0;background:var(--card2,rgba(255,255,255,0.03));border:1px solid var(--bdr);border-radius:10px;padding:8px}.cw-bio .cw-clips img{width:100%;height:auto;display:block;border-radius:6px;cursor:zoom-in}.cw-bio .cw-clips figcaption{font-size:0.76rem;line-height:1.4;color:var(--t3);margin-top:6px}.cw-bio .cw-bio-end{margin:20px 0 2px}.cw-bio .cw-bio-close{font:inherit;font-size:0.85rem;font-weight:700;color:var(--t2);background:transparent;border:1px solid var(--bdr);border-radius:999px;padding:10px 18px;min-height:44px;cursor:pointer;transition:border-color .15s,color .15s,background .15s}.cw-bio .cw-bio-close:active{background:var(--card2,rgba(255,255,255,0.05))}.cw-bio .cw-bio-close:focus-visible{outline:2px solid var(--gold,#f59e0b);outline-offset:2px}@media(hover:hover){.cw-bio .cw-bio-close:hover{border-color:var(--gold,#f59e0b);color:var(--gold,#f59e0b)}}</style>'
     +'<p class="cw-note">📰 The photograph: “‘Rock Hound’ An Expert Now,” <em>Detroit Times</em>, April 30, 1957, by Margaret Russell — Charlie and Ann Wills showing specimens to his grandson Thomas J. Herman.</p>'
     +'<p>Charlie was born on December 27, 1872 in Ishpeming, in Michigan’s iron and copper country, and raised in <strong>Calumet</strong>. He was a rock hound from boyhood: he began collecting at ten, and at eleven his father gave him a piece of quartz shot through with gold from a mine near Ishpeming — “most people say there never was any gold in Michigan,” he liked to point out. That piece, he said, cemented the hobby for life. “For years I was what they call a ‘rock hound.’ That means anyone who collects and even polishes rocks. Then later I kind of graduated into collecting these crystallized mineral specimens.”</p>'
     +'<p>He trained as an electrician for the copper mines. Around 1900 he traveled by buckboard to pre-statehood Arizona; in 1901 he married Elizabeth Nekervis, a Houghton County girl, and their son was born the next year. He spent seven years as an electrician for five copper mines near <strong>Bisbee</strong> — the museum that holds his collection records him as an electrical engineer of the Calumet and Arizona mine, a Bisbee company founded in 1901 by Calumet men, and later of Phelps Dodge, which absorbed it in 1931. The Bisbee paper has him too: in January 1906 it reported that Charles Wills, “for the past five years connected with the electrical department of the Bonanza Circle properties” — the Calumet-financed mines — had resigned to attend to his own business affairs and would “leave for the East.” Back in the Copper Country he was the village of Laurium’s electrical inspector by 1910 (one month he reported inspecting 362 lights), and by 1913 the family had moved to Detroit. He staked mining claims of his own — some thirty near Bisbee, which he later sold at what he called a “good profit,” and a silver claim in Mexico that never produced. “I learned a lot about geology in those days,” he said, “information that has been of tremendous help to me in my collecting.”</p>'
@@ -1302,6 +1304,7 @@ function charlieStoryBodyHTML(img){
     +'</div>'
     +'<p class="cw-note">Settled in September 2026 by the Michigan Tech Archives and the museum’s own file: he did not study at the Michigan College of Mines (no registered-student list from 1894 to 1909 names him, and the museum’s records agree). Still unconfirmed, and left off: the Smithsonian’s interest, and the exact page of the 1957 article.</p>'
     +'<h3>The 1957 article, transcribed</h3>'
+    +'<p class="cw-note"><a href="'+I('charlie_wills_1957_article.jpg')+'" target="_blank" rel="noopener">See the clipping itself, full size \u2197</a> (opens in a new tab)</p>'
     +'<div class="cw-art-hd">Detroit Times · “‘Rock Hound’ An Expert Now” · by Margaret Russell</div>'
     +'<blockquote>'
     +'<p>Charles V. Wills, of Berkley, started collecting mineral rock specimens when he was 10. Today at 85 he’s still pursuing his favorite hobby.</p>'
@@ -1313,6 +1316,7 @@ function charlieStoryBodyHTML(img){
     +'<p>Since he retired in 1945 Wills has made yearly trips to Arizona, driving his own car. He and his wife Ann, who was 77 last Friday, just returned from there “with a fine group of specimens.”</p>'
     +'</blockquote>'
     +'<p class="cw-note">Photo caption: “Mr. and Mrs. Charles V. Wills showing some of their rock specimens to a grandson, Thomas J. Herman.” The family’s copy is inscribed “Photo taken in 1957.” Transcribed from the clipping; the street address is left out.</p>'
+    +'<p class="cw-bio-end"><button type="button" class="cw-bio-close" onclick="var d=this.closest(\'details\');if(d){d.open=false;var s=d.querySelector(\'summary\');if(s){s.scrollIntoView({block:\'center\'});s.focus({preventScroll:true});}}">\u25B4 Close the story</button></p>'
     +'</div>';
 }
 /* ---- end shared Charlie Wills story ---------------------------------------- */
@@ -1558,7 +1562,7 @@ function renderContent(){
      the same rock is never on screen twice. Only ever applies on the default view, where
      filtered() is sorted newest-first and M[0] IS the featured one. */
   if(isDefaultView()&&M.length){var _f=newestM();if(_f&&M[0]&&M[0].id===_f.id)M=M.slice(1);}
-  if(!M.length){el.innerHTML='<div class="empty">🔍 No specimens match your search or filters.</div>';return;}
+  if(!M.length){el.innerHTML='<div class="empty">🔍 No specimens match your search or filters.<div><button type="button" class="pf-clear" onclick="clearFilters()">Clear search and filters</button></div></div>';return;}
   if(S.view==='table'&&isPhoneList()){
     el.innerHTML='<div class="pl-list">'+M.map(phoneRowHTML).join('')+'</div>';
   }else if(S.view==='table'){
@@ -1664,7 +1668,7 @@ function startHereHTML(){
 }
 function storyHTML(){
   return '<section class="cw-story">'
-    +'<figure class="cw-story-photo"><a href="images/minerals/charlie_wills_1957_article.jpg" target="_blank" rel="noopener" title="Open full size"><img src="images/minerals/charlie_wills_1957_article.jpg" width="1200" height="1600" loading="eager" alt="1957 Detroit Times feature ‘Rock Hound An Expert Now’ — Charles V. Wills and his wife Ann showing rock specimens to his grandson Thomas J. Herman"></a><figcaption><em>Detroit Times</em>, April 30, 1957 · tap to enlarge</figcaption></figure>'
+    +'<figure class="cw-story-photo"><a href="images/minerals/charlie_wills_1957_article.jpg" target="_blank" rel="noopener" title="Open the 1957 clipping full size (new tab)"><img src="images/minerals/charlie_wills_1957_article.jpg" width="1200" height="1600" loading="eager" alt="1957 Detroit Times feature ‘Rock Hound An Expert Now’ — Charles V. Wills and his wife Ann showing rock specimens to his grandson Thomas J. Herman"></a><figcaption><em>Detroit Times</em>, April 30, 1957 · full\u00a0size\u00a0\u2197</figcaption></figure>'
     +'<div class="cw-story-text"><h2>A lifelong rock hound</h2>'
     +'<p class="cw-story-lead"><strong>Charles V. “Charlie” Wills</strong> (Ishpeming, Michigan, December 27, 1872 – Tempe, Arizona, January 13, 1964) started collecting minerals at ten and was still at it at eighty-five: a mining electrician of Michigan’s Copper Country and the copper mines of Bisbee, Arizona. These are the pieces he kept at home; his main collection went to Michigan Tech.</p>'
     +'<details class="mq-more rt-more cw-story-more"><summary>Charlie’s whole story</summary>'
@@ -1699,7 +1703,7 @@ function phoneSize(raw){
   var sent=s.match(/[a-z)]\.\s+(?=[A-Z0-9~])/);if(sent)s=s.slice(0,sent.index+1);
   if(s.length>64){var c=s.indexOf(', ');if(c>=10)s=s.slice(0,c);}
   if(s.length>64){var sp=s.lastIndexOf(' ',64);s=s.slice(0,sp>20?sp:64)+'\u2026';}
-  return s.replace(/[.,;:]+$/,'');
+  return s.replace(/[\s.,;:\u2014\u2013]+$/,'');
 }
 function modalBody(m){
   var P=photosOf(m);var pi=Math.min(Math.max(window._photoIdx||0,0),Math.max(P.length-1,0));var cur=P[pi];
@@ -2037,9 +2041,13 @@ stage.addEventListener('touchcancel',tEnd,{passive:true});
 if(m&&m.spin)spinEnter();
 }
 /* MOTION-2 / MOTION-3 (polish pass 3): the exit and the specimen-to-specimen swap. closeModal() fades the layer out (.out, 160ms; CSS in the shared block) and clears the wrap afterwards - at once under prefers-reduced-motion. Opening again during the exit cancels it. swapModalContent() crossfades the content of the OPEN panel (Prev/Next, Related, Back) instead of rebuilding the layer and replaying the open rise; it keeps keyboard focus on the Prev/Next button that was pressed. */
+/* polish pass 6 - (1) has the visitor touched the page yet? A modal opened by a shared #RM link arrives with NO interaction, and focusing its Close button there paints a keyboard focus ring on a phone; until the first press / tap / key the dialog itself takes focus (tabindex -1, no ring) and Tab still walks in from it. (2) the tab / history title names the open specimen. */
+window._uiTouched=false;['pointerdown','keydown','touchstart'].forEach(function(t){document.addEventListener(t,function(){window._uiTouched=true;},{capture:true,once:true,passive:true});});
+var _baseTitle=document.title;
+function syncDocTitle(){var m=(document.getElementById('cw-modal')&&!window._closeT)?curM():null;document.title=m?displayName(title(m),m.id)+' \u2014 '+_baseTitle:_baseTitle;}
 function modalMotionOff(){try{return !!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);}catch(e){return false;}}
 function cancelModalExit(){if(window._closeT){clearTimeout(window._closeT);window._closeT=0;}}
-function closeModalNow(){clearTimeout(window._closeT);window._closeT=0;var w=document.getElementById('modal-wrap');if(!w)return;w.classList.add('hidden');w.innerHTML='';var prior=window._lastMineralFocus;if(prior&&prior!==document.body&&prior.isConnected&&prior.focus)prior.focus({preventScroll:true});}
+function closeModalNow(){clearTimeout(window._closeT);window._closeT=0;var w=document.getElementById('modal-wrap');if(!w)return;w.classList.add('hidden');w.innerHTML='';syncDocTitle();var prior=window._lastMineralFocus;if(prior&&prior!==document.body&&prior.isConnected&&prior.focus)prior.focus({preventScroll:true});}
 /* A11Y-2 (polish pass 4): Tab and Shift+Tab CYCLE inside the open dialog - the last control wraps to the first, Shift+Tab on the first
    to the last, and focus that sits on the dialog itself or outside it comes back in. The page behind is never reached. Only the two edges
    are handled here (the browser's own order is DOM order, which is what this list is), so every interior Tab stays native. */
@@ -2060,7 +2068,7 @@ function trapTab(e,box){
   for(c=0;c<n;c++){f[k].focus();if(document.activeElement===f[k])return;k=(k+dir+n)%n;}
 }
 function swapModalContent(apply){var box=document.getElementById('cw-modal');var run=function(){var fa=document.activeElement,cb=document.getElementById('cw-modal'),had=!!(cb&&fa&&cb.contains(fa)),fk=(had&&fa.classList&&fa.classList.contains('min-rock-btn'))?fa.getAttribute('aria-label'):'';apply();if(had){var nb=fk?document.querySelector('#cw-modal .min-rock-btn[aria-label="'+fk+'"]'):null;if(!nb)nb=document.querySelector('#cw-modal .modal-close');if(nb){try{nb.focus({preventScroll:true});}catch(e){}}}};if(!box||modalMotionOff()){run();return;}if(window._swapT)return;box.classList.remove('min-swap-in');box.classList.add('min-swap-out');window._swapT=setTimeout(function(){window._swapT=0;var b=document.getElementById('cw-modal');if(!b)return;b.classList.remove('min-swap-out');run();b=document.getElementById('cw-modal');if(!b)return;b.classList.add('min-swap-in');setTimeout(function(){var x=document.getElementById('cw-modal');if(x)x.classList.remove('min-swap-in');},100);},55);}
-function fill(){var m=curM(),box=document.getElementById('cw-modal');if(!m||!box)return;clearTimeout(window._animT);window._anim=false;window._showAux=false;window._photoIdx=heroIdx(m);if(!geoReady())_loadMapBundles();box.innerHTML=modalBody(m);box.setAttribute('aria-label',title(m));box.scrollTop=0;var _bg=box.parentNode;if(_bg&&_bg.scrollTop)_bg.scrollTop=0;bindStage();}
+function fill(){var m=curM(),box=document.getElementById('cw-modal');if(!m||!box)return;clearTimeout(window._animT);window._anim=false;window._showAux=false;window._photoIdx=heroIdx(m);if(!geoReady())_loadMapBundles();box.innerHTML=modalBody(m);box.setAttribute('aria-label',title(m));box.scrollTop=0;var _bg=box.parentNode;if(_bg&&_bg.scrollTop)_bg.scrollTop=0;bindStage();syncDocTitle();}
 function navRock(d){var ids=window._navIds||[],n=ids.length;if(n<2)return;window._navIdx=((window._navIdx||0)+d+n)%n;swapModalContent(function(){fill();setSpecimenUrl(ids[window._navIdx],true);});}
 /* Prev/Next follows the order the visitor is actually looking at (filtered() — newest-first
    by default), not the raw catalog order. Before this the newest specimen opened as "72 / 72",
@@ -2102,7 +2110,7 @@ function syncSpecimenFromLocation(){
 }
 window.addEventListener('popstate',syncSpecimenFromLocation);
 window.addEventListener('hashchange',syncSpecimenFromLocation);
-function showMineral(id,updateUrl){var M=filtered();if(!M.length||M.map(function(x){return x.id;}).indexOf(id)<0)M=minData();var ids=M.map(function(x){return x.id;}),idx=ids.indexOf(id);if(idx<0)return;var m=M[idx],wrap=document.getElementById('modal-wrap');if(!wrap)return;if(updateUrl!==false)setSpecimenUrl(id,false);/* MOTION-3: a modal that is already open (a Related card, Back/Forward, a pasted hash) keeps its layer and crossfades its content; a modal that is mid-exit is called back (its layer fades in again). Only a closed modal builds a layer and rises. */var _openBg=wrap.querySelector('.modal-bg');if(_openBg&&document.getElementById('cw-modal')&&!wrap.classList.contains('hidden')){var _leaving=!!window._closeT;cancelModalExit();if(_leaving){_openBg.classList.remove('out');_openBg.classList.add('vis');}window._navIds=ids;window._navIdx=idx;swapModalContent(fill);return;}cancelModalExit();clearTimeout(window._swapT);window._swapT=0;/* A11Y-1: remember the opener (the tile) — but never overwrite it with a Related card from inside an already-open modal */if(!document.getElementById('cw-modal'))window._lastMineralFocus=document.activeElement;window._navIds=ids;window._navIdx=idx;window._showAux=false;window._photoIdx=heroIdx(m);if(!geoReady())_loadMapBundles();/* PUB-4: map data requested before the modal renders; geoArrived() redraws the dossier when it lands */wrap.innerHTML='<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal" id="cw-modal" role="dialog" aria-modal="true" aria-label="'+esc(title(m))+'">'+modalBody(m)+'</div></div>';wrap.classList.remove('hidden');var bg=wrap.querySelector('.modal-bg');requestAnimationFrame(function(){if(bg)bg.classList.add('vis');var cl=wrap.querySelector('.modal-close');if(cl)cl.focus({preventScroll:true});});bindStage();if(!window._keyBound){window._keyBound=1;document.addEventListener('keydown',function(e){if(!document.getElementById('cw-modal'))return;if(e.key==='Tab'){trapTab(e,document.getElementById('cw-modal'));return;}if(e.key==='ArrowLeft'){if(e.shiftKey)navRock(-1);else photoNav(-1);}else if(e.key==='ArrowRight'){if(e.shiftKey)navRock(1);else photoNav(1);}else if(e.key==='Escape'){if(isFullscreen())exitFullscreen();else closeModal();}});}}
+function showMineral(id,updateUrl){var M=filtered();if(!M.length||M.map(function(x){return x.id;}).indexOf(id)<0)M=minData();var ids=M.map(function(x){return x.id;}),idx=ids.indexOf(id);if(idx<0)return;var m=M[idx],wrap=document.getElementById('modal-wrap');if(!wrap)return;if(updateUrl!==false)setSpecimenUrl(id,false);/* MOTION-3: a modal that is already open (a Related card, Back/Forward, a pasted hash) keeps its layer and crossfades its content; a modal that is mid-exit is called back (its layer fades in again). Only a closed modal builds a layer and rises. */var _openBg=wrap.querySelector('.modal-bg');if(_openBg&&document.getElementById('cw-modal')&&!wrap.classList.contains('hidden')){var _leaving=!!window._closeT;cancelModalExit();if(_leaving){_openBg.classList.remove('out');_openBg.classList.add('vis');}window._navIds=ids;window._navIdx=idx;swapModalContent(fill);return;}cancelModalExit();clearTimeout(window._swapT);window._swapT=0;/* A11Y-1: remember the opener (the tile) — but never overwrite it with a Related card from inside an already-open modal */if(!document.getElementById('cw-modal'))window._lastMineralFocus=document.activeElement;window._navIds=ids;window._navIdx=idx;window._showAux=false;window._photoIdx=heroIdx(m);if(!geoReady())_loadMapBundles();/* PUB-4: map data requested before the modal renders; geoArrived() redraws the dossier when it lands */wrap.innerHTML='<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal" id="cw-modal" tabindex="-1" role="dialog" aria-modal="true" aria-label="'+esc(title(m))+'">'+modalBody(m)+'</div></div>';wrap.classList.remove('hidden');var bg=wrap.querySelector('.modal-bg');requestAnimationFrame(function(){if(bg)bg.classList.add('vis');var cl=window._uiTouched?wrap.querySelector('.modal-close'):document.getElementById('cw-modal');if(cl)cl.focus({preventScroll:true});});bindStage();syncDocTitle();if(!window._keyBound){window._keyBound=1;document.addEventListener('keydown',function(e){if(!document.getElementById('cw-modal'))return;if(e.key==='Tab'){trapTab(e,document.getElementById('cw-modal'));return;}if(e.key==='ArrowLeft'){if(e.shiftKey)navRock(-1);else photoNav(-1);}else if(e.key==='ArrowRight'){if(e.shiftKey)navRock(1);else photoNav(1);}else if(e.key==='Escape'){if(isFullscreen())exitFullscreen();else closeModal();}});}}
 function closeModal(keepUrl){document.body.classList.remove('cw-fs-on');if(!keepUrl&&specimenFromHash())history.replaceState({},'',baseViewerUrl());var w=document.getElementById('modal-wrap');if(!w)return;if(window._closeT)return;var bg=w.querySelector('.modal-bg');if(!bg||w.classList.contains('hidden')||modalMotionOff()){closeModalNow();return;}bg.classList.remove('vis');bg.classList.add('out');window._closeT=setTimeout(closeModalNow,170);}
 function isFullscreen(){return document.body.classList.contains('cw-fs-on');}
 function enterFullscreen(){var b=document.getElementById('cw-modal');if(!b)return;b.classList.add('fs-on');document.body.classList.add('cw-fs-on');zmReset();}
