@@ -263,9 +263,18 @@ a{color:#2dd4bf}
 .min-origin-n{flex:0 0 18px;width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:0.68rem;font-weight:800;color:#0b1220;background:var(--gold,#f59e0b)}
 .min-origin-t{font-size:0.62rem;font-weight:800;text-transform:uppercase;letter-spacing:0.05em;padding:1px 6px;border-radius:5px;color:#fbbf24;background:rgba(245,158,11,0.12)}
 .min-origin-chip-x .min-origin-l{text-decoration:line-through}
+/* chip <-> pin link (polish pass 7, inside the guard #189 block's behaviour): outline on the chip, a ring on the pin, the other pins step back. Opacity + outline only. */
+button.min-origin-chip{font-family:inherit;text-align:left;margin:0;cursor:pointer;-webkit-appearance:none;appearance:none}
+.min-origin-chip.hl,.min-origin-chip:focus-visible{outline:2px solid var(--t1);outline-offset:1px}
+.min-origin-chip-x.hl{opacity:1}
+.min-cg{transition:opacity .12s ease}
+.min-cring{fill:none;stroke:var(--t1);opacity:0;pointer-events:none;transition:opacity .12s ease}
+.min-cand.hl-on .min-cg:not(.hl){opacity:.35}
+.min-cg.hl .min-cring{opacity:1}
+@media(pointer:coarse){button.min-origin-chip{position:relative}button.min-origin-chip::after{content:'';position:absolute;inset:-6px 0}}   /* an invisible pad: the chip row keeps its look, the tap target grows */
+@media(prefers-reduced-motion:reduce){.min-cg,.min-cring{transition:none}}
+/* the origin fold is a plain fold now: it wears the surface's own .mq-more look (caret, small caps, hover) from the class the markup carries */
 .min-origin-fold{margin-top:4px}
-.min-origin-fold>summary{cursor:pointer;font-size:0.82rem;font-weight:700;color:var(--t2);padding:6px 0}
-@media(hover:hover){.min-origin-fold>summary:hover{color:var(--gold,#f59e0b)}}
 .min-origin-fold .min-cand-sub{margin-top:8px}
 .min-cpin{stroke:#0b1220}
 .min-cpin-l,.min-cpin-bg-l{fill:#22c55e;background:#22c55e}
@@ -635,8 +644,37 @@ function richB(t){var x=esc(t);return x.replace(/\*\*([^*]+)\*\*/g,function(_,b)
    Byte-identical in the three viewers (guard #189, the #175/#181/#188
    pattern) — edit one, copy verbatim to the other two, run
    test_guard_189_origin_fold.py. */
-function originChipsHTML(P,LH){var h='<div class="min-origin-chips">';for(var i=0;i<P.length;i++){var p=P[i],x=p.t==='x',tier=x?'refuted':(LH[p.h||'p']||'plausible');h+='<span class="min-origin-chip'+(x?' min-origin-chip-x':' min-origin-chip-'+(p.h||'p'))+'"><span class="min-origin-n">'+(i+1)+'</span><span class="min-origin-l">'+p.l.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</span><span class="min-origin-t">'+tier+'</span></span>';}return h+'</div>';}
-function originFoldHTML(label,inner){if(!inner)return'';return'<details class="min-more min-origin-fold"><summary>'+label+'</summary><div class="min-more-body">'+inner+'</div></details>';}
+function originChipsHTML(P,LH){var h='<div class="min-origin-chips">';for(var i=0;i<P.length;i++){var p=P[i],x=p.t==='x',tier=x?'refuted':(LH[p.h||'p']||'plausible');h+='<button type="button" class="min-origin-chip'+(x?' min-origin-chip-x':' min-origin-chip-'+(p.h||'p'))+'" data-pin="'+i+'" aria-pressed="false"><span class="min-origin-n">'+(i+1)+'</span><span class="min-origin-l">'+p.l.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</span><span class="min-origin-t">'+tier+'</span></button>';}return h+'</div>';}
+function originFoldHTML(label,inner){if(!inner)return'';return'<details class="min-more min-origin-fold mq-more"><summary>'+label+'</summary><div class="min-more-body">'+inner+'</div></details>';}
+/* The numbered chip and the numbered pin are the same place, so each lights the other: hover or focus a chip and its pin is ringed while the
+   others step back; hover a pin and its chip is outlined. A phone has no hover, so a tap (or Enter) on a chip HOLDS it (aria-pressed) until it
+   is pressed again or another chip is. The pane carries the state as classes only (hl on the chip and on the pin's group, hl-on on the pane);
+   the look is opacity + outline in the shared CSS, off under prefers-reduced-motion. The listeners are the document's, armed once, so no
+   render path needs a call (the pattern of the pin-pulse gate in guard #182). Each pin is a <g data-pin="i"> in its viewer's map. */
+function originHL(sec,i){
+  if(!sec)return;
+  var on=i!=null&&i>=0,els=sec.querySelectorAll('[data-pin]'),k;
+  sec.classList.toggle('hl-on',on);
+  for(k=0;k<els.length;k++)els[k].classList.toggle('hl',on&&+els[k].getAttribute('data-pin')===i);
+}
+if(typeof document!=='undefined'&&document.addEventListener&&!document._originLink){
+  document._originLink=1;
+  var _oPin=function(t){return t&&t.closest?t.closest('[data-pin]'):null;},
+      _oSec=function(t){return t&&t.closest?t.closest('.min-cand'):null;},
+      _oRest=function(s){originHL(s,s._hold==null?-1:s._hold);};
+  document.addEventListener('pointerover',function(e){if(e.pointerType==='touch')return;var p=_oPin(e.target),s=_oSec(p);if(s)originHL(s,+p.getAttribute('data-pin'));},true);
+  document.addEventListener('pointerout',function(e){if(e.pointerType==='touch')return;var p=_oPin(e.target),s=_oSec(p);if(!s)return;var q=_oPin(e.relatedTarget);if(q&&_oSec(q)===s)return;_oRest(s);},true);
+  document.addEventListener('focusin',function(e){var p=_oPin(e.target),s=_oSec(p);if(s&&p.tagName==='BUTTON')originHL(s,+p.getAttribute('data-pin'));});
+  document.addEventListener('focusout',function(e){var p=_oPin(e.target),s=_oSec(p);if(s&&p.tagName==='BUTTON')_oRest(s);});
+  document.addEventListener('click',function(e){
+    var c=e.target&&e.target.closest?e.target.closest('button.min-origin-chip'):null,s=_oSec(c);
+    if(!s)return;
+    var i=+c.getAttribute('data-pin'),b=s.querySelectorAll('button.min-origin-chip'),k;
+    s._hold=(s._hold===i)?null:i;
+    for(k=0;k<b.length;k++)b[k].setAttribute('aria-pressed',+b[k].getAttribute('data-pin')===s._hold?'true':'false');
+    originHL(s,(e.pointerType==='touch'&&s._hold==null)?-1:i);
+  });
+}
 /* ---- end shared origin fold -------------------------------------------------- */
 /* ---- shared photo order — guard #188 · DO NOT EDIT ONE COPY --------------
    Every specimen's media runs in ONE order on every surface. Ahead of the stills
@@ -790,7 +828,7 @@ var _PREF_TOK_RE=/((?:RM|FS)-\d{4})_(\d+)(_(?:200|400|1024|1280|2560))?|_(\d{1,2
 /* Rendered icons are stepped over on every later pass — a dimmed icon carries its own
    stem in a title, and an anchor carries three in its URLs, so a second pass that did
    not skip them would wrap a citation inside a citation. */
-var _PREF_ICON_SPLIT=/(<a class="pref[^"]*"[\s\S]*?<\/a>|<span class="pref pref-off"[\s\S]*?<\/span>)/g;
+var _PREF_ICON_SPLIT=/(<a class="pref[^"]*"[\s\S]*?<\/a>|<span class="pref pref-off"[\s\S]*?<\/span>|<span class="sref-w">[\s\S]*?<\/span>)/g;
 /* one specimen reference: a full id not followed by a frame suffix, or a "/0041" continuation
    after one — two to four such continuations are how the records list a family */
 var _SREF_TOK_RE=/\b((?:RM|FS)-\d{4})(?![_\w])|\/(\d{4})(?![_\w])/g;
@@ -802,6 +840,7 @@ function _prefEnsureStyle(){
   st.textContent='.pref{display:inline-block;vertical-align:-0.15em;margin:0 1px;line-height:0;color:inherit;opacity:.72;text-decoration:none;cursor:pointer;border-radius:4px;padding:0 1px}'
     +'.pref:hover,.pref:focus-visible{opacity:1;outline:none;background:rgba(127,127,127,.18)}'
     +'.pref+.pref{margin-left:2px}'
+    +'.sref-w{white-space:nowrap}'
     +'.pref-off{opacity:.34;cursor:default}'
     +'@media(pointer:coarse){.pref{position:relative}.pref::after{content:"";position:absolute;inset:-8px -3px}}'   /* a thumb finds an 18px camera: an invisible pad, taller than wide so neighbours keep their own taps */
     +'.pref-off:hover,.pref-off:focus{opacity:.34;background:none}'
@@ -836,6 +875,13 @@ function _srefIcon(id,info,ctx){
     +' onclick="return _prefClick(this,event)" onmouseenter="_prefHover(this,1,event)" onmousemove="_prefHover(this,1,event)" onmouseleave="_prefHover(this,0)" onfocus="_prefHover(this,1)" onblur="_prefHover(this,0)">'
     +_PREF_SVG+'</a>';
 }
+/* The camera belongs to the catalog NUMBER, not to what the author typed after it (polish pass 7). A trailing possessive stays attached to the
+   number AHEAD of the camera ("RM-0105's" + camera, never "RM-0105" + camera + "'s"), and the number, its possessive, the camera and any
+   closing punctuation are one unbreakable unit (.sref-w, nowrap) — so a line break can no longer fall inside "RM-" / "0105", or leave a bare
+   "'s" or "," opening the next line. The unit is a span the icon skip-list above steps over whole, so a second pass cannot wrap the number
+   again. The possessive is matched as the renderers emit it: a straight or curly apostrophe, or the entity esc() makes of one. */
+var _SREF_TAIL_RE=/((?:RM|FS)-\d{4}|\/\d{4})(<a class="pref sref"[^>]*>[\s\S]*?<\/a>)((?:'|’|&#0?39;|&#x27;|&apos;|&rsquo;|&#8217;)s)?([,.;:!?)\]]{0,2})/g;
+function _srefTidy(h){return h.replace(_SREF_TAIL_RE,function(w,id,ic,pos,pun){return '<span class="sref-w">'+id+(pos||'')+ic+(pun||'')+'</span>';});}
 /* One run of citations -> icons, separators collapsed into a tight strip. A stem the
    adapter cannot resolve keeps its plain text; `strict` is for a parenthesised run, whose
    parentheses may only be dropped when nothing is left behind that needs them. */
@@ -885,12 +931,12 @@ function linkPhotoRefs(html,ctx){
      takes the prefix of the last full id in the same text run */
   return _prefOutside(out,function(seg){
     var pre=null;
-    return seg.replace(_SREF_TOK_RE,function(w,full,cont){
+    return _srefTidy(seg.replace(_SREF_TOK_RE,function(w,full,cont){
       var id;
       if(full){pre=full.slice(0,3);id=full;}else{if(!pre)return w;id=pre+cont;}
       var info=ctx.spec(id);
       return (info&&info.thumb&&info.big)?w+_srefIcon(id,info,ctx):w;
-    });
+    }));
   });
 }
 function _prefPop(){
@@ -1357,7 +1403,21 @@ function specimenSpinMatches(m,spin){var has=!!(m&&((m.spin&&m.spin.stem)||(m.sp
 function specimenSpeciesMatches(m,sel){if(!sel||!sel.length)return true;var sp=m.species||[];for(var i=0;i<sel.length;i++){if(sp.indexOf(sel[i])>=0)return true;}return false;}
 function specimenStateKey(m){return (m.locality&&m.locality.state)||'(unknown)';}
 function specimenSortTitle(m){return m.name||(m.species&&m.species[0])||m.id;}
-function specimenCompare(sort,a,b){
+/* ⭐ Best match first (polish pass 7). A query is looked for in the whole blob, prose included, so "fluorite" returned every specimen that
+   MENTIONS fluorite (40 of 144 on the private site) interleaved, newest first, with the fluorites. WHICH records match is unchanged (that is
+   specimenMatchesQuery's job and nothing below touches it); only the ORDER is: while the sort is the default (Newest) and a query is typed,
+   a specimen whose NAME or SPECIES carries the words (or whose id does) comes first, then one whose LOCALITY does, then the prose-only
+   mentions — each group still newest first. Choosing any other sort is the person saying how they want it, so that wins; an id query names
+   one specimen and needs no ranking. specimenCompare takes the query as an optional 4th argument, so a caller that omits it orders exactly
+   as before. The tier is cached on the record against the query it was worked out for (like the search blob). */
+function specimenQueryTier(m,q){
+  if(m._qtq===q)return m._qt;
+  var t=2,n=((m.name||'')+' '+((m.species||[]).join(' '))+' '+(m.id||'')).toLowerCase();
+  if(n.indexOf(q)>=0)t=0;else if(specimenLocText(m.locality).toLowerCase().indexOf(q)>=0)t=1;
+  m._qtq=q;m._qt=t;return t;
+}
+function specimenCompare(sort,a,b,q){
+  if(sort==='idDesc'&&q!=null){q=String(q).trim().toLowerCase();if(q&&!specimenIdQuery(q)){var qd=specimenQueryTier(a,q)-specimenQueryTier(b,q);if(qd)return qd;}}
   if(sort==='quality'||sort==='rarity'){var d=_specimenGradeRank(a,sort)-_specimenGradeRank(b,sort);return d||(a.id<b.id?-1:(a.id>b.id?1:0));}
   if(sort==='name')return String(specimenSortTitle(a)).localeCompare(String(specimenSortTitle(b)));
   if(sort==='species')return String((a.species&&a.species[0])||'').localeCompare(String((b.species&&b.species[0])||''))||(a.id<b.id?-1:1);
@@ -1435,7 +1495,7 @@ function filtered(){
     return true;
   });
   var s=S.sort;
-  out.sort(function(a,b){return specimenCompare(s,a,b);});
+  out.sort(function(a,b){return specimenCompare(s,a,b,S.q);});
   return out;
 }
 function computeCounts(){
@@ -1960,6 +2020,7 @@ function candMapHTML(m){
     for(var i=0;i<P.length;i++){var p=P[i],near=false;
       for(var j=0;j<i;j++){if(Math.abs(P[j].x-p.x)<vw/20&&Math.abs(P[j].y-p.y)<vw/20){near=true;break;}}
       var lx=near?p.x:(p.x+r*1.8),ly=near?(p.y+r*3.4):(p.y+fs*0.36),anch=near?'middle':'start';
+      pins+='<g class="min-cg" data-pin="'+i+'"><circle class="min-cring" cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="'+(r*1.85).toFixed(1)+'" style="stroke-width:'+(r*0.3).toFixed(1)+'px"/>';
       if(p.t==='x'){
         pins+='<circle class="min-cx-pin" cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="'+r.toFixed(1)+'" style="stroke-width:'+(r*0.28).toFixed(1)+'px"/>'
           +'<line class="min-cx-l" x1="'+(p.x-r*0.6).toFixed(1)+'" y1="'+(p.y-r*0.6).toFixed(1)+'" x2="'+(p.x+r*0.6).toFixed(1)+'" y2="'+(p.y+r*0.6).toFixed(1)+'" style="stroke-width:'+(r*0.3).toFixed(1)+'px"/>'
@@ -1967,7 +2028,7 @@ function candMapHTML(m){
       }else{
         pins+='<circle class="min-cpin min-cpin-'+(p.h||'p')+'" cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="'+r.toFixed(1)+'" style="stroke-width:'+(r*0.32).toFixed(1)+'px"/>';
       }
-      pins+='<text class="min-cn'+(p.t==='x'?' min-cn-x':'')+'" x="'+lx.toFixed(1)+'" y="'+ly.toFixed(1)+'" text-anchor="'+anch+'" style="font-size:'+fs.toFixed(1)+'px">'+(i+1)+'</text>';
+      pins+='<text class="min-cn'+(p.t==='x'?' min-cn-x':'')+'" x="'+lx.toFixed(1)+'" y="'+ly.toFixed(1)+'" text-anchor="'+anch+'" style="font-size:'+fs.toFixed(1)+'px">'+(i+1)+'</text></g>';
     }
     return '<svg class="'+cls+'" viewBox="'+vx.toFixed(1)+' '+vy.toFixed(1)+' '+vw.toFixed(1)+' '+vh.toFixed(1)+'" role="img" aria-label="Map of possible origins" preserveAspectRatio="xMidYMid meet">'+mapLayersSVG(W)+''+pins+'</svg>';
   }
