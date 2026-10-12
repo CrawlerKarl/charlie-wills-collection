@@ -18,7 +18,7 @@
 :root{--bg:#090d14;--card:#10151f;--card2:#171e2c;--inp:#0c1018;--bdr:rgba(255,255,255,0.08);--bdr2:rgba(255,255,255,0.04);--gold:#f59e0b;--red:#ef4444;--grn:#4ade80;--cyn:#06b6d4;--teal:#14b8a6;--t1:#f1f5f9;--t2:#b0bec5;--t3:#94a3b8;--r:10px;--r-sm:7px;--min-grid-w:300px;--maxw:1120px}
 /* header */
 .site-hdr{border-bottom:1px solid var(--bdr);background:linear-gradient(180deg,rgba(20,184,166,0.06),transparent);padding:26px 0 20px}
-main{padding:18px 0 40px}
+main{padding:18px 0 40px;min-height:100vh;min-height:100svh}   /* the footer starts below the fold and never rides up into the first screen while the gallery is still loading (a 0.11-0.19 layout shift on every load) */
 /* stats */
 .sg{display:flex;gap:12px;margin-bottom:14px;flex-wrap:wrap}
 .sc{flex:1;min-width:120px;background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);padding:12px 14px}
@@ -80,6 +80,20 @@ main{padding:18px 0 40px}
 .min-spin-chip{position:absolute;top:8px;left:8px;z-index:3;background:rgba(0,0,0,0.65);color:#fff;border:none;border-radius:11px;padding:5px 11px;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;min-height:28px}
 .min-spin-chip.min-spin-live{background:rgba(245,158,11,0.88);color:#1a1205}
 .min-spin-chip:hover{background:var(--gold);color:#1a1205}
+/* phone list view (polish pass 5): at <=600px the 4-column Table view is photo cards - the private List view's rows, with the public
+   facts (short title / species . locality / size). The table itself still renders on wider screens. */
+.pl-list{display:grid;gap:9px}
+.pl-row{width:100%;min-width:0;display:grid;grid-template-columns:92px minmax(0,1fr) 18px;gap:10px;align-items:center;padding:7px;overflow:hidden;border:1px solid var(--bdr);border-radius:10px;background:var(--card);color:var(--t1);font:inherit;text-align:left;cursor:pointer;transition:border-color .15s}
+.pl-row:hover{border-color:var(--gold)}
+.pl-row:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.pl-row:active{transform:scale(.985);transition:transform .08s ease-out}
+.pl-img{width:92px;aspect-ratio:4/3;display:block;object-fit:contain;border-radius:7px;background:#000}
+.pl-copy,.pl-copy strong,.pl-copy span,.pl-copy small{min-width:0;display:block}
+.pl-copy strong{font-size:.94rem;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.pl-copy span{margin-top:3px;color:var(--t2);font-size:.78rem;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.pl-copy small{margin-top:4px;color:var(--t3);font-size:.72rem;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pl-arrow{color:var(--t3);font-size:1.7rem;line-height:1}
+@media(prefers-reduced-motion:reduce){.pl-row{transition:none}.pl-row:active{transform:none}}
 /* ---- shared mineral viewer CSS — guard #223 · DO NOT EDIT ONE COPY ----------
    Byte-identical in Scripts/public_rocks/viewer_template.html (<style>) and
    Scripts/private_rocks/friends_viewer.css, in the same spot in both: immediately
@@ -109,12 +123,12 @@ a{color:#2dd4bf}
 .sc.gn .sv{color:var(--teal)}
 .sc.cy .sv{color:var(--cyn)}
 .cw-story-photo{margin:0}
-.cw-story-photo a{display:block}
-.cw-story-photo img{width:auto;max-width:100%;max-height:150px;border-radius:8px;border:1px solid var(--bdr);display:block;cursor:zoom-in;margin:0 auto}
+.cw-story-photo a{display:block;width:112.5px;aspect-ratio:3/4;margin:0 auto;border-radius:8px;background:var(--card2)}   /* the clipping is 3:4 (1200x1600): its room is reserved before it loads, so the story text and everything under it never jump (CLS) */
+.cw-story-photo img{display:block;width:100%;height:100%;object-fit:contain;border-radius:8px;border:1px solid var(--bdr);cursor:zoom-in}
 .cw-story-photo figcaption{font-size:0.7rem;line-height:1.35;color:var(--t3);margin-top:5px;text-align:center}
 .cw-story-text h2{font-size:1.15rem;font-weight:800;margin:0 0 6px;line-height:1.2}
 .cw-story-text a{color:#2dd4bf}
-@media(max-width:760px){.cw-story-photo{float:left;width:104px;margin:0 12px 2px 0}.cw-story-photo img{max-width:100%;max-height:140px}.cw-story-text h2{font-size:1.02rem}}
+@media(max-width:760px){.cw-story-photo{float:left;width:104px;margin:0 12px 2px 0}.cw-story-photo a{width:100%}.cw-story-text h2{font-size:1.02rem}}
 .pf-search-row .pf-in{width:100%}
 .pf-mobile-toggle .cnt{margin-left:5px;padding:1px 7px;border-radius:999px;background:var(--teal);color:#04201c;font-size:0.72rem}
 .pf-advanced{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
@@ -332,6 +346,9 @@ a.min-mindat:hover,a.min-mindat:focus-visible{text-decoration-style:solid}
    scales are declared after the first reduced-motion rule above, so at equal specificity only a later rule can switch them off. */
 @media(prefers-reduced-motion:reduce){.pf-shell.open .pf-advanced,.modal.fs-on .min-stage{animation:none}.gtile:active,.related-card:active,.vtbtn:active,.min-rock-btn:active,.min-share-btn:active{transform:none;transition:none}}
 @media(prefers-reduced-motion:reduce){.modal-close:active,.min-fullsize:active,.min-spin-chip:active{transform:none;transition:none}.min-more[open]>*:not(summary),.mq-more[open]>*:not(summary),.pubms.open .pubms-drop{animation:none}}
+img.rv{opacity:0;transition:opacity .22s ease-out}   /* the shared image reveal (guard #226): a photo still on its way fades in; only an incomplete image is ever tagged */
+img.rv.rv-on{opacity:1}
+@media(prefers-reduced-motion:reduce){img.rv{opacity:1;transition:none}}
 /* ---- end shared mineral viewer CSS ----------------------------------------------------- */
 /* ---- shared thumb strip CSS — guard #219 · DO NOT EDIT ONE COPY ------------
    Byte-identical in the dashboard <style>, Scripts/private_rocks/friends_viewer.css and the
@@ -411,7 +428,8 @@ body.cw-fs-on{overflow:hidden}
 .min-map-pin{fill:var(--gold,#f59e0b);stroke:#0b1220;stroke-width:3;paint-order:stroke}
 .min-map-halo{fill:none;stroke:var(--gold,#f59e0b);stroke-width:2.5}
 .mmc-approx{color:var(--t3);font-size:0.72rem}
-.min-locimg img{width:100%;min-height:120px;max-height:380px;object-fit:contain;background:var(--card2);border-radius:8px;display:block}
+.min-locimg img{width:100%;min-height:120px;max-height:380px;aspect-ratio:auto 4/3;object-fit:contain;background:var(--card2);border-radius:8px;display:block}
+/* aspect-ratio:auto 4/3 above: a place photo that is still on its way holds a 4:3 slot (28 of the 40 are 1.25-1.5:1) instead of 120px, so the region card no longer jumps ~260px when it lands */
 .min-locimg figcaption{margin-top:5px;font-size:0.72rem;color:var(--t3);line-height:1.4}
 /* candidate-origin map (no-locality specimens — possible sources, never provenance; 2026-08-29) */
 .min-cand{border-left-color:var(--gold,#f59e0b)}
@@ -443,7 +461,8 @@ body.cw-fs-on{overflow:hidden}
 .cw-feat:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
 .cw-feat-tag{display:inline-block;font-size:0.72rem;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;background:rgba(20,184,166,0.9);color:#04201c;padding:4px 11px;border-radius:7px;margin-bottom:12px}
 .cw-feat-media{display:flex;justify-content:center;margin-bottom:14px}
-.cw-feat-media img{max-width:100%;max-height:460px;width:auto;border-radius:12px;border:1px solid var(--bdr);display:block}
+.cw-feat-frame{width:min(100%,616px);aspect-ratio:4/3;border-radius:12px;border:1px solid var(--bdr);background:#000;overflow:hidden}   /* the photo's room is reserved before it lands: no jump under the panel (CLS) */
+.cw-feat-frame img{width:100%;height:100%;object-fit:contain;display:block}
 .cw-feat-name{font-size:1.5rem;font-weight:700;color:var(--t1);margin:0 0 4px}
 .cw-feat-sub{font-size:1rem;color:var(--t2);margin:2px 0 6px}
 .cw-feat-loc{font-size:0.95rem;color:var(--t2);margin-bottom:10px}
@@ -1517,6 +1536,19 @@ function syncFeatured(){
   if(want&&!st){var bar2=document.querySelector('.pf-shell');if(bar2)bar2.insertAdjacentHTML('beforebegin',startHereHTML());}
   else if(!want&&st){st.parentNode.removeChild(st);}
 }
+/* Phone list view (polish pass 5): the Table view is photo cards on a phone. The markup is chosen by the viewport, so a change across
+   600px re-renders it (phoneListQ below); the desktop table is untouched. Text comes from the #175 helpers; rows are native buttons. */
+var phoneListQ=window.matchMedia?matchMedia('(max-width:600px)'):null;
+function isPhoneList(){return !!(phoneListQ&&phoneListQ.matches);}
+if(phoneListQ&&phoneListQ.addEventListener)phoneListQ.addEventListener('change',function(){if(S.view==='table')renderContent();});
+function phoneRowHTML(m,i){
+  var h=hero(m),src=h?img(h,400):PLACEHOLDER,sp=(m.species||[]).slice(0,2).join(', ');
+  var where=[sp,shortLoc(m.locality)].filter(Boolean).join(' · '),size=phoneSize(m.size);
+  return '<button class="pl-row" type="button" onclick="showMineral(\''+m.id+'\')" aria-label="'+esc(title(m)+', '+locStr(m.locality))+'">'
+    +'<img class="pl-img" src="'+esc(src)+'" loading="'+(i<5?'eager':'lazy')+'" decoding="async" alt="" onerror="this.onerror=null;this.src=\''+PLACEHOLDER+'\'">'
+    +'<span class="pl-copy"><strong title="'+esc(title(m))+'">'+esc(shortCardTitle(displayName(title(m),m.id)))+'</strong><span>'+esc(where)+'</span>'+(size?'<small>'+esc(size)+'</small>':'')+'</span>'
+    +'<span class="pl-arrow" aria-hidden="true">›</span></button>';
+}
 function renderContent(){
   var el=document.getElementById('min-content');if(!el)return;
   syncFeatured();
@@ -1527,7 +1559,9 @@ function renderContent(){
      filtered() is sorted newest-first and M[0] IS the featured one. */
   if(isDefaultView()&&M.length){var _f=newestM();if(_f&&M[0]&&M[0].id===_f.id)M=M.slice(1);}
   if(!M.length){el.innerHTML='<div class="empty">🔍 No specimens match your search or filters.</div>';return;}
-  if(S.view==='table'){
+  if(S.view==='table'&&isPhoneList()){
+    el.innerHTML='<div class="pl-list">'+M.map(phoneRowHTML).join('')+'</div>';
+  }else if(S.view==='table'){
     var rows=M.map(function(m){return '<tr class="cl" tabindex="0" role="button" aria-label="'+esc(title(m)+', '+locStr(m.locality))+'" onclick="showMineral(\''+m.id+'\')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();showMineral(\''+m.id+'\');}"><td><strong title="'+esc(title(m))+'">'+esc(displayName(title(m),m.id))+'</strong><div style="color:var(--t3);font-size:0.72rem">'+esc(m.id)+(m.provenance==='Charlie Wills'?' · CW':'')+'</div></td><td>'+esc(subLabel(m.subtype))+'</td><td>'+esc(locStr(m.locality))+'</td><td'+(m.size?' title="'+esc(m.size)+'"':'')+'>'+esc(phoneSize(m.size)||'—')+'</td></tr>';}).join('');
     el.innerHTML='<div style="overflow-x:auto"><table class="min-table"><thead><tr><th>Specimen</th><th>Type</th><th>Locality</th><th>Size</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
   }else{
@@ -1535,6 +1569,29 @@ function renderContent(){
     el.innerHTML='<div class="mgrid'+(S.lvl>=2?' compact':'')+'">'+tiles+'</div>';applyGridSize();fadeTileImgs(el);
   }
 }
+/* ---- shared image reveal — guard #226 · DO NOT EDIT ONE COPY --------------
+   A photo that is still on its way FADES IN when it lands instead of popping (opacity only; `img.rv` in the stylesheet, off under
+   reduced motion). One MutationObserver per page tags every NEW <img> that matches the host's selector and is not yet complete;
+   the tag and its load / error handlers go on in the same microtask, BEFORE the first paint, so no photo is ever hidden without a
+   way back: a decoded or cached photo is never touched, a photo that fails is revealed too (the host's placeholder), and if this
+   never runs every photo is simply visible, as before. The host passes a selector and nothing else; the block reads nothing from a
+   viewer (an optional second argument narrows the watch to one container). Byte-identical in the three viewers (the #175 pattern): edit one, paste verbatim into the others, run
+   test_guard_226_polish5.py. */
+function revealImg(im){
+  if(!im||im.complete||im.classList.contains('rv'))return;
+  im.classList.add('rv');
+  var on=function(){im.classList.add('rv-on');};
+  im.addEventListener('load',on,{once:true});im.addEventListener('error',on,{once:true});
+}
+function revealWatch(sel,root){
+  root=root||document.body;
+  if(window._rvObs||!window.MutationObserver||!root)return;
+  var pass=function(n){if(n.nodeType!==1)return;if(n.matches&&n.matches(sel))revealImg(n);var L=n.querySelectorAll?n.querySelectorAll(sel):[];for(var i=0;i<L.length;i++)revealImg(L[i]);};
+  window._rvObs=new MutationObserver(function(ms){for(var i=0;i<ms.length;i++){var a=ms[i].addedNodes;for(var j=0;j<a.length;j++)pass(a[j]);}});
+  window._rvObs.observe(root,{childList:true,subtree:true});
+  pass(root);
+}
+/* ---- end shared image reveal ---------------------------------------------- */
 /* Tile photos fade in as they arrive (2026-10-12). Only an image that is not yet complete gets .fi (opacity 0), and it gets its
    reveal handlers in the same breath, so no path leaves one hidden; a decoded or cached photo is never touched. If this function
    never runs the photos are simply visible, as they always were. */
@@ -1562,7 +1619,7 @@ function featuredHTML(){
     +' onclick="showMineral(\''+m.id+'\')"'
     +' onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();showMineral(\''+m.id+'\');}">'
     +'<span class="cw-feat-tag">Latest addition</span>'
-    +'<div class="cw-feat-media"><img src="'+esc(img(h,1280))+'" alt="'+esc(title(m))+'" loading="eager" decoding="async" onerror="this.onerror=null;this.src=\''+PLACEHOLDER+'\'"></div>'
+    +'<div class="cw-feat-media"><div class="cw-feat-frame"><img src="'+esc(img(h,1280))+'" alt="'+esc(title(m))+'" loading="eager" decoding="async" onerror="this.onerror=null;this.src=\''+PLACEHOLDER+'\'"></div></div>'
     +'<div class="cw-feat-badges">'+badges+'</div>'
     +'<div class="cw-feat-name">'+esc(displayName(title(m),m.id))+'</div>'
     +(featSub?'<div class="cw-feat-sub">'+esc(featSub.charAt(0).toUpperCase()+featSub.slice(1))+'</div>':'')
@@ -1607,7 +1664,7 @@ function startHereHTML(){
 }
 function storyHTML(){
   return '<section class="cw-story">'
-    +'<figure class="cw-story-photo"><a href="images/minerals/charlie_wills_1957_article.jpg" target="_blank" rel="noopener" title="Open full size"><img src="images/minerals/charlie_wills_1957_article.jpg" loading="eager" alt="1957 Detroit Times feature ‘Rock Hound An Expert Now’ — Charles V. Wills and his wife Ann showing rock specimens to his grandson Thomas J. Herman"></a><figcaption><em>Detroit Times</em>, April 30, 1957 · tap to enlarge</figcaption></figure>'
+    +'<figure class="cw-story-photo"><a href="images/minerals/charlie_wills_1957_article.jpg" target="_blank" rel="noopener" title="Open full size"><img src="images/minerals/charlie_wills_1957_article.jpg" width="1200" height="1600" loading="eager" alt="1957 Detroit Times feature ‘Rock Hound An Expert Now’ — Charles V. Wills and his wife Ann showing rock specimens to his grandson Thomas J. Herman"></a><figcaption><em>Detroit Times</em>, April 30, 1957 · tap to enlarge</figcaption></figure>'
     +'<div class="cw-story-text"><h2>A lifelong rock hound</h2>'
     +'<p class="cw-story-lead"><strong>Charles V. “Charlie” Wills</strong> (Ishpeming, Michigan, December 27, 1872 – Tempe, Arizona, January 13, 1964) started collecting minerals at ten and was still at it at eighty-five: a mining electrician of Michigan’s Copper Country and the copper mines of Bisbee, Arizona. These are the pieces he kept at home; his main collection went to Michigan Tech.</p>'
     +'<details class="mq-more rt-more cw-story-more"><summary>Charlie’s whole story</summary>'
@@ -1617,6 +1674,7 @@ function storyHTML(){
 }
 function render(){
   var root=document.getElementById('min-root');if(!root)return;
+  revealWatch('.cw-feat-frame img,.cw-start-img img,.related-card img,.pl-img,.min-slide-img');/* polish 5: the Latest-addition photo, the Start-here row, the related cards and the stage fade in as they land */
   var M=minData();
   if(!M.length){root.innerHTML='<div class="empty">Loading specimens…</div>';if((window._retry=(window._retry||0)+1)<15)setTimeout(render,250);return;}
   preloadHeroes();/* PUB-4: first thing, before the grid is built */
