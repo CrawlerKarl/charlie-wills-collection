@@ -50,10 +50,14 @@ main{padding:18px 0 40px}
 /* grid tiles */
 .mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,var(--min-grid-w,300px)),1fr));gap:16px}
 .gtile{background:var(--card);border:1px solid var(--bdr);border-radius:14px;overflow:hidden;cursor:pointer;transition:border-color .15s,transform .15s;display:flex;flex-direction:column}
-.gtile-imgwrap{position:relative;aspect-ratio:4/3;background:var(--card2);overflow:hidden}
+.gtile-imgwrap{position:relative;aspect-ratio:4/3;background:#000;overflow:hidden}
+.gtile-img.fi{opacity:0;transition:opacity .22s ease-out}
+.gtile-img.fi.fi-on{opacity:1}
+@media(prefers-reduced-motion:reduce){.gtile-img.fi{opacity:1;transition:none}}
 .gtile-img{width:100%;height:100%;object-fit:contain;background:#000;display:block}
 .gtile-body{padding:13px 15px 15px;display:flex;flex-direction:column;gap:3px}
 .gtile-name{font-size:1.32rem;line-height:1.28;font-weight:700;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.mgrid:not(.compact) .gtile-name{min-height:2.56em}   /* two title lines reserved: a one-line name no longer pulls its row's sub line up */
 .gtile-sub{font-size:1.05rem;line-height:1.4;color:var(--t2);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .min-tile-flavor{font-size:0.95rem;line-height:1.45;color:var(--t2);font-style:italic;margin-top:7px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .min-sub-badge{font-size:0.76rem;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;background:rgba(0,0,0,0.55);color:#cbd5e1;padding:3px 9px;border-radius:6px}
@@ -158,6 +162,8 @@ a{color:#2dd4bf}
 .min-track.min-anim{transition:transform .34s cubic-bezier(.22,.61,.36,1)}
 .min-slide{flex:0 0 100%;width:100%;height:100%;display:flex;align-items:center;justify-content:center;overflow:hidden}
 .min-slide-img{max-width:100%;max-height:100%;width:auto;height:auto;display:block;-webkit-user-drag:none}
+@keyframes pfAdvIn{from{opacity:0}}
+@keyframes minFsIn{from{opacity:0}}
 @media(prefers-reduced-motion:reduce){.min-track.min-anim{transition:none}.modal-bg .modal{transform:none;transition:none}}
 .min-nav{position:absolute;top:50%;transform:translateY(-50%);width:40px;height:40px;border-radius:50%;border:none;background:rgba(0,0,0,0.45);color:#fff;font-size:1.6rem;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:3;padding:0}
 .min-nav::after{content:'';position:absolute;inset:-6px}
@@ -178,7 +184,7 @@ a{color:#2dd4bf}
 .min-spin-chip::after{content:'';position:absolute;inset:-8px}
 .min-stage.min-spin-on{cursor:ew-resize}
 .min-full-name{font-size:.9rem;color:var(--t3);line-height:1.35;margin:-2px 0 8px;overflow-wrap:anywhere}
-[data-theme="light"] .min-spin-badge{background:#d97706;color:#fff}
+[data-theme="light"] .min-spin-badge{background:#b45309;color:#fff}
 .min-rocknav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:14px 0 4px;padding:11px 0;border-top:1px solid var(--bdr);border-bottom:1px solid var(--bdr)}
 .min-rock-btn{background:var(--card2);border:1px solid var(--bdr);color:var(--t1);font-size:0.95rem;font-weight:600;padding:9px 14px;border-radius:10px;cursor:pointer;min-height:44px}
 .min-rock-btn:hover{border-color:var(--gold);color:var(--gold)}
@@ -186,12 +192,12 @@ a{color:#2dd4bf}
 .min-mindat{color:#2dd4bf;text-decoration:underline dotted}
 .modal .badges{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
 .modal.fs-on>*:not(.min-stage):not(.modal-close){display:none}
-.modal.fs-on .min-stage{position:fixed;inset:0;max-height:none;aspect-ratio:auto;border-radius:0;background:#000;z-index:200}
+.modal.fs-on .min-stage{position:fixed;inset:0;max-height:none;aspect-ratio:auto;border-radius:0;background:#000;z-index:200;animation:minFsIn .22s ease-out}
 .modal.fs-on .min-fullsize{display:none}
 .modal.fs-on .min-nav{width:54px;height:54px;font-size:2.1rem;background:rgba(255,255,255,0.16)}
 .modal.fs-on .min-photo-pos{bottom:calc(16px + env(safe-area-inset-bottom,0));font-size:0.95rem;padding:5px 15px}
 .modal.fs-on .modal-close{position:fixed;top:calc(12px + env(safe-area-inset-top,0));right:14px;z-index:202;background:rgba(255,255,255,0.16);color:#fff;border-color:transparent}
-@media(max-width:600px){.min-stage{aspect-ratio:1/1;max-height:50vh}.modal-bg{padding:0}.min-stage{border-radius:0}.hdr-title{font-size:1.4rem}.mgrid .gtile-name{font-size:1.12rem}.mgrid .gtile-sub{font-size:0.94rem}.mgrid .min-tile-flavor{display:none}.mgrid .gtile-body{padding:10px 11px}.mgrid.compact .gtile-name{font-size:0.9rem}.mgrid.compact .gtile-sub{font-size:0.78rem}.tc-hd .tt{display:none}#gs-grp{flex-shrink:0}.min-fullsize{width:56px;height:56px;font-size:1.85rem;border-radius:13px}.pf-advanced{display:none;margin-top:8px;padding:10px;border:1px solid var(--bdr);border-radius:11px;background:var(--card)}.pf-shell.open .pf-advanced{display:flex}.pf-advanced .pubms,.pf-advanced .pubms-trig,.pf-advanced .pf-sel{flex:1 1 calc(50% - 4px);min-width:0;width:100%}.min-phone-facts{display:flex;flex-wrap:wrap;gap:2px 8px;font-size:0.9rem;color:var(--t2)}}
+@media(max-width:600px){.min-stage{aspect-ratio:1/1;max-height:50vh}.modal-bg{padding:0}.min-stage{border-radius:0}.hdr-title{font-size:1.4rem}.mgrid .gtile-name{font-size:1.12rem}.mgrid .gtile-sub{font-size:0.94rem}.mgrid .min-tile-flavor{display:none}.mgrid .gtile-body{padding:10px 11px}.mgrid.compact .gtile-name{font-size:0.9rem}.mgrid.compact .gtile-sub{font-size:0.78rem}.tc-hd .tt{display:none}#gs-grp{flex-shrink:0}.min-fullsize{width:56px;height:56px;font-size:1.85rem;border-radius:13px}.pf-advanced{display:none;margin-top:8px;padding:10px;border:1px solid var(--bdr);border-radius:11px;background:var(--card)}.pf-shell.open .pf-advanced{display:flex;animation:pfAdvIn .2s ease-out}.pf-advanced .pubms,.pf-advanced .pubms-trig,.pf-advanced .pf-sel{flex:1 1 calc(50% - 4px);min-width:0;width:100%}.min-phone-facts{display:flex;flex-wrap:wrap;gap:2px 14px;position:relative;overflow:hidden;font-size:0.9rem;color:var(--t2)}}
 .site-ftr{border-top:1px solid var(--bdr);padding:22px 0 34px;margin-top:20px;color:var(--t3);font-size:0.84rem}
 .site-ftr .wrap{display:flex;flex-direction:column;gap:5px}
 .min-locmap{margin:2px 0 12px}
@@ -280,6 +286,26 @@ a{color:#2dd4bf}
 .modal.fs-on>.modal-grid{display:block !important}
 .modal.fs-on .modal-info,.modal.fs-on .modal-dossier,.modal.fs-on .modal-media>*:not(.min-stage){display:none}
 @media(max-width:600px){.dossier-col{gap:16px}.related-grid::-webkit-scrollbar{display:none}}
+/* press feedback (2026-10-12): a touch should see that it landed. Transform only; the transition sits on :active so the press eases in and the release simply returns. .min-nav is left out: it centres itself with a translateY. */
+.gtile:active,.related-card:active{transform:scale(.985);transition:transform .08s ease-out}
+.vtbtn:active,.min-rock-btn:active,.min-share-btn:active{transform:scale(.95);transition:transform .08s ease-out}
+[data-theme="light"] .pf-in::placeholder{color:var(--t3);opacity:1}   /* the browser's default grey was 3.7:1 on the light field */
+/* light theme: reading inks (2026-10-12). The dark-theme teal / amber / grey inks were 1.5-3.2:1 on white and on the light
+   tints; every ink below is >= 4.5:1 on the ground it sits on (measured with a computed-colour scan of both viewers).
+   Specificity beats the dark rules wherever they sit, so none of this depends on order. */
+[data-theme="light"] .hdr-kicker,[data-theme="light"] .related h3,[data-theme="light"] .min-region-h,[data-theme="light"] .min-mindat,[data-theme="light"] .min-loc-kind,[data-theme="light"] .cw-bio a,[data-theme="light"] .cw-story .cw-story-more>summary{color:#0f766e}
+[data-theme="light"] .badges>.min-sub-badge[style]{color:#0f766e!important}   /* the modal's type chip carries its dark-theme teal inline */
+[data-theme="light"] .min-label-h,[data-theme="light"] .dossier-kicker,[data-theme="light"] .min-cand .min-region-h,[data-theme="light"] .min-origin-t,[data-theme="light"] .min-cand-lh-p,[data-theme="light"] .min-origin-chip .min-origin-t,[data-theme="light"] .vtbtn.on{color:#b45309}
+[data-theme="light"] .min-cand-lh-l,[data-theme="light"] .min-origin-chip-l .min-origin-t{color:#047857}
+[data-theme="light"] .min-cand-lh-o,[data-theme="light"] .min-origin-chip-o .min-origin-t{color:#475569}
+[data-theme="light"] .min-origin-chip-x .min-origin-t{color:#b91c1c}
+[data-theme="light"] .min-sub-badge{background:rgba(0,0,0,0.72)}
+[data-theme="light"] .min-candmap svg{background:#dde7f2;border-color:#c3d0e0}   /* the candidate map sat on a translucent dark ground: a muddy grey sea under the light land */
+[data-theme="light"] .min-cx-l{stroke:#475569}
+[data-theme="light"] .min-cx-pin{fill:#cbd5e1;stroke:#64748b}
+/* reduced motion for the 2026-10-12 additions. It sits LAST in the block on purpose: the filter-panel fade, the fullscreen fade and the pressed
+   scales are declared after the first reduced-motion rule above, so at equal specificity only a later rule can switch them off. */
+@media(prefers-reduced-motion:reduce){.pf-shell.open .pf-advanced,.modal.fs-on .min-stage{animation:none}.gtile:active,.related-card:active,.vtbtn:active,.min-rock-btn:active,.min-share-btn:active{transform:none;transition:none}}
 /* ---- end shared mineral viewer CSS ----------------------------------------------------- */
 /* ---- shared thumb strip CSS — guard #219 · DO NOT EDIT ONE COPY ------------
    Byte-identical in the dashboard <style>, Scripts/private_rocks/friends_viewer.css and the
@@ -316,7 +342,7 @@ a{color:#2dd4bf}
 @keyframes minThumbIn{from{opacity:0;transform:translateX(16px) scale(0.94)}}
 .min-thumb-in{animation:minThumbIn .28s cubic-bezier(.22,.61,.36,1) backwards;animation-delay:calc(60ms + var(--i,0) * 35ms)}
 .min-tgroup-in>.min-tgroup-h{animation:minThumbIn .28s cubic-bezier(.22,.61,.36,1) backwards}
-.min-spin-layer{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:var(--card2);z-index:1;opacity:0;visibility:hidden;transition:opacity .2s ease,visibility 0s linear .2s}
+.min-spin-layer{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#000;z-index:1;opacity:0;visibility:hidden;transition:opacity .2s ease,visibility 0s linear .2s}
 .min-stage.min-spin-on .min-spin-layer{opacity:1;visibility:visible;transition:opacity .2s ease,visibility 0s linear 0s}
 .min-photo-pos:empty{display:none}
 @media(min-width:769px){.min-thumbs{--tw:72px;--th:54px;padding-bottom:8px;scrollbar-width:thin;scrollbar-color:rgba(148,163,184,0.35) transparent}.min-thumbs::-webkit-scrollbar{display:block;height:6px}.min-thumbs::-webkit-scrollbar-thumb{background:rgba(148,163,184,0.35);border-radius:3px}}
@@ -348,12 +374,13 @@ a{color:#2dd4bf}
 .min-field .mf-v{flex:1;color:var(--t1);min-width:0;overflow-wrap:anywhere}
 /* fullscreen photo viewer — reuses the modal carousel (swipe / arrows / keyboard) */
 body.cw-fs-on{overflow:hidden}
-@media(max-width:600px){.modal{padding:14px 15px 20px}/* phone: the modal uses the whole width (owner, 2026-09-04). The close button is float:right+sticky on desktop; a grid container will not flow under a float, so at phone width the 62px button was pushing the whole dossier grid 62px narrower — the unused strip in the owner's screenshot. Overlay it. */.modal{border-radius:0;border-left:0;border-right:0;padding:10px 6px 20px;max-width:none}.modal-close{float:none;position:absolute;top:8px;right:8px;z-index:5}.mgrid{grid-template-columns:repeat(var(--mob-cols,2),1fr);gap:11px}.modal-close{width:62px;height:62px;font-size:2.4rem;border-radius:15px}.modal h2{padding-right:74px}.vt-grp{flex-shrink:0}.pf-shell{position:sticky;z-index:34;top:0;margin:0 -6px 10px;padding:8px 6px;background:var(--bg);box-shadow:0 8px 16px rgba(0,0,0,0.12)}.pf-search-row{display:grid;grid-template-columns:minmax(0,1fr) auto}.pf-mobile-toggle{display:block}.pf-advanced .pf-clear{flex:1 1 100%}.pubms-drop{position:fixed;z-index:120;left:12px;right:12px;top:auto;bottom:12px;min-width:0;max-height:min(62vh,460px);border-radius:15px}/* MODAL-1: title + three facts sit between the stage and the thumb strip; the in-column h2 and its Share row are the desktop copy. `.min-phone-head .min-phone-title` outranks the generic `.modal h2` (0,1,1). */.min-phone-head{display:block;position:relative;margin:8px 2px 4px}.min-phone-head .min-phone-title{font-size:1.25rem;line-height:1.2;margin:0 0 4px;padding-right:68px;min-height:44px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}.min-phone-facts>span{min-width:0;overflow-wrap:anywhere}.min-phone-facts>span+span::before{content:"·";color:var(--t3);margin-right:8px}.min-share-phone{position:absolute;top:0;right:0;min-width:60px;min-height:44px}.modal-info h2,.modal-title-row h2{display:none}.modal-title-row{display:none}}
+@media(max-width:600px){.modal{padding:14px 15px 20px}/* phone: the modal uses the whole width (owner, 2026-09-04). The close button is float:right+sticky on desktop; a grid container will not flow under a float, so at phone width the 62px button was pushing the whole dossier grid 62px narrower — the unused strip in the owner's screenshot. Overlay it. */.modal{border-radius:0;border-left:0;border-right:0;padding:10px 6px 20px;max-width:none}.modal-close{float:none;position:absolute;top:8px;right:8px;z-index:5}.mgrid{grid-template-columns:repeat(var(--mob-cols,2),1fr);gap:11px}.modal-close{width:62px;height:62px;font-size:2.4rem;border-radius:15px}.modal h2{padding-right:74px}.vt-grp{flex-shrink:0}.pf-shell{position:sticky;z-index:34;top:0;margin:0 -6px 10px;padding:8px 6px;background:var(--bg);box-shadow:0 10px 12px -10px rgba(0,0,0,0.3)}.pf-search-row{display:grid;grid-template-columns:minmax(0,1fr) auto}.pf-mobile-toggle{display:block}.pf-advanced .pf-clear{flex:1 1 100%}.pubms-drop{position:fixed;z-index:120;left:12px;right:12px;top:auto;bottom:12px;min-width:0;max-height:min(62vh,460px);border-radius:15px}/* MODAL-1: title + three facts sit between the stage and the thumb strip; the in-column h2 and its Share row are the desktop copy. `.min-phone-head .min-phone-title` outranks the generic `.modal h2` (0,1,1). */.min-phone-head{display:block;position:relative;margin:8px 2px 4px}.min-phone-head .min-phone-title{font-size:1.25rem;line-height:1.2;margin:0 0 4px;padding-right:68px;min-height:44px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}.min-phone-facts>span{min-width:0;overflow-wrap:anywhere}.min-phone-facts>span+span::before{content:"·";color:var(--t3);position:absolute;margin-left:-14px;width:14px;text-align:center}.min-phone-facts>.mpf-size{flex-basis:100%}.min-phone-facts>.mpf-size::before{content:none}.min-share-phone{position:absolute;top:0;right:0;min-width:60px;min-height:44px}.modal-info h2,.modal-title-row h2{display:none}.modal-title-row{display:none}}
 /* footer */
 .site-ftr strong{color:var(--t2)}
 
 /* Locality map + imagery (region block) */
 .min-locmap svg{display:block;width:100%;height:auto;border-radius:8px;background:rgba(10,16,28,0.5);border:1px solid var(--bdr2);cursor:zoom-in;overflow:hidden}
+[data-theme="light"] .min-locmap svg{background:#dde7f2;border-color:#c3d0e0}
 /* map layers (guard #182) — non-scaling-stroke keeps lines hairline at any zoom, incl. the recorded map's scale(3.4) click */
 .min-map-pin{fill:var(--gold,#f59e0b);stroke:#0b1220;stroke-width:3;paint-order:stroke}
 .min-map-halo{fill:none;stroke:var(--gold,#f59e0b);stroke-width:2.5;opacity:0;transform-box:fill-box;transform-origin:center;animation:minPinPulse 2.8s ease-out infinite;will-change:transform,opacity}
@@ -368,6 +395,8 @@ body.cw-fs-on{overflow:hidden}
 .min-candmap svg{display:block;width:100%;height:auto;border-radius:8px;background:rgba(10,16,28,0.5);border:1px solid var(--bdr2);overflow:hidden}
 .min-cn{fill:#fff;font-weight:700;paint-order:stroke;stroke:#0b1220;stroke-width:2.5px;vector-effect:non-scaling-stroke}
 .min-cn-x{fill:#b7c0d2}
+[data-theme="light"] .min-cn{stroke:#fff;fill:#1e293b}
+[data-theme="light"] .min-cn-x{fill:#475569}
 .min-cand-rows{display:flex;flex-direction:column;gap:7px;margin:4px 0 8px}
 .min-cand-row{display:flex;gap:9px;align-items:flex-start;font-size:0.85rem;line-height:1.5;color:var(--t2)}
 .min-cand-row strong{color:var(--t1)}
@@ -395,6 +424,7 @@ body.cw-fs-on{overflow:hidden}
 .cw-feat-loc{font-size:0.95rem;color:var(--t2);margin-bottom:10px}
 .cw-feat-flavor{font-size:0.97rem;line-height:1.55;color:var(--t2);max-width:70ch;margin:0 auto 12px}
 .cw-feat-cta{display:inline-block;font-size:0.92rem;font-weight:700;color:var(--gold)}
+[data-theme="light"] .cw-feat-cta{color:#b45309}
 .cw-feat-badges{display:flex;gap:7px;justify-content:center;margin-bottom:10px;flex-wrap:wrap}
 /* PUB-5 "Start here": five owner-picked objects in one row. Photos letterbox on black like every
    rock photo (guard #196); names clamp to two lines; the reason is the owner's own sentence. */
@@ -406,10 +436,12 @@ body.cw-fs-on{overflow:hidden}
 .cw-start-tile{display:flex;flex-direction:column;gap:6px;cursor:pointer;border-radius:12px;padding:6px;transition:background-color .15s,transform .15s}
 .cw-start-tile:hover{background:var(--card2);transform:translateY(-2px)}
 .cw-start-tile:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.cw-start-tile:active{transform:scale(.985);transition:transform .08s ease-out}
+@media(prefers-reduced-motion:reduce){.cw-start-tile:active{transform:none;transition:none}}
 .cw-start-img{position:relative;aspect-ratio:4/3;border-radius:10px;overflow:hidden;background:#000;border:1px solid var(--bdr)}
 .cw-start-img img{width:100%;height:100%;object-fit:contain;background:#000;display:block}
 .cw-start-spin{position:absolute;top:6px;right:6px}
-.cw-start-name{font-size:0.98rem;font-weight:700;color:var(--t1);line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.cw-start-name{font-size:0.98rem;font-weight:700;color:var(--t1);line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.5em}   /* two lines reserved: the five 'why' paragraphs start level */
 .cw-start-why{font-size:0.85rem;line-height:1.4;color:var(--t2);display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden}
 @media(max-width:760px){
   .cw-start{padding:14px 12px 12px}
@@ -1467,13 +1499,19 @@ function renderContent(){
   if(isDefaultView()&&M.length){var _f=newestM();if(_f&&M[0]&&M[0].id===_f.id)M=M.slice(1);}
   if(!M.length){el.innerHTML='<div class="empty">🔍 No specimens match your search or filters.</div>';return;}
   if(S.view==='table'){
-    var rows=M.map(function(m){return '<tr class="cl" tabindex="0" role="button" aria-label="'+esc(title(m)+', '+locStr(m.locality))+'" onclick="showMineral(\''+m.id+'\')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();showMineral(\''+m.id+'\');}"><td><strong title="'+esc(title(m))+'">'+esc(displayName(title(m),m.id))+'</strong><div style="color:var(--t3);font-size:0.72rem">'+esc(m.id)+(m.provenance==='Charlie Wills'?' · CW':'')+'</div></td><td>'+esc(subLabel(m.subtype))+'</td><td>'+esc(locStr(m.locality))+'</td><td>'+esc(m.size||'—')+'</td></tr>';}).join('');
+    var rows=M.map(function(m){return '<tr class="cl" tabindex="0" role="button" aria-label="'+esc(title(m)+', '+locStr(m.locality))+'" onclick="showMineral(\''+m.id+'\')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();showMineral(\''+m.id+'\');}"><td><strong title="'+esc(title(m))+'">'+esc(displayName(title(m),m.id))+'</strong><div style="color:var(--t3);font-size:0.72rem">'+esc(m.id)+(m.provenance==='Charlie Wills'?' · CW':'')+'</div></td><td>'+esc(subLabel(m.subtype))+'</td><td>'+esc(locStr(m.locality))+'</td><td'+(m.size?' title="'+esc(m.size)+'"':'')+'>'+esc(phoneSize(m.size)||'—')+'</td></tr>';}).join('');
     el.innerHTML='<div style="overflow-x:auto"><table class="min-table"><thead><tr><th>Specimen</th><th>Type</th><th>Locality</th><th>Size</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
   }else{
     var tiles=M.map(function(m){var h=hero(m);var src=h?img(h,400):PLACEHOLDER;return '<div class="gtile" role="button" tabindex="0" aria-label="'+esc(title(m)+', '+locStr(m.locality))+'" onclick="showMineral(\''+m.id+'\')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();showMineral(\''+m.id+'\');}"><div class="gtile-imgwrap"><img class="gtile-img" src="'+esc(src)+'" loading="lazy" decoding="async" alt="'+esc(title(m))+'" onerror="this.onerror=null;this.src=\''+PLACEHOLDER+'\'"><div class="gtile-badges"><span class="min-sub-badge">'+esc(subLabel(m.subtype))+'</span>'+(m.provenance==='Charlie Wills'?'<span class="min-cw-badge" title="Charlie Wills collection">CW</span>':'')+(m.spin?'<span class="min-spin-badge" title="Has a 360° spin">360°</span>':'')+'</div></div><div class="gtile-body"><div class="gtile-name" title="'+esc(title(m))+'">'+esc(shortCardTitle(displayName(title(m),m.id)))+'</div><div class="gtile-sub" title="'+esc(locStr(m.locality))+'">'+esc(shortLoc(m.locality))+'</div>'+(shortFlavor(m.flavor)?'<div class="min-tile-flavor">'+esc(shortFlavor(m.flavor))+'</div>':'')+'</div></div>';}).join('');
-    el.innerHTML='<div class="mgrid'+(S.lvl>=2?' compact':'')+'">'+tiles+'</div>';applyGridSize();
+    el.innerHTML='<div class="mgrid'+(S.lvl>=2?' compact':'')+'">'+tiles+'</div>';applyGridSize();fadeTileImgs(el);
   }
 }
+/* Tile photos fade in as they arrive (2026-10-12). Only an image that is not yet complete gets .fi (opacity 0), and it gets its
+   reveal handlers in the same breath, so no path leaves one hidden; a decoded or cached photo is never touched. If this function
+   never runs the photos are simply visible, as they always were. */
+function fadeTileImgs(root){var imgs=root.querySelectorAll('.gtile-img');
+  for(var i=0;i<imgs.length;i++){var im=imgs[i];if(im.complete)continue;   /* a decoded / cached photo is never touched */
+    im.classList.add('fi');var on=function(e){e.target.classList.add('fi-on');};im.addEventListener('load',on,{once:true});im.addEventListener('error',on,{once:true});}}
 /* The featured panel is the newest specimen — "newest" meaning the highest catalog id,
    which is how ids are assigned (sequentially, as each piece is cataloged), and the same
    order the "Newest" sort already uses. */
@@ -1599,7 +1637,7 @@ function modalBody(m){
   var phoneSp=(m.species||[]).map(esc).join(', ');
   var dispName=displayName(title(m),m.id);   /* TITLE-1: the head name; the full record name rides under it when it differs */
   var phoneHead='<div class="min-phone-head"><h2 class="min-phone-title">'+esc(dispName)+'</h2>'
-    +'<div class="min-phone-facts">'+(phoneSp?'<span>'+phoneSp+'</span>':'')+'<span>'+esc(locStr(m.locality))+'</span>'+(phoneSize(m.size)?'<span>'+esc(phoneSize(m.size))+'</span>':'')+'</div>'
+    +'<div class="min-phone-facts">'+(phoneSp?'<span>'+phoneSp+'</span>':'')+'<span>'+esc(locStr(m.locality))+'</span>'+(phoneSize(m.size)?'<span class="mpf-size">'+esc(phoneSize(m.size))+'</span>':'')+'</div>'
     +'<button class="min-share-btn min-share-phone" type="button" onclick="shareSpecimen(this)">Share</button></div>';
   var labelBlock=m.label_text?'<div class="min-label"><div class="min-label-h">&#127991; Charlie&rsquo;s label</div><div class="min-label-body">'+esc(m.label_text)+'</div><div class="min-label-note">Transcribed exactly as written &mdash; spelling and all.</div></div>':'';
   var uv=uvHTML(m),ident=identificationHTML(m),region=regionCardHTML(m)+candMapHTML(m),related=relatedHTML(m);
