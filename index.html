@@ -223,9 +223,13 @@ a{color:#2dd4bf}
 .min-map-g{transition:transform 0.5s cubic-bezier(.22,.9,.32,1);will-change:transform}
 .min-map-zoomed .min-map-g{transform:scale(3.4)}
 @keyframes minPinPulse{0%{transform:scale(0.5);opacity:0.8}75%{transform:scale(2.4);opacity:0}100%{transform:scale(2.4);opacity:0}}
+/* the pin + its pulse are root <svg>s over the map (mapPinSVG, guard #182): the pulse animates a plain box's transform + opacity on the compositor */
+.min-map-frame{position:relative;overflow:hidden}
+.min-locmap .min-map-frame>.min-map-ov{position:absolute;left:1px;top:1px;width:calc(100% - 2px);height:auto;border:0;border-radius:0;background:none;pointer-events:none;overflow:visible}
+.min-map-ov-halo{opacity:0;animation:minPinPulse 2.8s ease-out infinite;will-change:transform,opacity}
 .min-map-cap{display:flex;align-items:baseline;gap:8px;margin-top:7px;font-size:0.8rem;color:var(--t2)}
 .min-map-cap .mmc-loc{min-width:0;overflow-wrap:anywhere}
-@media(prefers-reduced-motion:reduce){.min-map-g{transition:none}}
+@media(prefers-reduced-motion:reduce){.min-map-g{transition:none}.min-map-ov-halo{animation:none}}
 .min-locimg{margin:0 0 12px;padding:0}
 .min-loc-kind{display:inline-block;font-size:0.62rem;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:#2dd4bf;background:rgba(20,184,166,0.12);border-radius:5px;padding:1px 6px;margin-right:7px;vertical-align:1px}
 .min-candmap{position:relative;margin:2px 0 10px}
@@ -312,9 +316,22 @@ a{color:#2dd4bf}
 [data-theme="light"] .min-candmap svg{background:#dde7f2;border-color:#c3d0e0}   /* the candidate map sat on a translucent dark ground: a muddy grey sea under the light land */
 [data-theme="light"] .min-cx-l{stroke:#475569}
 [data-theme="light"] .min-cx-pin{fill:#cbd5e1;stroke:#64748b}
+/* polish pass 4 (2026-10-12, guard #225): hover where there was none, folds that fade open, a phone table that fits, hit areas that a thumb can find. */
+a.min-mindat:hover,a.min-mindat:focus-visible{text-decoration-style:solid}
+.vtbtn:not(.on):not(:disabled):hover{border-color:var(--gold);color:var(--gold)}
+.pf-sel:hover{border-color:var(--gold)}
+.min-more[open]>*:not(summary),.mq-more[open]>*:not(summary){animation:minFoldIn .18s ease-out}
+@keyframes minFoldIn{from{opacity:0}}
+.pubms.open .pubms-drop{animation:minFoldIn .12s ease-out}   /* the Type / Mineral / Locality panel fades in instead of popping */
+.modal-close:active,.min-fullsize:active,.min-spin-chip:active{transform:scale(.95);transition:transform .08s ease-out}
+@media(max-width:600px){.min-table td{font-size:.82rem;padding-left:6px;padding-right:6px}.min-table th{padding-left:6px;padding-right:6px}}   /* the 4-column table was 29px wider than the phone and clipped Size */
+@media(pointer:coarse){a.min-mindat,.min-origin-fold>summary{position:relative}a.min-mindat::after{content:'';position:absolute;inset:-13px -6px}.min-origin-fold>summary::after{content:'';position:absolute;inset:-8px 0}}   /* an invisible pad, never a taller-looking control */
+[data-theme="light"] .min-origin-chip-p .min-origin-t{color:#a3490a}   /* the plausible-origin tag: 4.7:1, was 4.2:1 */
+[data-theme="light"] .min-origin-chip-l .min-origin-t{color:#046c4e}   /* the likely-origin tag: 5.1:1, was 4.4:1 */
 /* reduced motion for the 2026-10-12 additions. It sits LAST in the block on purpose: the filter-panel fade, the fullscreen fade and the pressed
    scales are declared after the first reduced-motion rule above, so at equal specificity only a later rule can switch them off. */
 @media(prefers-reduced-motion:reduce){.pf-shell.open .pf-advanced,.modal.fs-on .min-stage{animation:none}.gtile:active,.related-card:active,.vtbtn:active,.min-rock-btn:active,.min-share-btn:active{transform:none;transition:none}}
+@media(prefers-reduced-motion:reduce){.modal-close:active,.min-fullsize:active,.min-spin-chip:active{transform:none;transition:none}.min-more[open]>*:not(summary),.mq-more[open]>*:not(summary),.pubms.open .pubms-drop{animation:none}}
 /* ---- end shared mineral viewer CSS ----------------------------------------------------- */
 /* ---- shared thumb strip CSS — guard #219 · DO NOT EDIT ONE COPY ------------
    Byte-identical in the dashboard <style>, Scripts/private_rocks/friends_viewer.css and the
@@ -392,9 +409,8 @@ body.cw-fs-on{overflow:hidden}
 [data-theme="light"] .min-locmap svg{background:#dde7f2;border-color:#c3d0e0}
 /* map layers (guard #182) — non-scaling-stroke keeps lines hairline at any zoom, incl. the recorded map's scale(3.4) click */
 .min-map-pin{fill:var(--gold,#f59e0b);stroke:#0b1220;stroke-width:3;paint-order:stroke}
-.min-map-halo{fill:none;stroke:var(--gold,#f59e0b);stroke-width:2.5;opacity:0;transform-box:fill-box;transform-origin:center;animation:minPinPulse 2.8s ease-out infinite;will-change:transform,opacity}
+.min-map-halo{fill:none;stroke:var(--gold,#f59e0b);stroke-width:2.5}
 .mmc-approx{color:var(--t3);font-size:0.72rem}
-@media(prefers-reduced-motion:reduce){.min-map-halo{animation:none}}
 .min-locimg img{width:100%;min-height:120px;max-height:380px;object-fit:contain;background:var(--card2);border-radius:8px;display:block}
 .min-locimg figcaption{margin-top:5px;font-size:0.72rem;color:var(--t3);line-height:1.4}
 /* candidate-origin map (no-locality specimens — possible sources, never provenance; 2026-08-29) */
@@ -557,6 +573,8 @@ body.cw-fs-on{overflow:hidden}
   .related-card{flex:0 0 145px;scroll-snap-align:start}
 }
 </style>
+<!-- early theme: applied before the first paint (a light-theme visitor otherwise sees the dark page for a frame or more) -->
+<script>(function(){try{var t=localStorage.getItem('cwTheme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
 </head>
 <body>
 <header class="site-hdr">
@@ -764,11 +782,13 @@ function _prefEnsureStyle(){
     +'.pref:hover,.pref:focus-visible{opacity:1;outline:none;background:rgba(127,127,127,.18)}'
     +'.pref+.pref{margin-left:2px}'
     +'.pref-off{opacity:.34;cursor:default}'
+    +'@media(pointer:coarse){.pref{position:relative}.pref::after{content:"";position:absolute;inset:-8px -3px}}'   /* a thumb finds an 18px camera: an invisible pad, taller than wide so neighbours keep their own taps */
     +'.pref-off:hover,.pref-off:focus{opacity:.34;background:none}'
     +'#pref-pop{position:fixed;z-index:100000;pointer-events:none;display:none;padding:4px;border-radius:10px;background:#0b0e14;box-shadow:0 10px 30px rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.14)}'
     +'#pref-pop img{display:block;max-width:min(280px,42vw);max-height:min(280px,42vh);border-radius:7px}'
     +'#pref-pop.pref-stuck{pointer-events:auto;cursor:zoom-in;border-color:rgba(255,255,255,.30)}'
-    +'#pref-pop.pref-stuck img{max-width:min(360px,84vw);max-height:min(360px,52vh)}';
+    +'#pref-pop.pref-stuck img{max-width:min(360px,84vw);max-height:min(360px,52vh)}'
+    +'@keyframes prefPopIn{from{opacity:0}}#pref-pop{animation:prefPopIn .12s ease-out}@media(prefers-reduced-motion:reduce){#pref-pop{animation:none}}';   /* the preview fades in (opacity only) instead of popping */
   document.head.appendChild(st);
 }
 function _prefIndex(ctx){
@@ -1807,6 +1827,32 @@ function mapFit(x0,x1,y0,y1,aspect){
           vy:Math.max(-10,Math.min(510-vh,cy-vh/2)),
           vw:vw, vh:vh, zoomed:vw<820};
 }
+/* The recorded locality's pin and its pulse. Chromium never composites a transform animation on an SVG CHILD, so a pulsing <circle> woke the
+   main thread (style + layout + paint + commit) on EVERY frame for as long as a map was mounted. The pulse is therefore its own root <svg>
+   over the map with the SAME viewBox, so the pin keeps its coordinates: that element's transform + opacity run on the compositor, and its
+   transform-origin is the pin, in % of the box. The pin is a second, still <svg> above it, so the ring passes UNDER the pin as it always did.
+   Both ignore the pointer (the map under them keeps the click that zooms it). */
+function mapPinSVG(x,y,yTop,bandH){
+  var vb='0 '+yTop+' 1000 '+bandH,
+      org=(x/10).toFixed(2)+'% '+(((y-yTop)/bandH)*100).toFixed(2)+'%';
+  return '<svg class="min-map-ov min-map-ov-halo" viewBox="'+vb+'" style="transform-origin:'+org+'" aria-hidden="true" focusable="false"><circle class="min-map-halo" cx="'+x+'" cy="'+y+'" r="9"/></svg>'
+    +'<svg class="min-map-ov" viewBox="'+vb+'" aria-hidden="true" focusable="false"><circle class="min-map-pin" cx="'+x+'" cy="'+y+'" r="9"/></svg>';
+}
+/* The pulse runs only where it can be SEEN. Chromium wakes the main thread for every frame of a running transform animation while the page still
+   has lazy-loaded images pending (measured: ~42 style + pre-paint + commit passes a second), and the map usually sits below the fold. Each
+   ring announces itself with animationstart, so no render path needs a call: the first time one starts, an IntersectionObserver on its frame
+   runs it while the frame is within 120px of the viewport and holds it otherwise. */
+if(typeof document!=='undefined'&&document.addEventListener&&!window._mapPulseGate){
+  window._mapPulseGate=1;
+  document.addEventListener('animationstart',function(e){
+    var el=e.target;
+    if(!el||e.animationName!=='minPinPulse'||el._pulseIO||!window.IntersectionObserver)return;
+    el._pulseIO=new IntersectionObserver(function(es){
+      el.style.animationPlayState=es[es.length-1].isIntersecting?'running':'paused';
+    },{rootMargin:'120px'});
+    el._pulseIO.observe(el.parentNode);
+  },true);
+}
 /* ---- end shared map layers ---------------------------------------------- */
 function mapHTML(m){
   var W=window.WORLD_MAP,C=window.MINERAL_COORDS&&window.MINERAL_COORDS[m.id];
@@ -1815,12 +1861,12 @@ function mapHTML(m){
   if(y<-10||y>510)return '';
   var bandH=300, yTop=Math.round(Math.max(0,Math.min(500-bandH,y-bandH/2)));
   var approx=(C.p==='state'||C.p==='country')?' <span class="mmc-approx">&#8776; '+esc(C.p==='state'?'state/province':'country')+'-level</span>':'';
-  return '<div class="min-locmap">'
-    +'<svg viewBox="0 '+yTop+' 1000 '+bandH+'" role="img" aria-label="World map showing '+esc(C.l)+'" onclick="this.parentNode.classList.toggle(\'min-map-zoomed\')">'
+  return '<div class="min-locmap"><div class="min-map-frame">'
+    +'<svg viewBox="0 '+yTop+' 1000 '+bandH+'" role="img" aria-label="World map showing '+esc(C.l)+'" onclick="this.closest(\'.min-locmap\').classList.toggle(\'min-map-zoomed\')">'
     +'<g class="min-map-g" style="transform-box:view-box;transform-origin:'+x+'px '+y+'px">'+mapLayersSVG(W)+'</g>'
-    +'<circle class="min-map-halo" cx="'+x+'" cy="'+y+'" r="9"/>'
-    +'<circle class="min-map-pin" cx="'+x+'" cy="'+y+'" r="9"/>'
     +'</svg>'
+    +mapPinSVG(x,y,yTop,bandH)
+    +'</div>'
     +'<div class="min-map-cap"><span class="mmc-loc">&#128205; '+esc(C.l)+approx+'</span></div>'
     +'</div>';
 }
@@ -1936,6 +1982,25 @@ if(m&&m.spin)spinEnter();
 function modalMotionOff(){try{return !!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);}catch(e){return false;}}
 function cancelModalExit(){if(window._closeT){clearTimeout(window._closeT);window._closeT=0;}}
 function closeModalNow(){clearTimeout(window._closeT);window._closeT=0;var w=document.getElementById('modal-wrap');if(!w)return;w.classList.add('hidden');w.innerHTML='';var prior=window._lastMineralFocus;if(prior&&prior!==document.body&&prior.isConnected&&prior.focus)prior.focus({preventScroll:true});}
+/* A11Y-2 (polish pass 4): Tab and Shift+Tab CYCLE inside the open dialog - the last control wraps to the first, Shift+Tab on the first
+   to the last, and focus that sits on the dialog itself or outside it comes back in. The page behind is never reached. Only the two edges
+   are handled here (the browser's own order is DOM order, which is what this list is), so every interior Tab stays native. */
+function trapTab(e,box){
+  if(!box)return;
+  var all=box.querySelectorAll('a[href],button,input,select,textarea,summary,[tabindex]'),f=[],i,el,t;
+  for(i=0;i<all.length;i++){
+    el=all[i];t=el.getAttribute('tabindex');
+    if(el.disabled||el.type==='hidden'||(t!==null&&parseInt(t,10)<0))continue;
+    if(el.checkVisibility?!el.checkVisibility({checkVisibilityCSS:true}):!el.getClientRects().length)continue;
+    f.push(el);
+  }
+  var n=f.length,dir=e.shiftKey?-1:1,at=f.indexOf(document.activeElement),k,c;
+  if(!n){e.preventDefault();return;}
+  if(at>=0&&at+dir>=0&&at+dir<n)return;
+  e.preventDefault();
+  k=dir>0?0:n-1;
+  for(c=0;c<n;c++){f[k].focus();if(document.activeElement===f[k])return;k=(k+dir+n)%n;}
+}
 function swapModalContent(apply){var box=document.getElementById('cw-modal');var run=function(){var fa=document.activeElement,cb=document.getElementById('cw-modal'),had=!!(cb&&fa&&cb.contains(fa)),fk=(had&&fa.classList&&fa.classList.contains('min-rock-btn'))?fa.getAttribute('aria-label'):'';apply();if(had){var nb=fk?document.querySelector('#cw-modal .min-rock-btn[aria-label="'+fk+'"]'):null;if(!nb)nb=document.querySelector('#cw-modal .modal-close');if(nb){try{nb.focus({preventScroll:true});}catch(e){}}}};if(!box||modalMotionOff()){run();return;}if(window._swapT)return;box.classList.remove('min-swap-in');box.classList.add('min-swap-out');window._swapT=setTimeout(function(){window._swapT=0;var b=document.getElementById('cw-modal');if(!b)return;b.classList.remove('min-swap-out');run();b=document.getElementById('cw-modal');if(!b)return;b.classList.add('min-swap-in');setTimeout(function(){var x=document.getElementById('cw-modal');if(x)x.classList.remove('min-swap-in');},100);},55);}
 function fill(){var m=curM(),box=document.getElementById('cw-modal');if(!m||!box)return;clearTimeout(window._animT);window._anim=false;window._showAux=false;window._photoIdx=heroIdx(m);if(!geoReady())_loadMapBundles();box.innerHTML=modalBody(m);box.setAttribute('aria-label',title(m));box.scrollTop=0;var _bg=box.parentNode;if(_bg&&_bg.scrollTop)_bg.scrollTop=0;bindStage();}
 function navRock(d){var ids=window._navIds||[],n=ids.length;if(n<2)return;window._navIdx=((window._navIdx||0)+d+n)%n;swapModalContent(function(){fill();setSpecimenUrl(ids[window._navIdx],true);});}
@@ -1979,7 +2044,7 @@ function syncSpecimenFromLocation(){
 }
 window.addEventListener('popstate',syncSpecimenFromLocation);
 window.addEventListener('hashchange',syncSpecimenFromLocation);
-function showMineral(id,updateUrl){var M=filtered();if(!M.length||M.map(function(x){return x.id;}).indexOf(id)<0)M=minData();var ids=M.map(function(x){return x.id;}),idx=ids.indexOf(id);if(idx<0)return;var m=M[idx],wrap=document.getElementById('modal-wrap');if(!wrap)return;if(updateUrl!==false)setSpecimenUrl(id,false);/* MOTION-3: a modal that is already open (a Related card, Back/Forward, a pasted hash) keeps its layer and crossfades its content; a modal that is mid-exit is called back (its layer fades in again). Only a closed modal builds a layer and rises. */var _openBg=wrap.querySelector('.modal-bg');if(_openBg&&document.getElementById('cw-modal')&&!wrap.classList.contains('hidden')){var _leaving=!!window._closeT;cancelModalExit();if(_leaving){_openBg.classList.remove('out');_openBg.classList.add('vis');}window._navIds=ids;window._navIdx=idx;swapModalContent(fill);return;}cancelModalExit();clearTimeout(window._swapT);window._swapT=0;/* A11Y-1: remember the opener (the tile) — but never overwrite it with a Related card from inside an already-open modal */if(!document.getElementById('cw-modal'))window._lastMineralFocus=document.activeElement;window._navIds=ids;window._navIdx=idx;window._showAux=false;window._photoIdx=heroIdx(m);if(!geoReady())_loadMapBundles();/* PUB-4: map data requested before the modal renders; geoArrived() redraws the dossier when it lands */wrap.innerHTML='<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal" id="cw-modal" role="dialog" aria-modal="true" aria-label="'+esc(title(m))+'">'+modalBody(m)+'</div></div>';wrap.classList.remove('hidden');var bg=wrap.querySelector('.modal-bg');requestAnimationFrame(function(){if(bg)bg.classList.add('vis');var cl=wrap.querySelector('.modal-close');if(cl)cl.focus({preventScroll:true});});bindStage();if(!window._keyBound){window._keyBound=1;document.addEventListener('keydown',function(e){if(!document.getElementById('cw-modal'))return;if(e.key==='ArrowLeft'){if(e.shiftKey)navRock(-1);else photoNav(-1);}else if(e.key==='ArrowRight'){if(e.shiftKey)navRock(1);else photoNav(1);}else if(e.key==='Escape'){if(isFullscreen())exitFullscreen();else closeModal();}});}}
+function showMineral(id,updateUrl){var M=filtered();if(!M.length||M.map(function(x){return x.id;}).indexOf(id)<0)M=minData();var ids=M.map(function(x){return x.id;}),idx=ids.indexOf(id);if(idx<0)return;var m=M[idx],wrap=document.getElementById('modal-wrap');if(!wrap)return;if(updateUrl!==false)setSpecimenUrl(id,false);/* MOTION-3: a modal that is already open (a Related card, Back/Forward, a pasted hash) keeps its layer and crossfades its content; a modal that is mid-exit is called back (its layer fades in again). Only a closed modal builds a layer and rises. */var _openBg=wrap.querySelector('.modal-bg');if(_openBg&&document.getElementById('cw-modal')&&!wrap.classList.contains('hidden')){var _leaving=!!window._closeT;cancelModalExit();if(_leaving){_openBg.classList.remove('out');_openBg.classList.add('vis');}window._navIds=ids;window._navIdx=idx;swapModalContent(fill);return;}cancelModalExit();clearTimeout(window._swapT);window._swapT=0;/* A11Y-1: remember the opener (the tile) — but never overwrite it with a Related card from inside an already-open modal */if(!document.getElementById('cw-modal'))window._lastMineralFocus=document.activeElement;window._navIds=ids;window._navIdx=idx;window._showAux=false;window._photoIdx=heroIdx(m);if(!geoReady())_loadMapBundles();/* PUB-4: map data requested before the modal renders; geoArrived() redraws the dossier when it lands */wrap.innerHTML='<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal" id="cw-modal" role="dialog" aria-modal="true" aria-label="'+esc(title(m))+'">'+modalBody(m)+'</div></div>';wrap.classList.remove('hidden');var bg=wrap.querySelector('.modal-bg');requestAnimationFrame(function(){if(bg)bg.classList.add('vis');var cl=wrap.querySelector('.modal-close');if(cl)cl.focus({preventScroll:true});});bindStage();if(!window._keyBound){window._keyBound=1;document.addEventListener('keydown',function(e){if(!document.getElementById('cw-modal'))return;if(e.key==='Tab'){trapTab(e,document.getElementById('cw-modal'));return;}if(e.key==='ArrowLeft'){if(e.shiftKey)navRock(-1);else photoNav(-1);}else if(e.key==='ArrowRight'){if(e.shiftKey)navRock(1);else photoNav(1);}else if(e.key==='Escape'){if(isFullscreen())exitFullscreen();else closeModal();}});}}
 function closeModal(keepUrl){document.body.classList.remove('cw-fs-on');if(!keepUrl&&specimenFromHash())history.replaceState({},'',baseViewerUrl());var w=document.getElementById('modal-wrap');if(!w)return;if(window._closeT)return;var bg=w.querySelector('.modal-bg');if(!bg||w.classList.contains('hidden')||modalMotionOff()){closeModalNow();return;}bg.classList.remove('vis');bg.classList.add('out');window._closeT=setTimeout(closeModalNow,170);}
 function isFullscreen(){return document.body.classList.contains('cw-fs-on');}
 function enterFullscreen(){var b=document.getElementById('cw-modal');if(!b)return;b.classList.add('fs-on');document.body.classList.add('cw-fs-on');zmReset();}
