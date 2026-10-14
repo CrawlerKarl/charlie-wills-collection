@@ -1107,8 +1107,8 @@ if (typeof document !== 'undefined' && document.addEventListener && !window._rmU
      * glanceItems(m, host)   - the tiles, in order, each only when it has something to say:
        {key, label, value (html), target ('#id' or ''), wide}. `m` is the record; `host` is plain values the
        viewer works out for itself (species, locality, inferred, candidates, provenance, label, dealer,
-       weightHTML, gradesHTML, valueHTML, photos / spins / videos counts, show {weight, grades, value},
-       targets {key: '#id'}). Text is escaped here; weightHTML, gradesHTML and valueHTML are trusted html
+       weightHTML, gradesHTML, estimateHTML, photos / spins / videos counts, show {weight, grades, value},
+       targets {key: '#id'}). Text is escaped here; weightHTML, gradesHTML and estimateHTML are trusted html
        from their owners. The weight figure is passed in, never built here: the public viewer carries no
        weight (guard #232), so its copy of this block must not name the weight helper.
      * glanceHTML(items)      - the grid: a <button class="min-glance-tile" data-target> per tile (a <div>
@@ -1184,7 +1184,7 @@ function glanceItems(m, host) {
   if (ns > 0) ph.push('360°');
   if (nv > 0) ph.push(nv + ' video' + (nv === 1 ? '' : 's'));
   add('photos', 'Photos', glanceEsc(ph.join(' · ')));
-  if (show.value && h.valueHTML) add('value', 'Value / estimate', h.valueHTML);
+  if (show.value && h.estimateHTML) add('value', 'Value / estimate', h.estimateHTML);
   return out;
 }
 function glanceHTML(items) {
@@ -2274,7 +2274,7 @@ function modalBody(m){
     label:m.label_text||'',
     dealer:'',
     gradesHTML:'',
-    valueHTML:'',
+    estimateHTML:'',
     photos:(m.photos||[]).length,spins:spinsOf(m).length,videos:0,
     show:{weight:false,grades:false,value:false},
     targets:{
