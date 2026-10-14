@@ -372,6 +372,27 @@ img.rv.rv-on{opacity:1}
 .rm-unit:focus-visible{outline:2px solid var(--gold);outline-offset:-3px}
 [data-theme="light"] .rm-unit[aria-pressed="true"]{background:rgba(217,119,6,0.12);color:#9a3412}
 @media(max-width:720px){.site-hdr .hdr-txt{flex:1 1 calc(100% - 60px)}.site-hdr .rm-units{margin-left:0}.site-hdr .rm-units+.theme-btn{margin-left:auto}}
+/* glance grid — guard #233 (markup from glanceHTML()): layer one of the specimen screen, one tile per section that has something to say, directly under the badges. A tile with a target is a button: a click scrolls to that section (glanceJump) and flashes it, and never opens its dropdown. Two columns on a phone; the Did-you-know tile spans both. */
+.min-glance{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));grid-auto-flow:dense;gap:9px;margin:2px 0 14px}
+.min-glance-tile{-webkit-appearance:none;appearance:none;display:block;min-width:0;min-height:44px;margin:0;padding:10px 12px;text-align:left;font:inherit;color:var(--t1);background:var(--card2);border:1px solid var(--bdr);border-radius:10px}
+button.min-glance-tile{cursor:pointer;-webkit-tap-highlight-color:transparent}
+.min-glance-tile.wide{grid-column:span 2}
+.mg-k{display:block;margin-bottom:3px;color:var(--gold);font-size:0.62rem;font-weight:850;letter-spacing:0.1em;line-height:1.25;text-transform:uppercase}
+.min-glance-tile[data-target] .mg-k::after{content:"\00a0\2193";letter-spacing:0;opacity:.7}
+.mg-v{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden;color:var(--t1);font-size:0.86rem;line-height:1.3;overflow-wrap:anywhere}
+.min-glance-tile.wide .mg-v{-webkit-line-clamp:4}
+.mg-sub{color:var(--t3)}
+@media(hover:hover){.min-glance-tile[data-target]:hover{border-color:var(--gold)}}
+.min-glance-tile:focus-visible{outline:2px solid var(--gold);outline-offset:2px;border-color:var(--gold)}
+@media(max-width:600px){.min-glance{grid-template-columns:repeat(2,minmax(0,1fr))}}
+[data-theme="light"] .mg-k{color:#a3490a}   /* 5.4:1 on the pale tile; var(--gold) is 2.9:1 there */
+[id^="min-sec-"]{scroll-margin-top:72px}   /* a jump lands the section below the floating close button / phone head */
+@media(max-width:600px){[id^="min-sec-"]{scroll-margin-top:56px}}
+.min-sec-flash{border-radius:10px;animation:minSecFlash 1.4s ease-out}
+@keyframes minSecFlash{0%{box-shadow:0 0 0 0 rgba(245,158,11,0)}18%{box-shadow:0 0 0 3px rgba(245,158,11,.75)}100%{box-shadow:0 0 0 3px rgba(245,158,11,0)}}
+.min-facts-list{margin:0;padding-left:1.2em;color:var(--t1);font-size:0.92rem;line-height:1.5}
+.min-facts-list li+li{margin-top:6px}
+@media(prefers-reduced-motion:reduce){.min-sec-flash{animation:none;box-shadow:0 0 0 2px var(--gold)}}   /* no pulse: a still ring for the 1.4 s the class stays on; it sits after the keyframes so it wins at equal specificity */
 /* ---- end shared mineral viewer CSS ----------------------------------------------------- */
 /* ---- shared thumb strip CSS — guard #219 · DO NOT EDIT ONE COPY ------------
    Byte-identical in the dashboard <style>, Scripts/private_rocks/friends_viewer.css and the
@@ -1072,6 +1093,145 @@ if (typeof document !== 'undefined' && document.addEventListener && !window._rmU
   });
 }
 /* ---- end shared units ------------------------------------------------------ */
+/* ---- shared glance grid — guard #233 · DO NOT EDIT ONE COPY ----------------
+   The specimen screen's first layer (owner, 2026-10-14): a dashboard of one tile per section that has
+   something to say, directly under the title and badges. A tile is the most summary a visitor needs; a
+   click scrolls to that section's bullet detail (layer two: the fact chips, dossier cards and prose
+   sections) and flashes it, and the dropdown inside that section (layer three) stays the visitor's to
+   open - a jump never opens a <details>. Byte-identical in three viewers - the dashboard's Minerals tab,
+   the private full-collection viewer and the public Charlie Wills viewer (independent ports, no shared
+   runtime, so a test keeps them in step: test_guard_233_glance_layer.py).
+     * glanceLead(text, max)  - the first sentence of a prose field, cleaned for a tile: markdown emphasis,
+       the star / warning / check markers and photo citations ("RM-0143_12", "(RM-0143_1, _8)") removed,
+       whitespace collapsed, cut at a sentence end or at `max` (90) on a word boundary with an ellipsis.
+     * glanceItems(m, host)   - the tiles, in order, each only when it has something to say:
+       {key, label, value (html), target ('#id' or ''), wide}. `m` is the record; `host` is plain values the
+       viewer works out for itself (species, locality, inferred, candidates, provenance, label, dealer,
+       weightHTML, gradesHTML, valueHTML, photos / spins / videos counts, show {weight, grades, value},
+       targets {key: '#id'}). Text is escaped here; weightHTML, gradesHTML and valueHTML are trusted html
+       from their owners. The weight figure is passed in, never built here: the public viewer carries no
+       weight (guard #232), so its copy of this block must not name the weight helper.
+     * glanceHTML(items)      - the grid: a <button class="min-glance-tile" data-target> per tile (a <div>
+       when it has no target to jump to).
+     * glanceJump(btn)        - resolves data-target inside the OPEN modal, scrolls it into view (smooth
+       unless the visitor prefers reduced motion), moves focus to it and flashes .min-sec-flash for 1.4 s.
+       A missing target does nothing. One delegated click listener, armed once per document.
+   It reads nothing from a viewer (no esc, title or locStr of the page's own): hosts pass plain values in.
+   It calls the shared units block (unitsDimsHTML). No lookbehind is used (an older Safari
+   fails to PARSE a script that has one) and no replacement string carries a dollar sign (the public build's
+   leak gate reads the page for one). */
+function glanceEsc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+function glanceLead(text, max) {
+  var s = Array.isArray(text) ? text.join(' ') : String(text == null ? '' : text), re, mm, cut = -1, pre, first, sp;
+  max = max > 0 ? max : 90;
+  s = s.replace(/\s*\([^()]*(?:RM|FS)-\d{4}_\d+[^()]*\)/g, '')                  /* a parenthesised run of photo citations */
+       .replace(/(?:RM|FS)-\d{4}_\d+(?:\s*[,\/&]\s*_\d+)*/g, '')                  /* a bare citation, with its "_8" shorthand */
+       .replace(/\*+/g, '')                                                          /* markdown emphasis */
+       .replace(/[⭐⚠✅️‍]/g, ' ')                          /* the star / warning / check markers and their variation selectors */
+       .replace(/\s+/g, ' ')
+       .replace(/\s+([,.;:!?])/g, function (w, p) { return p; })
+       .replace(/^[\s,;:—–\-]+/, '');
+  s = s.replace(/\s+$/, '');
+  if (!s) return '';
+  re = /[.!?]+["')”]?\s+(?=[A-Z0-9"'“(~])/g;
+  while ((mm = re.exec(s))) {
+    pre = s.slice(Math.max(0, mm.index - 6), mm.index);
+    if (/(^|[^A-Za-z])(e\.g|i\.e|vs|cf|ca|approx|No|Co|St|Mt|Dr|Fig|[A-Z])$/.test(pre)) continue;
+    cut = mm.index + mm[0].replace(/\s+$/, '').length;
+    break;
+  }
+  first = cut > 0 ? s.slice(0, cut) : s;
+  if (first.length <= max) return first;
+  sp = first.lastIndexOf(' ', max);
+  first = first.slice(0, sp > max * 0.5 ? sp : max).replace(/[\s,;:—–\-(\[]+$/, '');
+  return first + '…';
+}
+function glanceItems(m, host) {
+  m = m || {};
+  var h = host || {}, show = h.show || {}, T = h.targets || {}, out = [], conf, sp, loc, inf, nc, where, ms, fig, ff, fact, i, prov, np, ns, nv, ph;
+  function add(key, label, value, wide) {
+    if (value == null || value === '') return;
+    out.push({ key: key, label: label, value: value, target: T[key] || '', wide: !!wide });
+  }
+  ms = (m.measure && typeof m.measure === 'object') ? m.measure : null;
+  conf = String(m.id_confidence || '').toLowerCase();
+  sp = String(h.species == null ? '' : h.species).trim();
+  add('what', 'What it is', sp ? glanceEsc(sp) + ((conf === 'medium' || conf === 'low') ? ' <span class="mg-sub">· ID confidence: ' + (conf === 'low' ? 'Low' : 'Medium') + '</span>' : '') : '');
+  loc = String(h.locality == null ? '' : h.locality).trim();
+  inf = String(h.inferred == null ? '' : h.inferred).trim();
+  nc = Number(h.candidates) || 0;
+  if (loc) where = glanceEsc(loc);
+  else if (inf) where = 'Inferred: ' + glanceEsc(inf) + ' <span class="mg-sub">· not provenance</span>';
+  else where = 'Not recorded' + (nc > 0 ? ' <span class="mg-sub">· ' + nc + ' candidate place' + (nc === 1 ? '' : 's') + '</span>' : '');
+  add('where', 'Where it\'s from', where);
+  fig = ms ? unitsDimsHTML(ms) : '';
+  add('size', 'Size', fig || glanceEsc(glanceLead(m.size, 40)));
+  if (show.weight) add('weight', 'Weight', h.weightHTML || glanceEsc(glanceLead(m.weight, 40)));
+  add('color', 'Color & habit', glanceEsc(glanceLead(m.color)));
+  add('uv', 'Under UV', glanceEsc(glanceLead(m.fluorescence)));
+  if (show.grades && h.gradesHTML) add('grades', 'Quality & rarity', h.gradesHTML);
+  ff = Array.isArray(m.fun_facts) ? m.fun_facts : [];
+  for (i = 0, fact = ''; i < ff.length && !fact; i++) fact = typeof ff[i] === 'string' ? ff[i].replace(/\s+/g, ' ').trim() : '';
+  add('fact', 'Did you know', glanceEsc(fact), true);
+  prov = String(h.provenance == null ? '' : h.provenance).trim();
+  if (prov) {
+    if (h.label) prov += ' · label: "' + glanceLead(h.label, 40) + '"';
+    if (h.dealer) prov += ' · ' + String(h.dealer).trim();
+    add('source', 'Provenance', glanceEsc(prov));
+  }
+  np = Number(h.photos) || 0; ns = Number(h.spins) || 0; nv = Number(h.videos) || 0; ph = [];
+  if (np > 0) ph.push(np + ' photo' + (np === 1 ? '' : 's'));
+  if (ns > 0) ph.push('360°');
+  if (nv > 0) ph.push(nv + ' video' + (nv === 1 ? '' : 's'));
+  add('photos', 'Photos', glanceEsc(ph.join(' · ')));
+  if (show.value && h.valueHTML) add('value', 'Value / estimate', h.valueHTML);
+  return out;
+}
+function glanceHTML(items) {
+  if (!items || !items.length) return '';
+  var h = '<div class="min-glance" role="group" aria-label="At a glance">', i, it, inner, cls;
+  for (i = 0; i < items.length; i++) {
+    it = items[i];
+    inner = '<span class="mg-k">' + glanceEsc(it.label) + '</span><span class="mg-v">' + it.value + '</span>';
+    cls = 'min-glance-tile' + (it.wide ? ' wide' : '');
+    h += it.target
+      ? '<button type="button" class="' + cls + '" data-target="' + glanceEsc(it.target) + '">' + inner + '</button>'
+      : '<div class="' + cls + '">' + inner + '</div>';
+  }
+  return h + '</div>';
+}
+function glanceJump(btn) {
+  var sel = btn ? (btn.dataset ? btn.dataset.target : (btn.getAttribute ? btn.getAttribute('data-target') : '')) : '', root, el, calm = false;
+  if (!sel || !/^#[A-Za-z][\w-]*$/.test(sel)) return false;
+  root = btn.closest ? btn.closest('.modal, .min-modal') : null;
+  el = (root && root.querySelector) ? root.querySelector(sel) : null;
+  if (!el && typeof document !== 'undefined' && document.getElementById) el = document.getElementById(sel.slice(1));
+  if (!el) return false;
+  try { calm = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches); } catch (e) {}
+  try { el.scrollIntoView({ block: 'start', behavior: calm ? 'auto' : 'smooth' }); } catch (e) { el.scrollIntoView(true); }
+  if (el.getAttribute('tabindex') === null) el.setAttribute('tabindex', '-1');
+  try { el.focus({ preventScroll: true }); } catch (e) {}
+  if (el.classList) {
+    el.classList.remove('min-sec-flash');
+    void el.offsetWidth;                                   /* restart the pulse if it is still running from a moment ago */
+    el.classList.add('min-sec-flash');
+    clearTimeout(el._glT);
+    el._glT = setTimeout(function () { el.classList.remove('min-sec-flash'); }, 1400);
+    if (!el._glA && el.addEventListener) {
+      el._glA = 1;
+      el.addEventListener('animationend', function (e) { if (e.target === el && e.animationName === 'minSecFlash') el.classList.remove('min-sec-flash'); });
+    }
+  }
+  return true;
+}
+if (typeof document !== 'undefined' && document.addEventListener && !document._glanceJump) {
+  document._glanceJump = 1;
+  document.addEventListener('click', function (e) {
+    var b = e.target && e.target.closest ? e.target.closest('.min-glance-tile[data-target]') : null;
+    if (b) glanceJump(b);
+  });
+}
+/* ---- end shared glance grid ------------------------------------------------ */
 unitsWatch(document.getElementById('min-root'));unitsWatch(document.getElementById('modal-wrap'));   /* guard #232: whatever either viewer renders under these two is converted before it paints */
 /* ---- shared photo references — guard #181 · DO NOT EDIT ONE COPY --------------
    A specimen record cites its own frames by stem — "RM-0103_12" — wherever the
@@ -1374,14 +1534,15 @@ function factValue(raw){
   return v;
 }
 /* ---- dossier cards (mirrors friends_viewer.js: quickField / factChip / dossierCard / identificationHTML / uvHTML / regionCardHTML / relatedHTML) ---- */
-function quickField(label,value,extraClass){if(value==null||value===''||value==='—')return '';return '<div class="min-quick-item'+(extraClass?' '+extraClass:'')+'"><span class="min-quick-k">'+esc(label)+'</span><div class="min-quick-v">'+value+'</div></div>';}
-function factChip(label,raw,extraClass){var v=factValue(raw);return v?quickField(label,v,extraClass):'';}
+function quickField(label,value,extraClass,id){if(value==null||value===''||value==='—')return '';return '<div'+(id?' id="'+esc(id)+'"':'')+' class="min-quick-item'+(extraClass?' '+extraClass:'')+'"><span class="min-quick-k">'+esc(label)+'</span><div class="min-quick-v">'+value+'</div></div>';}
+function factChip(label,raw,extraClass,id){var v=factValue(raw);return v?quickField(label,v,extraClass,id):'';}   /* `id`: guard #233 gives a chip a stable anchor the glance tiles jump to */
 /* guard #232: a Size chip whose headline is the record's structured `measure` (exact, so the units toggle converts it without a regex); the full prose rides in the
    field-notes fold. A record without a measure keeps the prose chip above. */
-function measureChip(label,raw,figHTML,extraClass){var s=String(raw==null?'':raw).trim();if(!figHTML)return factChip(label,raw,extraClass);
-  return quickField(label,'<span class="mf-lead">'+figHTML+'</span>'+((s&&s!=='—')?'<details class="mq-more"><summary>field notes</summary><div class="mq-note">'+richText(s)+'</div></details>':''),extraClass);}
+function measureChip(label,raw,figHTML,extraClass){var s=String(raw==null?'':raw).trim(),sid='min-sec-'+String(label).toLowerCase().replace(/[^a-z0-9]+/g,'-');   /* guard #233: the Size chip is the anchor of its glance tile (#min-sec-size) */
+  if(!figHTML)return factChip(label,raw,extraClass,sid);
+  return quickField(label,'<span class="mf-lead">'+figHTML+'</span>'+((s&&s!=='—')?'<details class="mq-more"><summary>field notes</summary><div class="mq-note">'+richText(s)+'</div></details>':''),extraClass,sid);}
 function confidenceBadge(m){var c=String(m.id_confidence||'').toLowerCase();if(!c)return '';var label={high:'ID confidence: High',medium:'ID confidence: Medium',low:'ID confidence: Low'}[c];return label?'<span class="min-conf-badge conf-'+c+'">'+label+'</span>':'';}
-function dossierCard(kicker,heading,bodyHTML,cls){if(!bodyHTML)return '';return '<section class="dossier-card'+(cls?' '+cls:'')+'"><div class="dossier-kicker">'+esc(kicker)+'</div><h3>'+esc(heading)+'</h3>'+bodyHTML+'</section>';}
+function dossierCard(kicker,heading,bodyHTML,cls,id){if(!bodyHTML)return '';return '<section'+(id?' id="'+esc(id)+'"':'')+' class="dossier-card'+(cls?' '+cls:'')+'"><div class="dossier-kicker">'+esc(kicker)+'</div><h3>'+esc(heading)+'</h3>'+bodyHTML+'</section>';}
 /* ---- the candidate map must AGREE with the record (2026-09-04) -------------
    43 specimens now carry an accepted `locality_inferred`, and the old lead
    sentence — "the record names no candidate" — sat a few hundred pixels above an
@@ -1456,13 +1617,13 @@ function identificationHTML(m){
   var tests=m.suggested_tests?'<div class="ident-sub">What would settle it further</div>'+richText(m.suggested_tests):'';
   var deep=altHTML+tests;
   if(deep)deep='<details class="mq-more rt-more"><summary>alternatives considered &amp; what would settle it</summary>'+deep+'</details>';
-  var body=ev+inferredOriginHTML(m)+deep;return body?dossierCard('How it was identified','Identification',body):'';
+  var body=ev+inferredOriginHTML(m)+deep;return body?dossierCard('How it was identified','Identification',body,'','min-sec-what'):'';
 }
-function uvHTML(m){return m.fluorescence?dossierCard('Under the lamp','UV response',richTextSkim(m.fluorescence,'the full story'),'dossier-uv'):'';}
+function uvHTML(m){return m.fluorescence?dossierCard('Under the lamp','UV response',richTextSkim(m.fluorescence,'the full story'),'dossier-uv','min-sec-uv'):'';}
 function regionCardHTML(m){
   var mp=mapHTML(m),li=locImgHTML(m);
   if(!m.region_history&&!mp&&!li)return '';
-  return '<section class="dossier-card dossier-region-card"><div class="dossier-kicker">Where it came from</div><h3>The mine &amp; the region</h3>'+li+mp
+  return '<section id="min-sec-where" class="dossier-card dossier-region-card"><div class="dossier-kicker">Where it came from</div><h3>The mine &amp; the region</h3>'+li+mp
     +(m.region_history?'<div class="min-region-body">'+richTextSkim(m.region_history,'more about the region')+'</div>':'')+'</section>';
 }
 function relatedFor(m){
@@ -2079,10 +2240,11 @@ function modalBody(m){
   var rocknav=n>1?'<div class="min-rocknav"><button class="min-rock-btn" onclick="navRock(-1)" aria-label="Previous">‹ Prev</button><span class="min-rock-pos">'+((window._navIdx||0)+1)+' / '+n+'</span><button class="min-rock-btn" onclick="navRock(1)" aria-label="Next">Next ›</button></div>':'';
   var sizeFig=unitsDimsHTML(m.measure);   /* guard #232: the structured size (the units toggle rewrites it in place); phoneSize() of the prose is the fallback */
   var species=(m.species||[]).map(function(sp){return '<a class="min-mindat" href="'+esc(mindat(sp))+'" target="_blank" rel="noopener">'+esc(sp)+'</a>';}).join(', ');
+  var sizeChip=measureChip('Size',m.size,sizeFig),colorChip=factChip('Color',m.color,'','min-sec-color');
   var quick=quickField('Species',species)
     +factChip('Locality',locStr(m.locality),'wide wide-mobile')
-    +measureChip('Size',m.size,sizeFig)
-    +factChip('Color',m.color)
+    +sizeChip
+    +colorChip
     +factChip('Catalog #',m.catalog_no||m.id)
     +(String(m.habit||'').length>240?'':factChip('Habit',m.habit,'wide'));
   /* MODAL-1: phone-first head — shown only at <=600px (CSS), between the stage and the thumb strip. Plain text, no links. */
@@ -2091,21 +2253,49 @@ function modalBody(m){
   var phoneHead='<div class="min-phone-head"><h2 class="min-phone-title">'+esc(dispName)+'</h2>'
     +'<div class="min-phone-facts">'+(phoneSp?'<span>'+phoneSp+'</span>':'')+'<span>'+esc(locStr(m.locality))+'</span>'+((sizeFig||phoneSize(m.size))?'<span class="mpf-size">'+(sizeFig||esc(phoneSize(m.size)))+'</span>':'')+'</div>'
     +'<button class="min-share-btn min-share-phone" type="button" onclick="shareSpecimen(this)">Share</button></div>';
-  var labelBlock=m.label_text?'<div class="min-label"><div class="min-label-h">&#127991; Charlie&rsquo;s label</div><div class="min-label-body">'+esc(m.label_text)+'</div><div class="min-label-note">Transcribed exactly as written &mdash; spelling and all.</div></div>':'';
-  var uv=uvHTML(m),ident=identificationHTML(m),region=regionCardHTML(m)+candMapHTML(m),related=relatedHTML(m);
+  var labelBlock=m.label_text?'<div id="min-sec-source" class="min-label"><div class="min-label-h">&#127991; Charlie&rsquo;s label</div><div class="min-label-body">'+esc(m.label_text)+'</div><div class="min-label-note">Transcribed exactly as written &mdash; spelling and all.</div></div>':'';
+  var regionCard=regionCardHTML(m),candMap=candMapHTML(m,regionCard?'':'min-sec-where');
+  var uv=uvHTML(m),ident=identificationHTML(m),region=regionCard+candMap,related=relatedHTML(m),factsH=funFactsCard(m);
   var habitCard=String(m.habit||'').length>240?dossierCard('In hand','Habit & character',richTextSkim(m.habit,'more')):'';
   var flavorBand=m.flavor?'<div class="dossier-flavor"><div class="min-flavor">'+richText(m.flavor)+'</div></div>':'';
-  var colMain=uv+region,colSide=habitCard+ident+(related?'<div class="dossier-related">'+related+'</div>':'');
+  var colMain=uv+region,colSide=factsH+habitCard+ident+(related?'<div class="dossier-related">'+related+'</div>':'');
   var dossier='';
   if(colMain&&colSide)dossier='<div class="modal-dossier">'+flavorBand+'<div class="dossier-col">'+colMain+'</div><div class="dossier-col">'+colSide+'</div></div>';
   else if(colMain||colSide||flavorBand)dossier='<div class="modal-dossier dossier-single">'+flavorBand+'<div class="dossier-col">'+colMain+colSide+'</div></div>';
+  /* guard #233: layer one - the glance grid, directly under the badges and above the fact chips. There is no weight, grade, value or dealer on this site, so no such tile. Every tile target is an id emitted above. */
+  var hasLoc=!!(m.locality&&[m.locality.mine,m.locality.district,m.locality.state,m.locality.country].some(Boolean));
+  var inferredText=(acceptedInference(m)||{}).text||'';
+  var glance=glanceHTML(glanceItems(m,{
+    species:(m.species||[]).join(', '),
+    locality:hasLoc?locStr(m.locality):'',
+    inferred:inferredText,
+    candidates:glanceCandCount(m),
+    provenance:'Charlie Wills',
+    label:m.label_text||'',
+    dealer:'',
+    gradesHTML:'',
+    valueHTML:'',
+    photos:(m.photos||[]).length,spins:spinsOf(m).length,videos:0,
+    show:{weight:false,grades:false,value:false},
+    targets:{
+      what:ident?'#min-sec-what':'',
+      where:(regionCard||candMap)?'#min-sec-where':(inferredText&&ident?'#min-sec-what':''),
+      size:sizeChip?'#min-sec-size':'',
+      color:colorChip?'#min-sec-color':'',
+      uv:uv?'#min-sec-uv':'',
+      fact:factsH?'#min-sec-fact':'',
+      source:labelBlock?'#min-sec-source':'',
+      photos:'#min-sec-photos'
+    }
+  }));
   return '<button class="modal-close" onclick="fsAwareClose()" aria-label="Close">×</button>'
     +'<div class="modal-grid">'
-    +'<div class="modal-media"><div class="min-stage'+(multi?' min-multi':'')+'"><div class="min-track'+(multi?'':' min-single')+'">'+slides+'</div>'+arrows+pos+spinChip+full+'</div>'+phoneHead+thumbs+rocknav+'</div>'
+    +'<div class="modal-media" id="min-sec-photos"><div class="min-stage'+(multi?' min-multi':'')+'"><div class="min-track'+(multi?'':' min-single')+'">'+slides+'</div>'+arrows+pos+spinChip+full+'</div>'+phoneHead+thumbs+rocknav+'</div>'
     +'<div class="modal-info">'
     +'<div class="modal-title-row"><h2'+(dispName.length>60?' class="min-title-long"':'')+'>'+esc(dispName)+'</h2><button class="min-share-btn" type="button" onclick="shareSpecimen(this)">Share</button></div>'
     +(title(m)!==dispName?'<div class="min-full-name">'+esc(title(m))+'</div>':'')
     +'<div class="badges"><span class="min-sub-badge" style="background:rgba(20,184,166,0.15);color:#2dd4bf">'+esc(subLabel(m.subtype))+'</span>'+(m.provenance==='Charlie Wills'?'<span class="min-source-badge">Charlie Wills collection</span>':'')+confidenceBadge(m)+'</div>'
+    +glance
     +'<div class="min-quick">'+quick+'</div>'
     +labelBlock
     +'</div>'
@@ -2178,6 +2368,21 @@ function _loadMapBundles(){
   });
   return _geoP;
 }
+/* guard #233 - the fun facts, listed in full as the first card of the side column (the first one also leads the glance grid). Plain text, so
+   they are escaped and nothing else: no markdown pass, and no photo-reference pass (a fact carries no frame citations). */
+function funFactsCard(m){
+  var ff=(Array.isArray(m.fun_facts)?m.fun_facts:[]).filter(function(f){return typeof f==='string'&&f.trim();});
+  if(!ff.length)return '';
+  return dossierCard('Did you know',String((m.species||[])[0]||'').trim()||'This specimen','<ul class="min-facts-list">'+ff.map(function(f){return '<li>'+esc(f.trim())+'</li>';}).join('')+'</ul>','dossier-facts','min-sec-fact');
+}
+/* guard #233 - how many candidate places the "Where could it have come from?" map pins (the refuted ones are not candidates); the accepted
+   inference's own candidate list when the sidecar has none (or has not arrived yet). 0 = none to count. */
+function glanceCandCount(m){
+  var C=window.MINERAL_CANDIDATES&&window.MINERAL_CANDIDATES[m.id],n=0,I;
+  if(C&&C.pins&&!(window.MINERAL_COORDS&&window.MINERAL_COORDS[m.id]))C.pins.forEach(function(p){if(p&&p.t!=='x')n++;});
+  if(!n){I=acceptedInference(m);n=(I&&I.candidates)?I.candidates.length:0;}
+  return n;
+}
 function geoArrived(){
   var box=document.getElementById('cw-modal');if(!box)return;
   var m=curM();if(!m)return;
@@ -2186,6 +2391,8 @@ function geoArrived(){
   var grid=box.querySelector('.modal-grid');if(!grid)return;
   var t=document.createElement('template');t.innerHTML=modalBody(m);unitsApply(t.content);   /* inert: nothing in it loads until it is adopted */
   var nu=t.content.querySelector('.modal-dossier');if(!nu)return;
+  var ng=t.content.querySelector('.min-glance'),og=box.querySelector('.min-glance');   /* guard #233: the Where tile gains its candidate count and its jump target together with the map */
+  if(ng&&og)og.parentNode.replaceChild(ng,og);
   var old=box.querySelector('.modal-dossier');
   if(old){   /* keep any disclosure the visitor already opened */
     var was={};[].forEach.call(old.querySelectorAll('details'),function(d){var sm=d.querySelector('summary');if(d.open&&sm)was[sm.textContent]=1;});
@@ -2305,7 +2512,7 @@ function locImgHTML(m){
    pins the places the specimen's OWN record names as possible sources, or classic districts
    with an explicit context-only disclaimer; crossed-out pins mark places the record REFUTES.
    Possibilities, never provenance. Mirrors the dashboard's _minCandMapHTML — keep in sync. */
-function candMapHTML(m){
+function candMapHTML(m,id){   /* `id`: guard #233 - the region card owns #min-sec-where when it is there; this map takes it only when it is not */
   var W=window.WORLD_MAP,C=window.MINERAL_CANDIDATES&&window.MINERAL_CANDIDATES[m.id];
   if(!W||!W.d||!C||!C.pins||!C.pins.length)return '';
   if(window.MINERAL_COORDS&&window.MINERAL_COORDS[m.id])return '';
@@ -2352,7 +2559,7 @@ function candMapHTML(m){
     return '<div class="min-cand-row'+(p.t==='x'?' min-cand-xrow':' ')+'"><span class="min-cand-n'+(p.t==='x'?' min-cand-nx':' min-cand-n-'+(p.h||'p'))+'">'+(i+1)+'</span><div class="min-cand-txt"><strong>'+esc(p.l)+'</strong> '+tag+' — '+esc(p.r)+'</div></div>';
   }).join('');
   var sub=candLeadHTML(m,C);
-  return '<div class="min-region min-cand"><div class="min-region-h">&#127757; Where could it have come from?</div>'
+  return '<div'+(id?' id="'+esc(id)+'"':'')+' class="min-region min-cand"><div class="min-region-h">&#127757; Where could it have come from?</div>'
     +'<div class="min-candmap'+(multi?' min-cand-multi':'')+'"'+(multi?' onclick="this.classList.toggle(\'cand-world\')" title="Tap to toggle the world view"':'')+'>'+svgs+'</div>'
     +originChipsHTML(P,LH)
     +originFoldHTML('Why these places &mdash; the reasoning','<div class="min-cand-sub">'+sub+'</div>'+key+'<div class="min-cand-rows">'+rows+'</div>'+'<div class="min-cand-note">'+esc(C.n)+'</div>')
