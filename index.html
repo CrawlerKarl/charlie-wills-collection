@@ -360,6 +360,18 @@ a.min-mindat:focus-visible{text-decoration-style:solid}@media(hover:hover){a.min
 img.rv{opacity:0;transition:opacity .22s ease-out}   /* the shared image reveal (guard #226): a photo still on its way fades in; only an incomplete image is ever tagged */
 img.rv.rv-on{opacity:1}
 @media(prefers-reduced-motion:reduce){img.rv{opacity:1;transition:none}}
+/* units toggle — guard #232: the two-segment Metric | Standard control in the page header (markup from unitsToggleHTML(); each shell sets
+   the pressed segment in an inline script before first paint). 44px segments; gold = pressed, the .vtbtn.on look. Phone: the header wraps,
+   so the control drops under the title beside the theme button instead of squeezing the name into a sliver. */
+.rm-units{display:inline-flex;flex:0 0 auto;margin-left:auto;border:1px solid var(--bdr);border-radius:10px;background:var(--card2);overflow:hidden}
+.rm-units+.theme-btn{margin-left:0}
+.rm-unit{-webkit-appearance:none;appearance:none;margin:0;min-width:44px;min-height:44px;padding:0 14px;border:0;border-radius:0;background:transparent;color:var(--t2);font:inherit;font-size:0.85rem;font-weight:600;line-height:1;cursor:pointer}
+.rm-unit+.rm-unit{border-left:1px solid var(--bdr)}
+.rm-unit[aria-pressed="true"]{background:rgba(245,158,11,0.14);color:var(--gold);box-shadow:inset 0 0 0 1px var(--gold)}
+@media(hover:hover){.rm-unit[aria-pressed="false"]:hover{color:var(--gold)}}
+.rm-unit:focus-visible{outline:2px solid var(--gold);outline-offset:-3px}
+[data-theme="light"] .rm-unit[aria-pressed="true"]{background:rgba(217,119,6,0.12);color:#9a3412}
+@media(max-width:720px){.site-hdr .hdr-txt{flex:1 1 calc(100% - 60px)}.site-hdr .rm-units{margin-left:0}.site-hdr .rm-units+.theme-btn{margin-left:auto}}
 /* ---- end shared mineral viewer CSS ----------------------------------------------------- */
 /* ---- shared thumb strip CSS — guard #219 · DO NOT EDIT ONE COPY ------------
    Byte-identical in the dashboard <style>, Scripts/private_rocks/friends_viewer.css and the
@@ -615,9 +627,12 @@ body.cw-fs-on{overflow:hidden}
       <h1 class="hdr-title">The Charlie Wills Collection</h1>
       <p class="hdr-sub">Minerals, rocks &amp; fossils from Michigan's Copper Country and the mines of Arizona</p>
     </div>
+    <div class="rm-units" role="group" aria-label="Units"><button type="button" class="rm-unit" data-u="metric" aria-pressed="true">Metric</button><button type="button" class="rm-unit" data-u="standard" aria-pressed="false">Standard</button></div>
     <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle light / dark" aria-label="Toggle theme">◑</button>
   </div>
 </header>
+<!-- early units: the pressed segment is set before the first paint, like the early theme above -->
+<script>(function(){try{if(localStorage.getItem('rmUnits')==='standard'){var b=document.querySelectorAll('.rm-unit');for(var i=0;i<b.length;i++)b[i].setAttribute('aria-pressed',b[i].getAttribute('data-u')==='standard'?'true':'false');}}catch(e){}})();</script>
 <main><div class="wrap"><div id="min-root"></div></div></main>
 <footer class="site-ftr"><div class="wrap">
   <div>In memory of <strong>Charles V. “Charlie” Wills</strong> — a lifelong rock hound of Calumet, Michigan and Bisbee, Arizona.</div>
@@ -779,6 +794,285 @@ function thumbScrollTo(strip,x){if(!strip)return;strip.style.scrollBehavior='aut
 function stagePosLabel(kind,i,n){return kind==='spin'?(n>1?'Rotation '+(i+1)+' of '+n:''):(i+1)+' / '+n;}
 if(typeof document!=='undefined'&&!document._thumbStripBound){document._thumbStripBound=1;var _tsEdge=function(e){var t=e.target;if(!t||!t.classList)return;if(t.classList.contains('min-thumbs'))thumbStripEdges(t);else if(t.classList.contains('min-thumb')&&t.closest)thumbStripEdges(t.closest('.min-thumbs'));};document.addEventListener('scroll',_tsEdge,true);document.addEventListener('load',_tsEdge,true);}
 /* ---- end shared thumb strip ------------------------------------------------ */
+/* ---- shared units — guard #232 · DO NOT EDIT ONE COPY ----------------------
+   Metric / standard (US customary) units for every number a specimen page prints. Byte-identical in three
+   viewers — the dashboard's Minerals tab, the private full-collection viewer and the public Charlie Wills
+   viewer (independent ports, no shared runtime, so a test keeps them in step: test_guard_232_units_toggle.py).
+   The records are written in METRIC prose, so the preference is applied at the glass, never in the data:
+     * unitsGet()/unitsSet(u)  — 'metric' | 'standard', kept in localStorage.rmUnits (default metric). unitsSet
+       flips every .rm-unit toggle's aria-pressed, re-applies the conversion to the live page and dispatches
+       a `rm-units` event on window.
+     * unitsApply(root)        — walks the TEXT NODES under root. The first time a node is seen its original
+       text is kept on it (node._rmU), and every later pass converts from that original, so toggling back
+       restores the prose exactly. Metric mode only rewrites a stray imperial figure (the prose is metric);
+       standard mode rewrites cm / mm / m / km / g / kg / cm3 / cm2 / degC. Skipped: script style code pre input
+       textarea and anything under data-no-units. Attributes are never touched.
+     * What it must NOT convert: densities and rates (a unit followed by "/" or "per", "g/cm3"), a figure whose
+       number belongs to an id or photo stem (RM-0143_12 g annunciator), a number inside a word, carats and
+       pixels, a bare "in" that is the preposition ("0.5 in RM-0136_13"), arc-seconds.
+     * A "15 cm (6 in)" restatement is said once, in the chosen system, instead of twice.
+     * Structured figures come from the record's measure object ({dims_cm, largest_cm, weight_g, approx}):
+       unitsDimsHTML()/unitsWeightHTML() emit a data-no-units span that unitsApply rewrites in place with
+       fmtDims()/fmtWeight(), so the headline number is exact rather than regex-converted.
+   No lookbehind is used (an older Safari fails to PARSE a script that contains one): the character before a
+   figure is captured instead. Every regex is built lazily inside try/catch, so a failure here can never stop
+   the page's own script from loading. The block reads nothing from a viewer: roots come from [data-units-scope]
+   (or document.body), the click handler is delegated, and the early pressed-state script lives in the shell. */
+var _rmUMem = null, _rmUT = null, _rmURE = null, _rmUNUM = null;
+var RM_USKIP = { SCRIPT: 1, STYLE: 1, CODE: 1, PRE: 1, INPUT: 1, TEXTAREA: 1, NOSCRIPT: 1 };
+function unitsGet() {
+  if (_rmUMem) return _rmUMem;
+  try { return localStorage.getItem('rmUnits') === 'standard' ? 'standard' : 'metric'; } catch (e) { return 'metric'; }
+}
+function unitsSync() {
+  var u = unitsGet(), b = document.querySelectorAll('.rm-unit'), i;
+  for (i = 0; i < b.length; i++) b[i].setAttribute('aria-pressed', b[i].getAttribute('data-u') === u ? 'true' : 'false');
+}
+function unitsRoots() {
+  var s = document.querySelectorAll('[data-units-scope]');
+  return s.length ? s : [document.body];
+}
+function unitsSet(u) {
+  u = u === 'standard' ? 'standard' : 'metric';
+  _rmUMem = u;
+  try { localStorage.setItem('rmUnits', u); } catch (e) {}
+  unitsSync();
+  var r = unitsRoots(), i;
+  for (i = 0; i < r.length; i++) unitsApply(r[i]);
+  try { window.dispatchEvent(new CustomEvent('rm-units', { detail: { units: u } })); } catch (e) {}
+  return u;
+}
+function unitsToggleHTML() {
+  var u = unitsGet();
+  function b(k, label) { return '<button type="button" class="rm-unit" data-u="' + k + '" aria-pressed="' + (u === k ? 'true' : 'false') + '">' + label + '</button>'; }
+  return '<div class="rm-units" role="group" aria-label="Units">' + b('metric', 'Metric') + b('standard', 'Standard') + '</div>';
+}
+/* ---- number formatting ---- */
+function rmGroup(s) { var p = String(s).split('.'); p[0] = p[0].replace(/\B(?=(\d{3})+(?!\d))/g, ','); return p.join('.'); }
+function rmFix(x, d) { return rmGroup(Number(x).toFixed(d)); }
+function rmTrim(x) { return rmGroup(String(+Number(x).toFixed(2))); }
+function rmDec(vals, base) {   /* base decimals, raised until no non-zero value rounds to zero (0.1 g is 0.004 oz, not 0.0) */
+  var d = base, i, ok;
+  for (;;) {
+    ok = true;
+    for (i = 0; i < vals.length; i++) if (Math.abs(vals[i]) > 0 && Number(Math.abs(vals[i]).toFixed(d)) === 0) ok = false;
+    if (ok || d >= 4) return d;
+    d++;
+  }
+}
+function rmMax(a) { var m = 0, i; for (i = 0; i < a.length; i++) if (Math.abs(a[i]) > m) m = Math.abs(a[i]); return m; }
+function rmLbOz(g) {
+  var oz = g / 28.349523125, lb = Math.floor(oz / 16), r = oz - lb * 16;
+  if (Number(r.toFixed(1)) >= 16) { lb++; r = 0; }
+  return rmGroup(String(lb)) + ' lb' + (Number(r.toFixed(1)) > 0 ? ' ' + r.toFixed(1) + ' oz' : '');
+}
+function fmtLen(cm) {
+  cm = Number(cm);
+  if (!isFinite(cm)) return '';
+  if (unitsGet() !== 'standard') return rmTrim(cm) + ' cm';
+  var v = cm / 2.54;
+  return rmFix(v, rmDec([v], v >= 1 ? 1 : 2)) + ' in';
+}
+function fmtDims(ms) {
+  var d = ms && ms.dims_cm && ms.dims_cm.length ? ms.dims_cm : (ms && ms.largest_cm != null ? [ms.largest_cm] : null), a = [], i, v, dec, pre;
+  if (!d) return '';
+  for (i = 0; i < d.length; i++) if (d[i] !== null && d[i] !== undefined && d[i] !== '' && isFinite(Number(d[i]))) a.push(Number(d[i]));
+  if (!a.length) return '';
+  pre = ms.approx ? '~' : '';
+  if (unitsGet() !== 'standard') {   /* one decimal count down the chain: 5.1 × 3.0, not 5.1 × 3 */
+    dec = 0;
+    for (i = 0; i < a.length; i++) dec = Math.max(dec, (String(+a[i].toFixed(2)).split('.')[1] || '').length);
+    return pre + a.map(function (x) { return rmFix(x, dec); }).join(' × ') + ' cm';
+  }
+  v = a.map(function (x) { return x / 2.54; });
+  dec = rmDec(v, rmMax(v) >= 1 ? 1 : 2);
+  return pre + v.map(function (x) { return rmFix(x, dec); }).join(' × ') + ' in';
+}
+function fmtWeight(g) {
+  if (g === null || g === undefined || g === '') return '';
+  g = Number(g);
+  if (!isFinite(g)) return '';
+  if (unitsGet() !== 'standard') return g >= 1000 ? rmFix(g / 1000, 1) + ' kg' : rmTrim(g) + ' g';
+  if (g >= 453.59237) return rmLbOz(g);
+  var o = g / 28.349523125;
+  return rmFix(o, rmDec([o], 1)) + ' oz';
+}
+function unitsDimsHTML(ms) {
+  var t = fmtDims(ms), d = ms && ms.dims_cm && ms.dims_cm.length ? ms.dims_cm : [ms && ms.largest_cm];
+  return t ? '<span class="rm-dims" data-no-units data-rmd="' + d.join(',') + '" data-rma="' + (ms.approx ? '1' : '0') + '">' + t + '</span>' : '';
+}
+function unitsWeightHTML(g) {
+  var t = (g === null || g === undefined) ? '' : fmtWeight(g);
+  return t ? '<span class="rm-wt" data-no-units data-rmw="' + Number(g) + '">' + t + '</span>' : '';
+}
+/* ---- the converter ---- */
+function rmUT() {
+  return _rmUT || (_rmUT = {
+    mm: ['L', 'm', 0.1], cm: ['L', 'm', 1], m: ['L', 'm', 100], km: ['L', 'm', 100000],
+    'in': ['L', 's', 2.54], ft: ['L', 's', 30.48], mi: ['L', 's', 160934.4],
+    g: ['W', 'm', 1], kg: ['W', 'm', 1000], oz: ['W', 's', 28.349523125], lb: ['W', 's', 453.59237],
+    'cm³': ['V', 'm', 1], 'in³': ['V', 's', 16.387064],
+    'cm²': ['A', 'm', 1], 'in²': ['A', 's', 6.4516],
+    '°c': ['T', 'm', 0], '°f': ['T', 's', 0]
+  });
+}
+function rmKey(u) {
+  var k = String(u).replace(/\s+/g, '').toLowerCase(), M = { '"': 'in', inch: 'in', inches: 'in', feet: 'ft', foot: 'ft', miles: 'mi', mile: 'mi',
+    lbs: 'lb', pounds: 'lb', pound: 'lb', ounces: 'oz', ounce: 'oz', cm3: 'cm³', cm2: 'cm²', in3: 'in³', in2: 'in²' };
+  return M.hasOwnProperty(k) ? M[k] : k;
+}
+function rmRE() {
+  if (_rmURE) return _rmURE;
+  var N = '(?:\\d{1,3}(?:,\\d{3})+|\\d+)(?:\\.\\d+)?', SEQ = '[-\\u2212]?' + N + '(?:(?:\\s*[\\u00d7xX\\u2013\\u2014-]\\s*|\\s+(?:to|by)\\s+)[~\\u2248<>\\u2264\\u2265]?\\s*' + N + ')*',
+    TAIL = '(?![A-Za-z0-9\\u00b2\\u00b3/])(?!\\s+per\\b)',
+    BASIC = '(?:cm[\\u00b3\\u00b2]|cm[23]|in[\\u00b3\\u00b2]|in[23]|km|kg|mm|cm|miles?|mi|inches|inch|feet|foot|ft|ounces?|oz|lbs?|pounds?|m|g|\\u00b0\\s?[CF])' + TAIL,
+    INCTX = '(?![A-Za-z0-9\\u00b2\\u00b3/])(?=\\s*[)\\]},;:.!?]|\\s*$|\\s+(?:across|long|wide|tall|thick|deep|high|diameter|diam|height|length|width|thickness|apart|each|square|overall|size)\\b|\\s*[\\u00d7xX]\\s*\\d)',
+    UNIT = '(?:' + BASIC + '|in' + INCTX + '|"(?=[\\s.,;:)\\]]|$))',
+    PRE = '(^|[\\s(\\[{~\\u2248*\'"\\u201c\\u2018:;,=\\u00b1\\u2014\\u2013|\\u2022<>\\u2265\\u2264])',
+    PAR = '(?:(\\s*\\(\\s*(?:[~\\u2248]\\s*|(?:about|roughly|approx\\.?|approximately|ca\\.)\\s+)?)(' + SEQ + ')(\\s*)(' + UNIT + ')(\\s*\\)))?';
+  _rmUNUM = /(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?/g;
+  return (_rmURE = new RegExp(PRE + '(' + SEQ + ')(\\s*)(' + UNIT + ')' + PAR, 'g'));
+}
+function rmNums(seq) {
+  var neg = /^[-−]/.test(seq), body = neg ? seq.slice(1) : seq, n = [];
+  rmRE();
+  body.replace(_rmUNUM, function (t) { n.push(parseFloat(t.replace(/,/g, ''))); return t; });
+  if (neg && n.length) n[0] = -n[0];
+  return { body: body, nums: n };
+}
+function rmConv(nums, key, to, ascii) {   /* -> { vals: [string], unit: string|null } for a figure in the OTHER system, else null */
+  var T = rmUT()[key], i, v = [], f, d, u, g, sup;
+  if (!T || T[1] === (to === 'standard' ? 's' : 'm')) return null;
+  if (T[0] === 'T') {
+    for (i = 0; i < nums.length; i++) v.push(String(Math.round(key === '°c' ? nums[i] * 9 / 5 + 32 : (nums[i] - 32) * 5 / 9)));
+    return { vals: v, unit: key === '°c' ? '°F' : '°C' };
+  }
+  g = nums.map(function (x) { return x * T[2]; });
+  if (T[0] === 'W') {
+    if (to === 'standard') {
+      if (key === 'g') {
+        if (rmMax(g) >= 453.59237) return { vals: g.map(rmLbOz), unit: null };
+        v = g.map(function (x) { return x / 28.349523125; });
+        d = rmDec(v, 1);
+        return { vals: v.map(function (x) { return rmFix(x, d); }), unit: 'oz' };
+      }
+      v = g.map(function (x) { return x / 453.59237; });
+      return { vals: v.map(function (x) { return rmFix(x, 1); }), unit: 'lb' };
+    }
+    if (rmMax(g) >= 1000) return { vals: g.map(function (x) { return rmFix(x / 1000, 1); }), unit: 'kg' };
+    d = rmDec(g, key === 'oz' ? 1 : 0);
+    return { vals: g.map(function (x) { return rmFix(x, d); }), unit: 'g' };
+  }
+  sup = ascii ? function (s) { return s.replace('³', '3').replace('²', '2'); } : function (s) { return s; };
+  if (T[0] === 'V' || T[0] === 'A') {
+    f = T[0] === 'V' ? 16.387064 : 6.4516;
+    if (to === 'standard') { v = g.map(function (x) { return x / f; }); u = T[0] === 'V' ? 'in³' : 'in²'; }
+    else { v = g; u = T[0] === 'V' ? 'cm³' : 'cm²'; }
+    d = rmDec(v, rmMax(v) >= 1 ? 1 : 2);
+    return { vals: v.map(function (x) { return rmFix(x, d); }), unit: sup(u) };
+  }
+  if (to === 'standard') {
+    if (key === 'mm' || key === 'cm') { f = 2.54; u = 'in'; v = g.map(function (x) { return x / f; }); d = key === 'mm' ? 2 : (rmMax(v) >= 1 ? 1 : 2); }
+    else if (key === 'm') { u = 'ft'; v = g.map(function (x) { return x / 30.48; }); d = 1; }
+    else { u = 'mi'; v = g.map(function (x) { return x / 160934.4; }); d = 1; }
+  } else if (key === 'in') { u = 'cm'; v = g; d = rmMax(v) >= 1 ? 1 : 2; }
+  else if (key === 'ft') { u = 'm'; v = g.map(function (x) { return x / 100; }); d = 1; }
+  else { u = 'km'; v = g.map(function (x) { return x / 100000; }); d = 1; }
+  d = rmDec(v, d);
+  return { vals: v.map(function (x) { return rmFix(x, d); }), unit: u };
+}
+function rmRender(pre, seq, sp, unit, to) {
+  var key = rmKey(unit), P = rmNums(seq), i = 0, r = rmConv(P.nums, key, to, /\d$/.test(unit));
+  if (!r) return pre + seq + sp + unit;
+  return pre + P.body.replace(_rmUNUM, function () { return r.vals[i++]; }) + (r.unit ? (key.charAt(0) === '°' ? sp : ' ') + r.unit : '');
+}
+function rmClose(a, b) {   /* two figures that say the same thing in two systems (within ~40%: an author's "3 in" for 10 cm is still the same fact) */
+  var ta = rmUT()[rmKey(a.unit)], tb = rmUT()[rmKey(b.unit)], x, y;
+  if (!ta || !tb || ta[0] !== tb[0] || ta[0] === 'T') return false;
+  x = rmMax(rmNums(a.seq).nums) * ta[2]; y = rmMax(rmNums(b.seq).nums) * tb[2];
+  return x > 0 && y > 0 && y / x > 0.7 && y / x < 1.43;
+}
+function unitsConvert(s, to) {
+  s = String(s);
+  if (!/\d/.test(s)) return s;
+  to = to === 'standard' ? 'standard' : 'metric';
+  try {
+    return s.replace(rmRE(), function (all, pre, seq, sp, unit, po, seq2, sp2, unit2, pc) {
+      var tg = to === 'standard' ? 's' : 'm', A, B;
+      if (unit === '"' && /["“]/.test(pre)) return all;   /* "5" is a quoted five, not five inches */
+      if (po) {
+        A = rmUT()[rmKey(unit)]; B = rmUT()[rmKey(unit2)];
+        if (rmClose({ seq: seq, unit: unit }, { seq: seq2, unit: unit2 })) {
+          if (A[1] !== B[1] || A[1] !== tg) return rmRender(pre, seq, sp, unit, to);
+          return all;
+        }
+        return rmRender(pre, seq, sp, unit, to) + po + rmRender('', seq2, sp2, unit2, to) + pc;
+      }
+      return rmRender(pre, seq, sp, unit, to);
+    });
+  } catch (e) { return s; }
+}
+/* ---- the DOM walk ---- */
+function rmEl(el) {   /* a structured figure is rewritten in place; true = handled, do not descend */
+  var d = el.getAttribute ? el.getAttribute('data-rmd') : null, w = el.getAttribute ? el.getAttribute('data-rmw') : null, t;
+  if (d) t = fmtDims({ dims_cm: d.split(',').map(Number), approx: el.getAttribute('data-rma') === '1' });
+  else if (w) t = fmtWeight(Number(w));
+  else return false;
+  if (t && el.textContent !== t) el.textContent = t;
+  return true;
+}
+function rmSkip(el) { return !!(RM_USKIP[el.nodeName] || (el.hasAttribute && el.hasAttribute('data-no-units'))); }
+function rmText(n, to) {
+  var v = n.nodeValue, out;
+  if (n._rmV !== undefined && v === n._rmV) v = n._rmU;   /* ours: convert again from the ORIGINAL */
+  else if (!/\d/.test(v)) return;                          /* never seen and nothing to convert */
+  else n._rmU = v;                                         /* first visit, or the page rewrote the text */
+  out = unitsConvert(v, to);
+  n._rmV = out;
+  if (n.nodeValue !== out) n.nodeValue = out;
+}
+function rmWalk(el, to) {
+  var c = el.firstChild, nx;
+  while (c) {
+    nx = c.nextSibling;
+    if (c.nodeType === 3) rmText(c, to);
+    else if (c.nodeType === 1 && !rmEl(c) && !rmSkip(c)) rmWalk(c, to);
+    c = nx;
+  }
+}
+function unitsApply(root) {
+  if (!root) return;
+  var to = unitsGet();
+  if (root.nodeType === 3) { rmText(root, to); return; }
+  if (root.nodeType === 1 && (rmEl(root) || rmSkip(root))) return;
+  if (root.nodeType === 1 || root.nodeType === 9 || root.nodeType === 11) rmWalk(root, to);
+}
+function rmIn(el) { while (el && el.nodeType === 1) { if (rmSkip(el)) return true; el = el.parentNode; } return false; }
+function unitsWatch(el, ok) {   /* safety net: whatever the page adds under el is converted before it paints */
+  if (!el || el._rmW || typeof MutationObserver === 'undefined') return;
+  el._rmW = 1;
+  new MutationObserver(function (recs) {
+    var i, j, a, n;
+    for (i = 0; i < recs.length; i++) {
+      a = recs[i].addedNodes;
+      for (j = 0; j < a.length; j++) {
+        n = a[j];
+        if (ok && !ok(n)) continue;
+        if (n.nodeType === 3) { if (!rmIn(n.parentNode)) rmText(n, unitsGet()); }
+        else if (n.nodeType === 1 && !rmIn(n.parentNode)) unitsApply(n);
+      }
+    }
+  }).observe(el, { childList: true, subtree: true });
+}
+if (typeof document !== 'undefined' && document.addEventListener && !window._rmUClick) {
+  window._rmUClick = 1;
+  document.addEventListener('click', function (e) {
+    var t = e.target, b = t && t.closest ? t.closest('.rm-unit') : null;
+    if (b) unitsSet(b.getAttribute('data-u'));
+  });
+}
+/* ---- end shared units ------------------------------------------------------ */
+unitsWatch(document.getElementById('min-root'));unitsWatch(document.getElementById('modal-wrap'));   /* guard #232: whatever either viewer renders under these two is converted before it paints */
 /* ---- shared photo references — guard #181 · DO NOT EDIT ONE COPY --------------
    A specimen record cites its own frames by stem — "RM-0103_12" — wherever the
    prose needs a witness, and once one is on the page it keeps going in shorthand:
@@ -1082,6 +1376,10 @@ function factValue(raw){
 /* ---- dossier cards (mirrors friends_viewer.js: quickField / factChip / dossierCard / identificationHTML / uvHTML / regionCardHTML / relatedHTML) ---- */
 function quickField(label,value,extraClass){if(value==null||value===''||value==='—')return '';return '<div class="min-quick-item'+(extraClass?' '+extraClass:'')+'"><span class="min-quick-k">'+esc(label)+'</span><div class="min-quick-v">'+value+'</div></div>';}
 function factChip(label,raw,extraClass){var v=factValue(raw);return v?quickField(label,v,extraClass):'';}
+/* guard #232: a Size chip whose headline is the record's structured `measure` (exact, so the units toggle converts it without a regex); the full prose rides in the
+   field-notes fold. A record without a measure keeps the prose chip above. */
+function measureChip(label,raw,figHTML,extraClass){var s=String(raw==null?'':raw).trim();if(!figHTML)return factChip(label,raw,extraClass);
+  return quickField(label,'<span class="mf-lead">'+figHTML+'</span>'+((s&&s!=='—')?'<details class="mq-more"><summary>field notes</summary><div class="mq-note">'+richText(s)+'</div></details>':''),extraClass);}
 function confidenceBadge(m){var c=String(m.id_confidence||'').toLowerCase();if(!c)return '';var label={high:'ID confidence: High',medium:'ID confidence: Medium',low:'ID confidence: Low'}[c];return label?'<span class="min-conf-badge conf-'+c+'">'+label+'</span>':'';}
 function dossierCard(kicker,heading,bodyHTML,cls){if(!bodyHTML)return '';return '<section class="dossier-card'+(cls?' '+cls:'')+'"><div class="dossier-kicker">'+esc(kicker)+'</div><h3>'+esc(heading)+'</h3>'+bodyHTML+'</section>';}
 /* ---- the candidate map must AGREE with the record (2026-09-04) -------------
@@ -1470,7 +1768,7 @@ function provOf(m){return m.provenance||'(untagged)';}
 function stateOf(m){return (m.locality&&m.locality.state)||'(unknown)';}
 function photosOf(m){return (m.photos&&m.photos.length)?orderPhotos(m.photos,!!window._showAux):(hero(m)?[hero(m)]:[]);}
 /* guard #188: expand the folded evidence frames IN PLACE — same specimen, same photo. */
-function toggleAux(){var m=curM(),box=document.getElementById('cw-modal');if(!m||!box)return;var cur=photosOf(m)[window._photoIdx||0];var open=!window._showAux;window._showAux=open;var P=photosOf(m),idx=0;for(var i=0;i<P.length;i++){if(cur&&P[i].f===cur.f){idx=i;break;}}window._photoIdx=idx;clearTimeout(window._animT);window._anim=false;var sl=(thumbStrip()||{}).scrollLeft;window._auxEnter=open;box.innerHTML=modalBody(m);window._auxEnter=false;thumbScrollTo(thumbStrip(),sl);bindStage();if(window._spin&&window._spin.on)spinExit();if(open)thumbReveal(thumbStrip(),'.min-tgroup-aux');}
+function toggleAux(){var m=curM(),box=document.getElementById('cw-modal');if(!m||!box)return;var cur=photosOf(m)[window._photoIdx||0];var open=!window._showAux;window._showAux=open;var P=photosOf(m),idx=0;for(var i=0;i<P.length;i++){if(cur&&P[i].f===cur.f){idx=i;break;}}window._photoIdx=idx;clearTimeout(window._animT);window._anim=false;var sl=(thumbStrip()||{}).scrollLeft;window._auxEnter=open;box.innerHTML=modalBody(m);unitsApply(box);window._auxEnter=false;thumbScrollTo(thumbStrip(),sl);bindStage();if(window._spin&&window._spin.on)spinExit();if(open)thumbReveal(thumbStrip(),'.min-tgroup-aux');}
 function showStem(f){var m=curM();if(!m)return;var P=photosOf(m),i;for(i=0;i<P.length;i++)if(P[i].f===f){photoShow(i);return;}if(!window._showAux){toggleAux();P=photosOf(m);for(i=0;i<P.length;i++)if(P[i].f===f){photoShow(i);return;}}}
 function prefJump(i){var m=curM();if(!m)return;var all=orderPhotos(m.photos||[],true);if(all[i])showStem(all[i].f);}
 function heroIdx(m){var P=photosOf(m);for(var i=0;i<P.length;i++){if(P[i]&&P[i].hero)return i;}return 0;}
@@ -1608,10 +1906,10 @@ function isPhoneList(){return !!(phoneListQ&&phoneListQ.matches);}
 if(phoneListQ&&phoneListQ.addEventListener)phoneListQ.addEventListener('change',function(){if(S.view==='table')renderContent();});
 function phoneRowHTML(m,i){
   var h=hero(m),src=h?img(h,400):PLACEHOLDER,sp=(m.species||[]).slice(0,2).join(', ');
-  var where=[sp,shortLoc(m.locality)].filter(Boolean).join(' · '),size=phoneSize(m.size);
+  var where=[sp,shortLoc(m.locality)].filter(Boolean).join(' · '),size=m.measure?unitsDimsHTML(m.measure):esc(phoneSize(m.size));
   return '<button class="pl-row" type="button" onclick="showMineral(\''+m.id+'\')" aria-label="'+esc(title(m)+', '+locStr(m.locality))+'">'
     +'<img class="pl-img" src="'+esc(src)+'" loading="'+(i<5?'eager':'lazy')+'" decoding="async" alt="" onerror="this.onerror=null;this.src=\''+PLACEHOLDER+'\'">'
-    +'<span class="pl-copy"><strong title="'+esc(title(m))+'">'+esc(shortCardTitle(displayName(title(m),m.id)))+'</strong><span>'+esc(where)+'</span>'+(size?'<small>'+esc(size)+'</small>':'')+'</span>'
+    +'<span class="pl-copy"><strong title="'+esc(title(m))+'">'+esc(shortCardTitle(displayName(title(m),m.id)))+'</strong><span>'+esc(where)+'</span>'+(size?'<small>'+size+'</small>':'')+'</span>'
     +'<span class="pl-arrow" aria-hidden="true">›</span></button>';
 }
 function renderContent(){
@@ -1627,12 +1925,13 @@ function renderContent(){
   if(S.view==='table'&&isPhoneList()){
     el.innerHTML='<div class="pl-list">'+M.map(phoneRowHTML).join('')+'</div>';
   }else if(S.view==='table'){
-    var rows=M.map(function(m){return '<tr class="cl" tabindex="0" role="button" aria-label="'+esc(title(m)+', '+locStr(m.locality))+'" onclick="showMineral(\''+m.id+'\')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();showMineral(\''+m.id+'\');}"><td><strong title="'+esc(title(m))+'">'+esc(displayName(title(m),m.id))+'</strong><div style="color:var(--t3);font-size:0.72rem">'+esc(m.id)+(m.provenance==='Charlie Wills'?' · CW':'')+'</div></td><td>'+esc(subLabel(m.subtype))+'</td><td>'+esc(locStr(m.locality))+'</td><td'+(m.size?' title="'+esc(m.size)+'"':'')+'>'+esc(phoneSize(m.size)||'—')+'</td></tr>';}).join('');
+    var rows=M.map(function(m){return '<tr class="cl" tabindex="0" role="button" aria-label="'+esc(title(m)+', '+locStr(m.locality))+'" onclick="showMineral(\''+m.id+'\')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();showMineral(\''+m.id+'\');}"><td><strong title="'+esc(title(m))+'">'+esc(displayName(title(m),m.id))+'</strong><div style="color:var(--t3);font-size:0.72rem">'+esc(m.id)+(m.provenance==='Charlie Wills'?' · CW':'')+'</div></td><td>'+esc(subLabel(m.subtype))+'</td><td>'+esc(locStr(m.locality))+'</td><td'+(m.size?' title="'+esc(m.size)+'"':'')+'>'+(m.measure?unitsDimsHTML(m.measure):esc(phoneSize(m.size)||'—'))+'</td></tr>';}).join('');
     el.innerHTML='<div style="overflow-x:auto"><table class="min-table"><thead><tr><th>Specimen</th><th>Type</th><th>Locality</th><th>Size</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
   }else{
     var tiles=M.map(function(m){var h=hero(m);var src=h?img(h,400):PLACEHOLDER;return '<div class="gtile" role="button" tabindex="0" aria-label="'+esc(title(m)+', '+locStr(m.locality))+'" onclick="showMineral(\''+m.id+'\')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();showMineral(\''+m.id+'\');}"><div class="gtile-imgwrap"><img class="gtile-img" src="'+esc(src)+'" loading="lazy" decoding="async" alt="'+esc(title(m))+'" onerror="this.onerror=null;this.src=\''+PLACEHOLDER+'\'"><div class="gtile-badges"><span class="min-sub-badge">'+esc(subLabel(m.subtype))+'</span>'+(m.provenance==='Charlie Wills'?'<span class="min-cw-badge" title="Charlie Wills collection">CW</span>':'')+(m.spin?'<span class="min-spin-badge" title="Has a 360° spin">360°</span>':'')+'</div></div><div class="gtile-body"><div class="gtile-name" title="'+esc(title(m))+'">'+esc(shortCardTitle(displayName(title(m),m.id)))+'</div><div class="gtile-sub" title="'+esc(locStr(m.locality))+'">'+esc(shortLoc(m.locality))+'</div>'+(shortFlavor(m.flavor)?'<div class="min-tile-flavor">'+esc(shortFlavor(m.flavor))+'</div>':'')+'</div></div>';}).join('');
     el.innerHTML='<div class="mgrid'+(S.lvl>=2?' compact':'')+'">'+tiles+'</div>';applyGridSize();fadeTileImgs(el);
   }
+  unitsApply(el);
 }
 /* ---- shared image reveal — guard #226 · DO NOT EDIT ONE COPY --------------
    A photo that is still on its way FADES IN when it lands instead of popping (opacity only; `img.rv` in the stylesheet, off under
@@ -1778,10 +2077,11 @@ function modalBody(m){
   var thumbs=(multi||m.spin)?thumbStripHTML({videos:[],spins:m.spin?[m.spin]:[],photos:P,all:m.photos,showAux:!!window._showAux,enter:!!window._auxEnter,current:pi,cls:'on',url:img,spinThumb:function(sp){return'images/minerals/'+sp.stem+'01_200.jpg';},on:{photo:function(i){return'photoShow('+i+')';},spin:function(){return'spinEnter()';},fold:'toggleAux()'}}):'';
   var n=(window._navIds||[]).length;
   var rocknav=n>1?'<div class="min-rocknav"><button class="min-rock-btn" onclick="navRock(-1)" aria-label="Previous">‹ Prev</button><span class="min-rock-pos">'+((window._navIdx||0)+1)+' / '+n+'</span><button class="min-rock-btn" onclick="navRock(1)" aria-label="Next">Next ›</button></div>':'';
+  var sizeFig=unitsDimsHTML(m.measure);   /* guard #232: the structured size (the units toggle rewrites it in place); phoneSize() of the prose is the fallback */
   var species=(m.species||[]).map(function(sp){return '<a class="min-mindat" href="'+esc(mindat(sp))+'" target="_blank" rel="noopener">'+esc(sp)+'</a>';}).join(', ');
   var quick=quickField('Species',species)
     +factChip('Locality',locStr(m.locality),'wide wide-mobile')
-    +factChip('Size',m.size)
+    +measureChip('Size',m.size,sizeFig)
     +factChip('Color',m.color)
     +factChip('Catalog #',m.catalog_no||m.id)
     +(String(m.habit||'').length>240?'':factChip('Habit',m.habit,'wide'));
@@ -1789,7 +2089,7 @@ function modalBody(m){
   var phoneSp=(m.species||[]).map(esc).join(', ');
   var dispName=displayName(title(m),m.id);   /* TITLE-1: the head name; the full record name rides under it when it differs */
   var phoneHead='<div class="min-phone-head"><h2 class="min-phone-title">'+esc(dispName)+'</h2>'
-    +'<div class="min-phone-facts">'+(phoneSp?'<span>'+phoneSp+'</span>':'')+'<span>'+esc(locStr(m.locality))+'</span>'+(phoneSize(m.size)?'<span class="mpf-size">'+esc(phoneSize(m.size))+'</span>':'')+'</div>'
+    +'<div class="min-phone-facts">'+(phoneSp?'<span>'+phoneSp+'</span>':'')+'<span>'+esc(locStr(m.locality))+'</span>'+((sizeFig||phoneSize(m.size))?'<span class="mpf-size">'+(sizeFig||esc(phoneSize(m.size)))+'</span>':'')+'</div>'
     +'<button class="min-share-btn min-share-phone" type="button" onclick="shareSpecimen(this)">Share</button></div>';
   var labelBlock=m.label_text?'<div class="min-label"><div class="min-label-h">&#127991; Charlie&rsquo;s label</div><div class="min-label-body">'+esc(m.label_text)+'</div><div class="min-label-note">Transcribed exactly as written &mdash; spelling and all.</div></div>':'';
   var uv=uvHTML(m),ident=identificationHTML(m),region=regionCardHTML(m)+candMapHTML(m),related=relatedHTML(m);
@@ -1884,7 +2184,7 @@ function geoArrived(){
   var C=window.MINERAL_COORDS,K=window.MINERAL_CANDIDATES;
   if(!((C&&C[m.id])||(K&&K[m.id])))return;   /* the open record has no map to add */
   var grid=box.querySelector('.modal-grid');if(!grid)return;
-  var t=document.createElement('template');t.innerHTML=modalBody(m);   /* inert: nothing in it loads until it is adopted */
+  var t=document.createElement('template');t.innerHTML=modalBody(m);unitsApply(t.content);   /* inert: nothing in it loads until it is adopted */
   var nu=t.content.querySelector('.modal-dossier');if(!nu)return;
   var old=box.querySelector('.modal-dossier');
   if(old){   /* keep any disclosure the visitor already opened */
@@ -2130,7 +2430,7 @@ function trapTab(e,box){
   for(c=0;c<n;c++){f[k].focus();if(document.activeElement===f[k])return;k=(k+dir+n)%n;}
 }
 function swapModalContent(apply){var box=document.getElementById('cw-modal');var run=function(){var fa=document.activeElement,cb=document.getElementById('cw-modal'),had=!!(cb&&fa&&cb.contains(fa)),fk=(had&&fa.classList&&fa.classList.contains('min-rock-btn'))?fa.getAttribute('aria-label'):'';apply();if(had){var nb=fk?document.querySelector('#cw-modal .min-rock-btn[aria-label="'+fk+'"]'):null;if(!nb)nb=document.querySelector('#cw-modal .modal-close');if(nb){try{nb.focus({preventScroll:true});}catch(e){}}}};if(!box||modalMotionOff()){run();return;}if(window._swapT)return;box.classList.remove('min-swap-in');box.classList.add('min-swap-out');window._swapT=setTimeout(function(){window._swapT=0;var b=document.getElementById('cw-modal');if(!b)return;b.classList.remove('min-swap-out');run();b=document.getElementById('cw-modal');if(!b)return;b.classList.add('min-swap-in');setTimeout(function(){var x=document.getElementById('cw-modal');if(x)x.classList.remove('min-swap-in');},100);},55);}
-function fill(){var m=curM(),box=document.getElementById('cw-modal');if(!m||!box)return;clearTimeout(window._animT);window._anim=false;window._showAux=false;window._photoIdx=heroIdx(m);if(!geoReady())_loadMapBundles();box.innerHTML=modalBody(m);box.setAttribute('aria-label',title(m));box.scrollTop=0;var _bg=box.parentNode;if(_bg&&_bg.scrollTop)_bg.scrollTop=0;bindStage();syncDocTitle();}
+function fill(){var m=curM(),box=document.getElementById('cw-modal');if(!m||!box)return;clearTimeout(window._animT);window._anim=false;window._showAux=false;window._photoIdx=heroIdx(m);if(!geoReady())_loadMapBundles();box.innerHTML=modalBody(m);unitsApply(box);box.setAttribute('aria-label',title(m));box.scrollTop=0;var _bg=box.parentNode;if(_bg&&_bg.scrollTop)_bg.scrollTop=0;bindStage();syncDocTitle();}
 function navRock(d){var ids=window._navIds||[],n=ids.length;if(n<2)return;window._navIdx=((window._navIdx||0)+d+n)%n;swapModalContent(function(){fill();setSpecimenUrl(ids[window._navIdx],true);});}
 /* Prev/Next follows the order the visitor is actually looking at (filtered() — newest-first
    by default), not the raw catalog order. Before this the newest specimen opened as "72 / 72",
@@ -2172,7 +2472,7 @@ function syncSpecimenFromLocation(){
 }
 window.addEventListener('popstate',syncSpecimenFromLocation);
 window.addEventListener('hashchange',syncSpecimenFromLocation);
-function showMineral(id,updateUrl){var M=filtered();if(!M.length||M.map(function(x){return x.id;}).indexOf(id)<0)M=minData();var ids=M.map(function(x){return x.id;}),idx=ids.indexOf(id);if(idx<0)return;var m=M[idx],wrap=document.getElementById('modal-wrap');if(!wrap)return;if(updateUrl!==false)setSpecimenUrl(id,false);/* MOTION-3: a modal that is already open (a Related card, Back/Forward, a pasted hash) keeps its layer and crossfades its content; a modal that is mid-exit is called back (its layer fades in again). Only a closed modal builds a layer and rises. */var _openBg=wrap.querySelector('.modal-bg');if(_openBg&&document.getElementById('cw-modal')&&!wrap.classList.contains('hidden')){var _leaving=!!window._closeT;cancelModalExit();if(_leaving){_openBg.classList.remove('out');_openBg.classList.add('vis');}window._navIds=ids;window._navIdx=idx;swapModalContent(fill);return;}cancelModalExit();clearTimeout(window._swapT);window._swapT=0;/* A11Y-1: remember the opener (the tile) — but never overwrite it with a Related card from inside an already-open modal */if(!document.getElementById('cw-modal'))window._lastMineralFocus=document.activeElement;window._navIds=ids;window._navIdx=idx;window._showAux=false;window._photoIdx=heroIdx(m);if(!geoReady())_loadMapBundles();/* PUB-4: map data requested before the modal renders; geoArrived() redraws the dossier when it lands */wrap.innerHTML='<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal" id="cw-modal" tabindex="-1" role="dialog" aria-modal="true" aria-label="'+esc(title(m))+'">'+modalBody(m)+'</div></div>';wrap.classList.remove('hidden');var bg=wrap.querySelector('.modal-bg');requestAnimationFrame(function(){if(bg)bg.classList.add('vis');var cl=window._uiTouched?wrap.querySelector('.modal-close'):document.getElementById('cw-modal');if(cl)cl.focus({preventScroll:true});});bindStage();syncDocTitle();if(!window._keyBound){window._keyBound=1;document.addEventListener('keydown',function(e){if(!document.getElementById('cw-modal'))return;if(e.key==='Tab'){trapTab(e,document.getElementById('cw-modal'));return;}if(e.key==='ArrowLeft'){if(e.shiftKey)navRock(-1);else photoNav(-1);}else if(e.key==='ArrowRight'){if(e.shiftKey)navRock(1);else photoNav(1);}else if(e.key==='Escape'){if(isFullscreen())exitFullscreen();else closeModal();}});}}
+function showMineral(id,updateUrl){var M=filtered();if(!M.length||M.map(function(x){return x.id;}).indexOf(id)<0)M=minData();var ids=M.map(function(x){return x.id;}),idx=ids.indexOf(id);if(idx<0)return;var m=M[idx],wrap=document.getElementById('modal-wrap');if(!wrap)return;if(updateUrl!==false)setSpecimenUrl(id,false);/* MOTION-3: a modal that is already open (a Related card, Back/Forward, a pasted hash) keeps its layer and crossfades its content; a modal that is mid-exit is called back (its layer fades in again). Only a closed modal builds a layer and rises. */var _openBg=wrap.querySelector('.modal-bg');if(_openBg&&document.getElementById('cw-modal')&&!wrap.classList.contains('hidden')){var _leaving=!!window._closeT;cancelModalExit();if(_leaving){_openBg.classList.remove('out');_openBg.classList.add('vis');}window._navIds=ids;window._navIdx=idx;swapModalContent(fill);return;}cancelModalExit();clearTimeout(window._swapT);window._swapT=0;/* A11Y-1: remember the opener (the tile) — but never overwrite it with a Related card from inside an already-open modal */if(!document.getElementById('cw-modal'))window._lastMineralFocus=document.activeElement;window._navIds=ids;window._navIdx=idx;window._showAux=false;window._photoIdx=heroIdx(m);if(!geoReady())_loadMapBundles();/* PUB-4: map data requested before the modal renders; geoArrived() redraws the dossier when it lands */wrap.innerHTML='<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal" id="cw-modal" tabindex="-1" role="dialog" aria-modal="true" aria-label="'+esc(title(m))+'">'+modalBody(m)+'</div></div>';unitsApply(wrap);wrap.classList.remove('hidden');var bg=wrap.querySelector('.modal-bg');requestAnimationFrame(function(){if(bg)bg.classList.add('vis');var cl=window._uiTouched?wrap.querySelector('.modal-close'):document.getElementById('cw-modal');if(cl)cl.focus({preventScroll:true});});bindStage();syncDocTitle();if(!window._keyBound){window._keyBound=1;document.addEventListener('keydown',function(e){if(!document.getElementById('cw-modal'))return;if(e.key==='Tab'){trapTab(e,document.getElementById('cw-modal'));return;}if(e.key==='ArrowLeft'){if(e.shiftKey)navRock(-1);else photoNav(-1);}else if(e.key==='ArrowRight'){if(e.shiftKey)navRock(1);else photoNav(1);}else if(e.key==='Escape'){if(isFullscreen())exitFullscreen();else closeModal();}});}}
 function closeModal(keepUrl){document.body.classList.remove('cw-fs-on');if(!keepUrl&&specimenFromHash())history.replaceState({},'',baseViewerUrl());var w=document.getElementById('modal-wrap');if(!w)return;if(window._closeT)return;var bg=w.querySelector('.modal-bg');if(!bg||w.classList.contains('hidden')||modalMotionOff()){closeModalNow();return;}bg.classList.remove('vis');bg.classList.add('out');window._closeT=setTimeout(closeModalNow,170);}
 function isFullscreen(){return document.body.classList.contains('cw-fs-on');}
 function enterFullscreen(){var b=document.getElementById('cw-modal');if(!b)return;b.classList.add('fs-on');document.body.classList.add('cw-fs-on');zmReset();}
