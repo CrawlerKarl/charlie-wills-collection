@@ -147,6 +147,21 @@ a{color:#2dd4bf}
 .pubms-opt{display:flex;align-items:center;gap:10px;padding:11px 10px;border-radius:7px;cursor:pointer;font-size:0.98rem}
 @media(hover:hover){.pubms-opt:hover{background:var(--card2)}}
 .pubms-opt input{accent-color:var(--gold);width:18px;height:18px}
+/* guard #234 -- the Mineral popover: an any / all switch on top, the scrolling option list, a foot with the live result count and Done.
+   Every multi-select popover takes the list + foot; only Mineral carries the switch. */
+.pubms.open .pubms-drop.pubms-drop-x{display:flex;flex-direction:column;overflow:hidden;padding:0;min-width:272px}
+@media(min-width:601px){.pubms.open .pubms-drop.pubms-drop-x{max-height:min(480px,72vh)}}   /* the list scrolls inside it; a phone keeps its own bottom-sheet height */
+.pubms-list{flex:1 1 auto;min-height:0;overflow:auto;padding:6px}
+.pubms-mode{display:flex;gap:2px;margin:8px 8px 2px;padding:3px;border:1px solid var(--bdr);border-radius:10px;background:var(--card2)}
+.pubms-mode-btn{flex:1 1 0;min-height:38px;padding:6px 10px;border:0;border-radius:7px;background:transparent;color:var(--t3);font-size:0.86rem;font-weight:750;white-space:nowrap;cursor:pointer}
+.pubms-mode-btn.on{background:var(--card);color:var(--gold);box-shadow:0 1px 5px rgba(0,0,0,0.18)}
+@media(hover:hover){.pubms-mode-btn:not(.on):hover{color:var(--t1)}}
+.pubms-mode-btn:focus-visible{outline:2px solid var(--gold);outline-offset:1px}
+.pubms-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 8px 8px 12px;border-top:1px solid var(--bdr);background:var(--card)}
+.pubms-foot-n{font-size:0.82rem;color:var(--t3);white-space:nowrap}
+.pubms-done{min-height:44px;min-width:88px;padding:9px 20px;border:1px solid var(--gold);border-radius:var(--r-sm);background:var(--gold);color:#1a1205;font-size:0.95rem;font-weight:800;cursor:pointer}
+@media(hover:hover){.pubms-done:hover{filter:brightness(1.1)}}
+.pubms-done:focus-visible{outline:2px solid var(--t1);outline-offset:2px}
 .pf-sel{background:var(--card2);border:1px solid var(--bdr);color:var(--t1);font-size:1rem;padding:12px 32px 12px 14px;border-radius:var(--r-sm);cursor:pointer;min-height:48px;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 4.5l3.5 3.5 3.5-3.5' fill='none' stroke='%2394a3b8' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
 .tc-hd .tt{font-size:1.05rem;font-weight:700}
 #gs-grp{display:flex;gap:5px;flex-shrink:0}
@@ -1840,7 +1855,7 @@ function charlieStoryBodyHTML(img){
    surface shows. 'Locality unknown' stays in the blob on purpose — typing "unknown"
    has always found the unlocalized pieces, on every surface. */
 var SPIN_FILTER_OPTIONS=[['','360°: all'],['yes','Has 360° spin'],['no','No 360° spin']];
-var SPECIMEN_SORTS=[['idDesc','Newest'],['id','Catalog #'],['name','Name A–Z'],['species','Mineral'],['subtype','Type']];
+var SPECIMEN_SORTS=[['idDesc','Newest'],['id','Catalog #'],['name','Title A–Z'],['species','Mineral'],['subtype','Type']];
 function specimenLocText(loc){if(!loc)return 'Locality unknown';var p=[loc.mine,loc.district,loc.state,loc.country].filter(Boolean);return p.length?p.join(', '):'Locality unknown';}
 function specimenSearchBlob(m){return ((m.name||'')+' '+((m.species||[]).join(' '))+' '+specimenLocText(m.locality)+' '+(m.label_text||'')+' '+(m.flavor||'')+' '+(m.notes||'')+' '+(m.id||'')).toLowerCase();}
 /* ⭐ A query that NAMES a catalog id means THAT specimen and nothing else.
@@ -1860,7 +1875,11 @@ var _SPECIMEN_ID_RE=/^(rm|fs)[\s\-_]*0*(\d{1,4})$/;
 function specimenIdQuery(q){var m=String(q==null?'':q).trim().toLowerCase().match(_SPECIMEN_ID_RE);return m?m[1].toUpperCase()+'-'+('0000'+m[2]).slice(-4):'';}
 function specimenMatchesQuery(m,q){q=String(q==null?'':q).trim().toLowerCase();if(!q)return true;var id=specimenIdQuery(q);if(id)return (m.id||'')===id;var b=m._sb||(m._sb=specimenSearchBlob(m));return b.indexOf(q)>=0;}
 function specimenSpinMatches(m,spin){var has=!!(m&&((m.spin&&m.spin.stem)||(m.spins&&m.spins.length)));if(spin==='yes')return has;if(spin==='no')return !has;return true;}
-function specimenSpeciesMatches(m,sel){if(!sel||!sel.length)return true;var sp=m.species||[];for(var i=0;i<sel.length;i++){if(sp.indexOf(sel[i])>=0)return true;}return false;}
+/* Which ticked minerals a specimen must carry. mode 'all' = EVERY ticked mineral; anything else, a missing argument included, = ANY of them —
+   what the filter has always meant — so a caller that passes no mode keeps its behaviour. (Guard #234.) */
+function specimenSpeciesMatches(m,sel,mode){if(!sel||!sel.length)return true;var sp=m.species||[],i;if(mode==='all'){for(i=0;i<sel.length;i++){if(sp.indexOf(sel[i])<0)return false;}return true;}for(i=0;i<sel.length;i++){if(sp.indexOf(sel[i])>=0)return true;}return false;}
+/* The heading a list sorted by Mineral files a specimen under: its first species, else Fossils, else Unidentified. (Guard #234.) */
+function specimenGroupLabel(m){var s=m.species&&m.species[0];return s||(m.subtype==='fossil'?'Fossils':'Unidentified');}
 function specimenStateKey(m){return (m.locality&&m.locality.state)||'(unknown)';}
 function specimenSortTitle(m){return m.name||(m.species&&m.species[0])||m.id;}
 /* ⭐ Best match first (polish pass 7). A query is looked for in the whole blob, prose included, so "fluorite" returned every specimen that
@@ -1880,7 +1899,7 @@ function specimenCompare(sort,a,b,q){
   if(sort==='idDesc'&&q!=null){q=String(q).trim().toLowerCase();if(q&&!specimenIdQuery(q)){var qd=specimenQueryTier(a,q)-specimenQueryTier(b,q);if(qd)return qd;}}
   if(sort==='quality'||sort==='rarity'){var d=_specimenGradeRank(a,sort)-_specimenGradeRank(b,sort);return d||(a.id<b.id?-1:(a.id>b.id?1:0));}
   if(sort==='name')return String(specimenSortTitle(a)).localeCompare(String(specimenSortTitle(b)));
-  if(sort==='species')return String((a.species&&a.species[0])||'').localeCompare(String((b.species&&b.species[0])||''))||(a.id<b.id?-1:1);
+  if(sort==='species'){var ra=(a.species&&a.species.length)?0:1,rb=(b.species&&b.species.length)?0:1;return (ra-rb)||String(specimenGroupLabel(a)).localeCompare(String(specimenGroupLabel(b)))||(a.id<b.id?-1:1);}
   if(sort==='subtype')return String(a.subtype||'').localeCompare(String(b.subtype||''))||(a.id<b.id?-1:1);
   if(sort==='idDesc')return a.id<b.id?1:(a.id>b.id?-1:0);
   return a.id<b.id?-1:(a.id>b.id?1:0);
