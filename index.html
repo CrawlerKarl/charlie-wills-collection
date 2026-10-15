@@ -31,7 +31,15 @@ main{padding:18px 0 40px;min-height:100vh;min-height:100svh}   /* the footer sta
 @media(max-width:760px){.cw-story{display:block;padding:12px}.cw-story-lead{font-size:0.9rem!important;line-height:1.5!important}.cw-story-more{clear:both}} /* phone: the text wraps under the thumbnail instead of stacking beside it */
 /* filter bar */
 /* Search stays visible; the rest collapses behind one control on phones. */
-.pf-shell{margin-bottom:12px}
+/* guard #234 (F2, Randy 2026-10-15): the bar is STICKY at every width -- it used to pin only on a phone, so on a desktop the search, the filters and the
+   Gallery / Table switch scrolled away and getting back to the gallery meant scrolling to the top. z-index 34: above the grid and the panels, below the
+   specimen dialog (100). The count + Gallery / Table row is INSIDE it (a grid: search left, count + layout switch right, the filters on a second row;
+   a phone stacks search / count + switch / filters), so the layout switch and the count follow the visitor down. */
+.pf-shell{position:sticky;top:0;z-index:34;margin:0 -8px 12px;padding:8px;background:var(--bg);box-shadow:0 10px 12px -10px rgba(0,0,0,0.3);display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"search count" "adv adv";gap:8px 14px;align-items:center}
+.pf-shell>.pf-search-row{grid-area:search}
+.pf-shell>.tc-hd{grid-area:count;margin:0;flex-wrap:nowrap}
+.pf-shell>.pf-advanced{grid-area:adv}
+@media(max-width:900px){.pf-shell>.tc-hd .tt{display:none}}
 .pf-search-row{display:flex;gap:8px}
 .pf-mobile-toggle{display:none;flex:0 0 auto;min-height:48px;padding:10px 13px;border:1px solid var(--bdr);border-radius:var(--r-sm);background:var(--card2);color:var(--t1);font-weight:700;cursor:pointer}
 .pf-in{flex:1 1 200px;min-width:160px;background:var(--inp);border:1px solid var(--bdr);border-radius:var(--r-sm);color:var(--t1);font-size:1.02rem;padding:12px 14px;min-height:48px}
@@ -96,6 +104,12 @@ main{padding:18px 0 40px;min-height:100vh;min-height:100svh}   /* the footer sta
 .pl-copy small{margin-top:4px;color:var(--t3);font-size:.72rem;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pl-arrow{color:var(--t3);font-size:1.7rem;line-height:1}
 @media(prefers-reduced-motion:reduce){.pl-row{transition:none}.pl-row:active{transform:none}}
+/* guard #234 (F3): under the Mineral sort the Table and the phone list carry a heading at each change of mineral -- "Fluorite · 37", small caps over a hairline rule. */
+.spec-group{margin:14px 0 1px;padding:0 2px 6px;border-bottom:1px solid var(--bdr);color:var(--t3);font-size:0.72rem;font-weight:750;letter-spacing:0.09em;text-transform:uppercase}
+.spec-group:first-child{margin-top:2px}
+.spec-group-n{font-weight:650}
+.min-table th.spec-group{padding:22px 9px 6px;text-align:left;white-space:nowrap}   /* the table's own heading cell: a th in a tbody, spanning the four columns */
+.min-table tbody:first-of-type th.spec-group{padding-top:8px}
 /* ---- shared mineral viewer CSS — guard #223 · DO NOT EDIT ONE COPY ----------
    Byte-identical in Scripts/public_rocks/viewer_template.html (<style>) and
    Scripts/private_rocks/friends_viewer.css, in the same spot in both: immediately
@@ -476,7 +490,7 @@ button.min-glance-tile{cursor:pointer;-webkit-tap-highlight-color:transparent}
 .min-field .mf-v{flex:1;color:var(--t1);min-width:0;overflow-wrap:anywhere}
 /* fullscreen photo viewer — reuses the modal carousel (swipe / arrows / keyboard) */
 body.cw-fs-on{overflow:hidden}
-@media(max-width:600px){.modal{padding:14px 15px 20px}/* phone: the modal uses the whole width (owner, 2026-09-04). The close button is float:right+sticky on desktop; a grid container will not flow under a float, so at phone width the 62px button was pushing the whole dossier grid 62px narrower — the unused strip in the owner's screenshot. Overlay it. */.modal{border-radius:0;border-left:0;border-right:0;padding:10px 6px 20px;max-width:none}.modal-close{float:none;position:absolute;top:8px;right:8px;z-index:5}.mgrid{grid-template-columns:repeat(var(--mob-cols,2),1fr);gap:11px}.modal-close{width:62px;height:62px;font-size:2.4rem;border-radius:15px}.modal h2{padding-right:74px}.vt-grp{flex-shrink:0}.pf-shell{position:sticky;z-index:34;top:0;margin:0 -6px 10px;padding:8px 6px;background:var(--bg);box-shadow:0 10px 12px -10px rgba(0,0,0,0.3)}.pf-search-row{display:grid;grid-template-columns:minmax(0,1fr) auto}.pf-mobile-toggle{display:block}.pf-advanced .pf-clear{flex:1 1 100%}.pubms-drop{position:fixed;z-index:120;left:12px;right:12px;top:auto;bottom:12px;min-width:0;max-height:min(62vh,460px);border-radius:15px}/* MODAL-1: title + three facts sit between the stage and the thumb strip; the in-column h2 and its Share row are the desktop copy. `.min-phone-head .min-phone-title` outranks the generic `.modal h2` (0,1,1). */.min-phone-head{display:block;position:relative;margin:8px 2px 4px}.min-phone-head .min-phone-title{font-size:1.25rem;line-height:1.2;margin:0 0 4px;padding-right:82px;min-height:44px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}.min-phone-facts>span{min-width:0;overflow-wrap:anywhere}.min-phone-facts>span+span::before{content:"·";color:var(--t3);position:absolute;margin-left:-14px;width:14px;text-align:center}.min-phone-facts>.mpf-size{flex-basis:100%}.min-phone-facts>.mpf-size::before{content:none}.min-share-phone{position:absolute;top:0;right:0;min-width:5.5em;min-height:44px}.modal-info h2,.modal-title-row h2{display:none}.modal-title-row{display:none}}
+@media(max-width:600px){.modal{padding:14px 15px 20px}/* phone: the modal uses the whole width (owner, 2026-09-04). The close button is float:right+sticky on desktop; a grid container will not flow under a float, so at phone width the 62px button was pushing the whole dossier grid 62px narrower — the unused strip in the owner's screenshot. Overlay it. */.modal{border-radius:0;border-left:0;border-right:0;padding:10px 6px 20px;max-width:none}.modal-close{float:none;position:absolute;top:8px;right:8px;z-index:5}.mgrid{grid-template-columns:repeat(var(--mob-cols,2),1fr);gap:11px}.modal-close{width:62px;height:62px;font-size:2.4rem;border-radius:15px}.modal h2{padding-right:74px}.vt-grp{flex-shrink:0}.pf-shell{margin:0 -6px 10px;padding:8px 6px;grid-template-columns:minmax(0,1fr);grid-template-areas:"search" "count" "adv";row-gap:0}.pf-shell>.tc-hd{margin-top:8px}.pf-search-row{display:grid;grid-template-columns:minmax(0,1fr) auto}.pf-mobile-toggle{display:block}.pf-advanced .pf-clear{flex:1 1 100%}.pubms-drop{position:fixed;z-index:120;left:12px;right:12px;top:auto;bottom:12px;min-width:0;max-height:min(62vh,460px);border-radius:15px}/* MODAL-1: title + three facts sit between the stage and the thumb strip; the in-column h2 and its Share row are the desktop copy. `.min-phone-head .min-phone-title` outranks the generic `.modal h2` (0,1,1). */.min-phone-head{display:block;position:relative;margin:8px 2px 4px}.min-phone-head .min-phone-title{font-size:1.25rem;line-height:1.2;margin:0 0 4px;padding-right:82px;min-height:44px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}.min-phone-facts>span{min-width:0;overflow-wrap:anywhere}.min-phone-facts>span+span::before{content:"·";color:var(--t3);position:absolute;margin-left:-14px;width:14px;text-align:center}.min-phone-facts>.mpf-size{flex-basis:100%}.min-phone-facts>.mpf-size::before{content:none}.min-share-phone{position:absolute;top:0;right:0;min-width:5.5em;min-height:44px}.modal-info h2,.modal-title-row h2{display:none}.modal-title-row{display:none}}
 /* footer */
 .site-ftr strong{color:var(--t2)}
 
@@ -1952,13 +1966,19 @@ function toggleAux(){var m=curM(),box=document.getElementById('cw-modal');if(!m|
 function showStem(f){var m=curM();if(!m)return;var P=photosOf(m),i;for(i=0;i<P.length;i++)if(P[i].f===f){photoShow(i);return;}if(!window._showAux){toggleAux();P=photosOf(m);for(i=0;i<P.length;i++)if(P[i].f===f){photoShow(i);return;}}}
 function prefJump(i){var m=curM();if(!m)return;var all=orderPhotos(m.photos||[],true);if(all[i])showStem(all[i].f);}
 function heroIdx(m){var P=photosOf(m);for(var i=0;i<P.length;i++){if(P[i]&&P[i].hero)return i;}return 0;}
-function speciesMatch(m,sel){var sp=m.species||[];for(var i=0;i<sel.length;i++){if(sp.indexOf(sel[i])>=0)return true;}return false;}
+/* guard #234: the faceted counts (computeCounts) go through the same any / all predicate as the list, so every OTHER facet's count honours the mode. */
+function speciesMatch(m,sel){return specimenSpeciesMatches(m,sel,S.spMode);}
 
 /* ------------------------------------------------------------------ state */
-var S={q:'',sort:'idDesc',view:'grid',lvl:0,spin:'',filterOpen:false,f:{subtype:[],provenance:[],species:[],state:[]}};
+/* guard #234 (Randy's feedback, 2026-10-15). S.spMode: how ticked minerals combine -- 'any' (default; the rock carries at least one) or 'all' (it carries
+   every one). S.sortTouched: the visitor has chosen a sort themselves, so a view change never overrides it. */
+var S={q:'',sort:'idDesc',view:'grid',lvl:0,spin:'',filterOpen:false,spMode:'any',sortTouched:false,f:{subtype:[],provenance:[],species:[],state:[]}};
+/* The sort a visitor who never touched the sort control sees: a Table opens on Mineral (its headings), the Gallery on Newest. */
+function defaultSortFor(view){return view==='table'?'species':'idDesc';}
 var LEVELS=[300,200,150,110];
 var MOB_COLS=[1,2,3,4];
 try{S.view=localStorage.getItem('cwView')||'grid';}catch(e){}
+S.sort=defaultSortFor(S.view);   /* a returning visitor whose Table was saved opens on Mineral too */
 try{var _lv=parseInt(localStorage.getItem('cwLvl'),10);S.lvl=isNaN(_lv)?1:_lv;}catch(e){S.lvl=1;}
 
 /* ------------------------------------------------------------------ filtering */
@@ -1968,7 +1988,7 @@ function filtered(){
     if(f.subtype.length&&f.subtype.indexOf(m.subtype)<0)return false;
     if(f.provenance.length&&f.provenance.indexOf(provOf(m))<0)return false;
     if(f.state.length&&f.state.indexOf(specimenStateKey(m))<0)return false;
-    if(f.species.length&&!specimenSpeciesMatches(m,f.species))return false;
+    if(f.species.length&&!specimenSpeciesMatches(m,f.species,S.spMode))return false;
     if(!specimenSpinMatches(m,S.spin))return false;
     if(!specimenMatchesQuery(m,S.q))return false;
     return true;
@@ -1996,36 +2016,99 @@ function optionsFor(prop){
   var C=computeCounts(),data=minData(),key=PROP2KEY[prop],out=[];
   if(prop==='sub'){var order=['mineral','rock','fossil','cut_stone','meteorite'],pres={};data.forEach(function(m){if(m.subtype)pres[m.subtype]=1;});order.filter(function(k){return pres[k];}).forEach(function(k){out.push([k,subLabel(k),C.subtype[k]||0]);});}
   else if(prop==='prov'){[['Charlie Wills','Charlie Wills'],['(untagged)','Untagged']].forEach(function(o){if((C.provenance[o[0]]||0)>0||S.f.provenance.indexOf(o[0])>=0)out.push([o[0],o[1],C.provenance[o[0]]||0]);});}
-  else if(prop==='species'){var sp={};data.forEach(function(m){(m.species||[]).forEach(function(x){sp[x]=1;});});Object.keys(sp).forEach(function(x){out.push([x,x,C.species[x]||0]);});out.sort(function(a,b){return b[2]-a[2]||String(a[0]).localeCompare(String(b[0]));});}
+  else if(prop==='species'){var sp={};data.forEach(function(m){(m.species||[]).forEach(function(x){sp[x]=1;});});Object.keys(sp).forEach(function(x){out.push([x,x,C.species[x]||0]);});out.sort(function(a,b){return b[2]-a[2]||String(a[0]).localeCompare(String(b[0]));});out=speciesCountsUnderAll(out);}
   else if(prop==='state'){var stt={};data.forEach(function(m){stt[stateOf(m)]=1;});Object.keys(stt).forEach(function(s){out.push([s,(s==='(unknown)'?'Unknown':s),C.state[s]||0]);});out.sort(function(a,b){if(a[0]==='(unknown)')return 1;if(b[0]==='(unknown)')return -1;return b[2]-a[2]||String(a[0]).localeCompare(String(b[0]));});}
   return out;
+}
+/* guard #234 -- the Mineral popover. Under 'all' a mineral's count is "how many rocks would match if this one were ticked too": the rocks that pass every
+   OTHER filter and carry the ticked minerals plus this one (a ticked mineral's own count is therefore the current result of the species filter). The ORDER
+   is kept from the 'any' counts above, so ticking a mineral never re-shuffles the list under the finger. Under 'any', or with nothing ticked, the
+   facet counts already are the answer and this returns them untouched. */
+function speciesCountsUnderAll(out){
+  var f=S.f,sel=f.species;
+  if(S.spMode!=='all'||!sel.length)return out;
+  var pool=minData().filter(function(m){return (!f.subtype.length||f.subtype.indexOf(m.subtype)>=0)&&(!f.provenance.length||f.provenance.indexOf(provOf(m))>=0)&&(!f.state.length||f.state.indexOf(stateOf(m))>=0);});
+  return out.map(function(o){var want=sel.indexOf(o[0])>=0?sel:sel.concat([o[0]]);return [o[0],o[1],pool.filter(function(m){return specimenSpeciesMatches(m,want,'all');}).length];});
 }
 function filtersActive(){var f=S.f;return !!((S.q||'').trim()||S.spin||f.subtype.length||f.provenance.length||f.species.length||f.state.length);}
 
 /* ------------------------------------------------------------------ filter UI */
 function msLabel(prop,label){var sel=S.f[PROP2KEY[prop]].length;return esc(label)+(sel?' <span class="cnt">'+sel+'</span>':'');}
+/* The count the bar shows ("4 of 110 specimens") sits under an open popover on a desktop, so the popover's foot echoes it. */
+function resultsEchoText(){
+  var n=filtered().length,total=minData().length;
+  return (n===total?total:n+' of '+total)+' specimens';
+}
+/* Any of these / All of these -- how the ticked minerals combine (S.spMode). Mineral only. */
+function spModeHTML(){
+  return '<div class="pubms-mode" role="group" aria-label="How the ticked minerals combine">'
+    +[['any','Any of these'],['all','All of these']].map(function(x){
+      return '<button class="pubms-mode-btn'+(S.spMode===x[0]?' on':'')+'" type="button" data-spmode="'+x[0]+'" aria-pressed="'+(S.spMode===x[0]?'true':'false')+'" onclick="setSpMode(\''+x[0]+'\')">'+x[1]+'</button>';
+    }).join('')+'</div>';
+}
+/* Every multi-select popover: [any / all switch (Mineral only)] · the scrolling option list · a foot with the live result count and Done. */
 function msHTML(prop,label){
-  return '<div class="pubms" data-prop="'+prop+'"><button class="pubms-trig" onclick="toggleMs(this)" type="button">'+msLabel(prop,label)+' ▾</button><div class="pubms-drop">'+msOptsHTML(prop)+'</div></div>';
+  return '<div class="pubms" data-prop="'+prop+'"><button class="pubms-trig" onclick="toggleMs(this)" type="button">'+msLabel(prop,label)+' ▾</button>'
+    +'<div class="pubms-drop pubms-drop-x">'+(prop==='species'?spModeHTML():'')
+    +'<div class="pubms-list">'+msOptsHTML(prop)+'</div>'
+    +'<div class="pubms-foot"><span class="pubms-foot-n" role="status">'+esc(resultsEchoText())+'</span><button class="pubms-done" type="button" onclick="closeMs(this)">Done</button></div>'
+    +'</div></div>';
 }
 function msOptsHTML(prop){
   var key=PROP2KEY[prop],sel=S.f[key];
   return optionsFor(prop).map(function(o){var on=sel.indexOf(o[0])>=0;return '<label class="pubms-opt"><input type="checkbox" '+(on?'checked':'')+' onchange="msPick(\''+prop+'\',this)" value="'+esc(o[0])+'"><span>'+esc(o[1])+'</span><span class="oc">'+o[2]+'</span></label>';}).join('')||'<div style="padding:8px;color:var(--t3);font-size:0.82rem">None</div>';
 }
-function toggleMs(btn){var box=btn.parentNode,open=box.classList.contains('open');document.querySelectorAll('.pubms.open').forEach(function(x){x.classList.remove('open');});if(!open)box.classList.add('open');}
+/* Opening one closes the others. A popover that would run off the bottom of a desktop screen (Done lives at its foot) brings the page up just enough to show
+   it; once the bar has stuck at the top the page cannot help, so the popover's height is trimmed to the room there is (the list inside it scrolls).
+   A phone's popover is a bottom sheet pinned to the screen and needs neither. */
+function toggleMs(btn){
+  var box=btn.parentNode,open=box.classList.contains('open');
+  document.querySelectorAll('.pubms.open').forEach(function(x){x.classList.remove('open');});
+  if(open)return;
+  box.classList.add('open');
+  var drop=box.querySelector('.pubms-drop');
+  if(!drop||getComputedStyle(drop).position==='fixed')return;
+  drop.style.maxHeight='';
+  var over=drop.getBoundingClientRect().bottom-(window.innerHeight-8);
+  if(over>0)window.scrollBy(0,over);
+  over=drop.getBoundingClientRect().bottom-(window.innerHeight-8);
+  if(over>0)drop.style.maxHeight=Math.max(180,drop.offsetHeight-over)+'px';
+}
+/* Done: close the popover and hand focus back to the control that opened it. */
+function closeMs(btn){
+  var box=btn&&btn.closest?btn.closest('.pubms'):null;
+  if(!box)return;
+  box.classList.remove('open');
+  var trig=box.querySelector('.pubms-trig');
+  if(trig&&trig.focus)trig.focus({preventScroll:true});
+}
+function setSpMode(mode){
+  S.spMode=mode==='all'?'all':'any';
+  renderContent();refreshFilterBar();
+}
 function msPick(prop,cb){
   var key=PROP2KEY[prop],arr=S.f[key],v=cb.value,i=arr.indexOf(v);
   if(cb.checked){if(i<0)arr.push(v);}else if(i>=0)arr.splice(i,1);
   renderContent();refreshFilterBar();
 }
 function refreshFilterBar(){
+  var echo=resultsEchoText();
   ['sub','species','state'].forEach(function(prop){
     var box=document.querySelector('.pubms[data-prop="'+prop+'"]');if(!box)return;
     var trig=box.querySelector('.pubms-trig'),lbl={sub:'Type',prov:'Source',species:'Mineral',state:'Locality'}[prop];
     trig.innerHTML=msLabel(prop,lbl)+' ▾';
-    box.querySelector('.pubms-drop').innerHTML=msOptsHTML(prop);
+    /* Only the option list is rebuilt (the switch and the foot stay put): keep its scroll offset, and the keyboard's place in it. */
+    var list=box.querySelector('.pubms-list'),keep=list.scrollTop,ae=document.activeElement;
+    var focusVal=(ae&&ae.type==='checkbox'&&list.contains(ae))?ae.value:null;
+    list.innerHTML=msOptsHTML(prop);
+    list.scrollTop=keep;
+    if(focusVal!==null){var boxes=list.querySelectorAll('input[type="checkbox"]');for(var k=0;k<boxes.length;k++)if(boxes[k].value===focusVal){boxes[k].focus({preventScroll:true});break;}}
+    var fn=box.querySelector('.pubms-foot-n');if(fn)fn.textContent=echo;
   });
+  document.querySelectorAll('.pubms-mode-btn').forEach(function(b){var on=b.getAttribute('data-spmode')===S.spMode;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on?'true':'false');});
   var c=document.getElementById('pf-clear');if(c)c.style.display=filtersActive()?'':'none';
   var sp=document.getElementById('pf-spin');if(sp&&sp.value!==S.spin)sp.value=S.spin;
+  var so=document.getElementById('pf-sort');if(so&&so.value!==S.sort)so.value=S.sort;
   var sx=document.getElementById('pf-search-x');if(sx)sx.style.display=(S.q||'').length?'':'none';
   var btn=document.getElementById('pf-mobile-toggle');
   if(btn){var n=filterSelectionCount();btn.innerHTML='Filters'+(n?' <span class="cnt">'+n+'</span>':'');btn.setAttribute('aria-label','Filters'+(n?', '+n+' active':''));}
@@ -2036,6 +2119,12 @@ function toggleFilterPanel(){
   var shell=document.querySelector('.pf-shell'),btn=document.getElementById('pf-mobile-toggle');
   if(shell)shell.classList.toggle('open',S.filterOpen);
   if(btn)btn.setAttribute('aria-expanded',S.filterOpen?'true':'false');
+}
+/* guard #234 (F2): the count + Gallery / Table row lives INSIDE the sticky bar (filterBarHTML), so the layout switch is one click away at any scroll depth. */
+function countRowHTML(){
+  return '<div class="tc-hd"><span class="tt">Specimens</span><span class="tn" id="min-count">'+minData().length+' specimens</span>'
+    +'<div class="vt-grp"><span id="gs-grp"><button class="vtbtn" id="gs-dec" onclick="setGridSize(-1)" title="Smaller tiles" aria-label="Smaller tiles">−</button><button class="vtbtn" id="gs-inc" onclick="setGridSize(1)" title="Larger tiles" aria-label="Larger tiles">+</button></span>'
+    +'<button class="vtbtn" id="cv-grid" onclick="setView(\'grid\')" title="Gallery" aria-label="Gallery view">▦</button><button class="vtbtn" id="cv-table" onclick="setView(\'table\')" title="Table" aria-label="Table view">☰</button></div></div>';
 }
 function filterBarHTML(){
   var sorts = specimenSortsFor(minData());   /* strips the grade sorts here: no specimen carries a grade on the public build */
@@ -2049,21 +2138,24 @@ function filterBarHTML(){
     +'<button class="pf-x" id="pf-search-x" type="button" aria-label="Clear search" style="display:'+((S.q||'').length?'':'none')+'" onclick="var i=document.getElementById(\'pf-search\');if(i){i.value=\'\';i.focus();}onSearch(\'\')">\u00d7</button></span>'
     +'<button class="pf-mobile-toggle" id="pf-mobile-toggle" type="button" aria-label="Filters'+(n?', '+n+' active':'')+'" aria-expanded="'+(S.filterOpen?'true':'false')+'" aria-controls="pf-advanced" onclick="toggleFilterPanel()">Filters'+(n?' <span class="cnt">'+n+'</span>':'')+'</button>'
     +'</div>'
+    +countRowHTML()
     +'<div class="pf-advanced" id="pf-advanced">'
     +msHTML('sub','Type')+msHTML('species','Mineral')+msHTML('state','Locality')
     +'<select class="pf-sel" id="pf-spin" aria-label="360\u00b0 spin filter" title="Show only specimens with (or without) a 360\u00b0 spin" onchange="S.spin=this.value;renderContent();refreshFilterBar()">'+spo+'</select>'
-    +'<select class="pf-sel" aria-label="Sort" onchange="S.sort=this.value;renderContent()">'+so+'</select>'
+    +'<select class="pf-sel" id="pf-sort" aria-label="Sort" onchange="S.sort=this.value;S.sortTouched=true;renderContent()">'+so+'</select>'
     +'<button class="pf-clear" id="pf-clear" onclick="clearFilters()" style="display:'+(filtersActive()?'':'none')+'">Clear</button>'
     +'</div></div>';
 }
 function onSearch(v){S.q=v;renderContent();var c=document.getElementById('pf-clear');if(c)c.style.display=filtersActive()?'':'none';var x=document.getElementById('pf-search-x');if(x)x.style.display=(v||'').length?'':'none';}
-function clearFilters(){S.q='';S.spin='';S.f={subtype:[],provenance:[],species:[],state:[]};var s=document.getElementById('pf-search');if(s)s.value='';var sp=document.getElementById('pf-spin');if(sp)sp.value='';var x=document.getElementById('pf-search-x');if(x)x.style.display='none';renderContent();refreshFilterBar();}
+function clearFilters(){S.q='';S.spin='';S.spMode='any';S.f={subtype:[],provenance:[],species:[],state:[]};var s=document.getElementById('pf-search');if(s)s.value='';var sp=document.getElementById('pf-spin');if(sp)sp.value='';var x=document.getElementById('pf-search-x');if(x)x.style.display='none';renderContent();refreshFilterBar();}
 document.addEventListener('click',function(e){if(!e.target.closest('.pubms'))document.querySelectorAll('.pubms.open').forEach(function(x){x.classList.remove('open');});});
 
 /* ------------------------------------------------------------------ render */
 function applyGridSize(){var g=document.querySelector('.mgrid');document.documentElement.style.setProperty('--min-grid-w',LEVELS[S.lvl]+'px');document.documentElement.style.setProperty('--mob-cols',MOB_COLS[S.lvl]);if(g)g.classList.toggle('compact',S.lvl>=2);var inc=document.getElementById('gs-inc'),dec=document.getElementById('gs-dec');if(inc)inc.disabled=(S.lvl<=0);if(dec)dec.disabled=(S.lvl>=LEVELS.length-1);}
 function setGridSize(d){S.lvl=Math.max(0,Math.min(LEVELS.length-1,S.lvl-d));try{localStorage.setItem('cwLvl',S.lvl);}catch(e){}applyGridSize();}
-function setView(v){S.view=v;try{localStorage.setItem('cwView',v);}catch(e){}renderContent();syncViewBtns();}
+/* guard #234 (F3): a Table opens on the Mineral sort -- its headings are what make a long table scannable -- and the Gallery goes back to Newest, but only while the
+   visitor has not chosen a sort themselves; an explicit choice is never overridden. */
+function setView(v){S.view=v;if(!S.sortTouched)S.sort=defaultSortFor(v);try{localStorage.setItem('cwView',v);}catch(e){}renderContent();syncViewBtns();var so=document.getElementById('pf-sort');if(so&&so.value!==S.sort)so.value=S.sort;}
 function syncViewBtns(){var g=document.getElementById('cv-grid'),t=document.getElementById('cv-table');if(!g)return;g.className='vtbtn'+(S.view==='grid'?' on':'');t.className='vtbtn'+(S.view==='table'?' on':'');var sz=document.getElementById('gs-grp');if(sz)sz.style.display=S.view==='grid'?'':'none';}
 /* The "Latest addition" panel is drawn by render(), but search / the 360° filter / the
    dropdowns / sort / view only re-run renderContent() — so the panel used to stay up under
@@ -2084,10 +2176,23 @@ function syncFeatured(){
 var phoneListQ=window.matchMedia?matchMedia('(max-width:600px)'):null;
 function isPhoneList(){return !!(phoneListQ&&phoneListQ.matches);}
 if(phoneListQ&&phoneListQ.addEventListener)phoneListQ.addEventListener('change',function(){if(S.view==='table')renderContent();});
-function phoneRowHTML(m,i){
+/* guard #234 (F3) -- under the Mineral sort (S.sort === 'species') the Table and the phone rows carry a heading at each change of mineral ("Fluorite \u00b7 37"), so a
+   long list can be scanned and a species is one place, not scattered by its adjectives. specimenGroupLabel lives in the guard #180 block; that sort keeps each
+   label in ONE run, so a group's count is the length of the run that starts here. No other sort groups. Called from the row builders with Array.map's (list, index):
+   kind 'row' = a <th scope=rowgroup> row that opens a new <tbody> (the first one rides in renderContent's own <tbody>), 'h3' = a heading between phone rows. */
+function groupHeadHTML(M,i,kind){
+  if(S.sort!=='species'||!M||!M.length)return '';
+  var g=specimenGroupLabel(M[i]);
+  if(i&&specimenGroupLabel(M[i-1])===g)return '';
+  var n=0;for(var j=i;j<M.length&&specimenGroupLabel(M[j])===g;j++)n++;
+  var name='<span class="spec-group-name">'+esc(g)+'</span> <span class="spec-group-n">\u00b7 '+n+'</span>';
+  if(kind==='row')return (i?'</tbody><tbody>':'')+'<tr><th class="spec-group" scope="rowgroup" colspan="4">'+name+'</th></tr>';
+  return '<h3 class="spec-group">'+name+'</h3>';
+}
+function phoneRowHTML(m,i,list){
   var h=hero(m),src=h?img(h,400):PLACEHOLDER,sp=(m.species||[]).slice(0,2).join(', ');
   var where=[sp,shortLoc(m.locality)].filter(Boolean).join(' · '),size=m.measure?unitsDimsHTML(m.measure):esc(phoneSize(m.size));
-  return '<button class="pl-row" type="button" onclick="showMineral(\''+m.id+'\')" aria-label="'+esc(title(m)+', '+locStr(m.locality))+'">'
+  return (list?groupHeadHTML(list,i,'h3'):'')+'<button class="pl-row" type="button" onclick="showMineral(\''+m.id+'\')" aria-label="'+esc(title(m)+', '+locStr(m.locality))+'">'
     +'<img class="pl-img" src="'+esc(src)+'" loading="'+(i<5?'eager':'lazy')+'" decoding="async" alt="" onerror="this.onerror=null;this.src=\''+PLACEHOLDER+'\'">'
     +'<span class="pl-copy"><strong title="'+esc(title(m))+'">'+esc(shortCardTitle(displayName(title(m),m.id)))+'</strong><span>'+esc(where)+'</span>'+(size?'<small>'+size+'</small>':'')+'</span>'
     +'<span class="pl-arrow" aria-hidden="true">›</span></button>';
@@ -2105,7 +2210,7 @@ function renderContent(){
   if(S.view==='table'&&isPhoneList()){
     el.innerHTML='<div class="pl-list">'+M.map(phoneRowHTML).join('')+'</div>';
   }else if(S.view==='table'){
-    var rows=M.map(function(m){return '<tr class="cl" tabindex="0" role="button" aria-label="'+esc(title(m)+', '+locStr(m.locality))+'" onclick="showMineral(\''+m.id+'\')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();showMineral(\''+m.id+'\');}"><td><strong title="'+esc(title(m))+'">'+esc(displayName(title(m),m.id))+'</strong><div style="color:var(--t3);font-size:0.72rem">'+esc(m.id)+(m.provenance==='Charlie Wills'?' · CW':'')+'</div></td><td>'+esc(subLabel(m.subtype))+'</td><td>'+esc(locStr(m.locality))+'</td><td'+(m.size?' title="'+esc(m.size)+'"':'')+'>'+(m.measure?unitsDimsHTML(m.measure):esc(phoneSize(m.size)||'—'))+'</td></tr>';}).join('');
+    var rows=M.map(function(m,i){return groupHeadHTML(M,i,'row')+'<tr class="cl" tabindex="0" role="button" aria-label="'+esc(title(m)+', '+locStr(m.locality))+'" onclick="showMineral(\''+m.id+'\')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();showMineral(\''+m.id+'\');}"><td><strong title="'+esc(title(m))+'">'+esc(displayName(title(m),m.id))+'</strong><div style="color:var(--t3);font-size:0.72rem">'+esc(m.id)+(m.provenance==='Charlie Wills'?' · CW':'')+'</div></td><td>'+esc(subLabel(m.subtype))+'</td><td>'+esc(locStr(m.locality))+'</td><td'+(m.size?' title="'+esc(m.size)+'"':'')+'>'+(m.measure?unitsDimsHTML(m.measure):esc(phoneSize(m.size)||'—'))+'</td></tr>';}).join('');
     el.innerHTML='<div style="overflow-x:auto"><table class="min-table"><thead><tr><th>Specimen</th><th>Type</th><th>Locality</th><th>Size</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
   }else{
     var tiles=M.map(function(m){var h=hero(m);var src=h?img(h,400):PLACEHOLDER;return '<div class="gtile" role="button" tabindex="0" aria-label="'+esc(title(m)+', '+locStr(m.locality))+'" onclick="showMineral(\''+m.id+'\')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();showMineral(\''+m.id+'\');}"><div class="gtile-imgwrap"><img class="gtile-img" src="'+esc(src)+'" loading="lazy" decoding="async" alt="'+esc(title(m))+'" onerror="this.onerror=null;this.src=\''+PLACEHOLDER+'\'"><div class="gtile-badges"><span class="min-sub-badge">'+esc(subLabel(m.subtype))+'</span>'+(m.provenance==='Charlie Wills'?'<span class="min-cw-badge" title="Charlie Wills collection">CW</span>':'')+(m.spin?'<span class="min-spin-badge" title="Has a 360° spin">360°</span>':'')+'</div></div><div class="gtile-body"><div class="gtile-name" title="'+esc(title(m))+'">'+esc(shortCardTitle(displayName(title(m),m.id)))+'</div><div class="gtile-sub" title="'+esc(locStr(m.locality))+'">'+esc(shortLoc(m.locality))+'</div>'+(shortFlavor(m.flavor)?'<div class="min-tile-flavor">'+esc(shortFlavor(m.flavor))+'</div>':'')+'</div></div>';}).join('');
@@ -2222,11 +2327,16 @@ function render(){
   var M=minData();
   if(!M.length){root.innerHTML='<div class="empty">Loading specimens…</div>';if((window._retry=(window._retry||0)+1)<15)setTimeout(render,250);return;}
   preloadHeroes();/* PUB-4: first thing, before the grid is built */
-  root.innerHTML=storyHTML()+featuredHTML()+startHereHTML()+filterBarHTML()
-    +'<div class="tc-hd"><span class="tt">Specimens</span><span class="tn" id="min-count">'+M.length+' specimens</span>'
-    +'<div class="vt-grp"><span id="gs-grp"><button class="vtbtn" id="gs-dec" onclick="setGridSize(-1)" title="Smaller tiles" aria-label="Smaller tiles">−</button><button class="vtbtn" id="gs-inc" onclick="setGridSize(1)" title="Larger tiles" aria-label="Larger tiles">+</button></span>'
-    +'<button class="vtbtn" id="cv-grid" onclick="setView(\'grid\')" title="Gallery" aria-label="Gallery view">▦</button><button class="vtbtn" id="cv-table" onclick="setView(\'table\')" title="Table" aria-label="Table view">☰</button></div></div>'
-    +'<div id="min-content"></div>';
+  root.innerHTML=storyHTML()+featuredHTML()+startHereHTML()+filterBarHTML()+'<div id="min-content"></div>';   /* guard #234: the count + Gallery / Table row is inside the sticky bar now */
+  /* guard #234 (F2): the bar is sticky, so anything scrolled into view (a focused tile after the dialog closes, a heading) must stop BELOW it: the root's
+     scroll-padding-top follows the bar's live height (it grows when its filters wrap or the phone panel opens). Set from here, not from the stylesheet:
+     the shared #223 block owns the `html` selector. */
+  var pfShell=document.querySelector('.pf-shell');
+  if(pfShell&&window.ResizeObserver){
+    if(window._pfRO)window._pfRO.disconnect();
+    window._pfRO=new ResizeObserver(function(){document.documentElement.style.scrollPaddingTop = (pfShell.offsetHeight + 8) + 'px';});
+    window._pfRO.observe(pfShell);
+  }
   renderContent();syncViewBtns();refreshFilterBar();
   scheduleGeoIdle();/* PUB-4: the map bundles load after this first render, at idle */
   if(!window._hashOpened){window._hashOpened=1;syncSpecimenFromLocation();}/* PUB-3: a shared #RM-xxxx link opens its specimen once the grid exists */
