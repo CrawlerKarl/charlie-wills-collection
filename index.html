@@ -1179,6 +1179,31 @@ function glanceLead(text, max) {
   first = first.slice(0, sp > max * 0.5 ? sp : max).replace(/[\s,;:—–\-(\[]+$/, '');
   return first + '…';
 }
+/* The Under UV tile's lead, from the structured `uv` object, guard #241: '' when there is no block or it says nothing it can lead with. Reads only
+   uv.fluoresces / uv.lw / uv.mw / uv.sw / uv.unspecified (response, color). A wavelength with an answer is spelled out as "Longwave blue"; one tested
+   with none says "none", one never read is left out; a response with no lamp named says so; a tested-negative says how many lamps were read. */
+function glanceUvLead(uv) {
+  if (!uv || typeof uv !== 'object') return '';
+  var W = [['lw', 'longwave'], ['mw', 'midwave'], ['sw', 'shortwave']], parts = [], nones = 0, i, b, c, un, s, firstNone = '';
+  for (i = 0; i < W.length; i++) {
+    b = uv[W[i][0]];
+    if (!b || typeof b !== 'object') continue;
+    c = typeof b.color === 'string' ? b.color.replace(/\s+/g, ' ').trim() : '';
+    if (b.response === 'none') { nones++; if (!firstNone) firstNone = W[i][1]; parts.push(W[i][1] + ' none'); }
+    else if (c || (b.response && b.response !== 'unknown')) parts.push(W[i][1] + ' ' + (c || 'yes'));
+  }
+  if (uv.fluoresces === true) {
+    if (parts.some(function (p) { return !/ none$/.test(p); })) s = parts.join(' \u00b7 ');
+    else {
+      un = uv.unspecified && typeof uv.unspecified === 'object' ? uv.unspecified : null;
+      c = un && typeof un.color === 'string' ? un.color.replace(/\s+/g, ' ').trim() : '';
+      s = (c || 'fluoresces') + ', lamp not named';
+    }
+  } else if (uv.fluoresces === false) {
+    s = nones >= 2 ? 'no response at ' + nones + ' wavelengths' : (nones === 1 ? 'no response under ' + firstNone : 'no response under UV');
+  } else return '';
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
 function glanceItems(m, host) {
   m = m || {};
   var h = host || {}, show = h.show || {}, T = h.targets || {}, out = [], conf, sp, loc, inf, nc, where, ms, fig, ff, fact, i, prov, np, ns, nv, ph;
@@ -1201,7 +1226,9 @@ function glanceItems(m, host) {
   add('size', 'Size', fig || glanceEsc(glanceLead(m.size, 40)));
   if (show.weight) add('weight', 'Weight', h.weightHTML || glanceEsc(glanceLead(m.weight, 40)));
   add('color', 'Color & habit', glanceEsc(glanceLead(m.color)));
-  add('uv', 'Under UV', glanceEsc(glanceLead(m.fluorescence)));
+  fact = glanceUvLead(m.uv);
+  if (!fact && m.uv && typeof m.uv === 'object' && m.uv.fluoresces == null && !glanceLead(m.fluorescence)) fact = 'Not tested';
+  add('uv', 'Under UV', glanceEsc(fact || glanceLead(m.fluorescence)));
   if (show.grades && h.gradesHTML) add('grades', 'Quality & rarity', h.gradesHTML);
   ff = Array.isArray(m.fun_facts) ? m.fun_facts : [];
   for (i = 0, fact = ''; i < ff.length && !fact; i++) fact = typeof ff[i] === 'string' ? ff[i].replace(/\s+/g, ' ').trim() : '';
@@ -1873,6 +1900,7 @@ function charlieStoryBodyHTML(img){
    surface shows. 'Locality unknown' stays in the blob on purpose — typing "unknown"
    has always found the unlocalized pieces, on every surface. */
 var SPIN_FILTER_OPTIONS=[['','360°: all'],['yes','Has 360° spin'],['no','No 360° spin']];
+var UV_FILTER_OPTIONS=[['','UV: any'],['yes','Fluoresces'],['no','Tested, no response'],['untested','Not tested']];
 var SPECIMEN_SORTS=[['idDesc','Newest'],['id','Catalog #'],['name','Title A–Z'],['species','Mineral'],['subtype','Type']];
 function specimenLocText(loc){if(!loc)return 'Locality unknown';var p=[loc.mine,loc.district,loc.state,loc.country].filter(Boolean);return p.length?p.join(', '):'Locality unknown';}
 function specimenSearchBlob(m){return ((m.name||'')+' '+((m.species||[]).join(' '))+' '+specimenLocText(m.locality)+' '+(m.label_text||'')+' '+(m.flavor||'')+' '+(m.notes||'')+' '+(m.id||'')).toLowerCase();}
@@ -1893,6 +1921,9 @@ var _SPECIMEN_ID_RE=/^(rm|fs)[\s\-_]*0*(\d{1,4})$/;
 function specimenIdQuery(q){var m=String(q==null?'':q).trim().toLowerCase().match(_SPECIMEN_ID_RE);return m?m[1].toUpperCase()+'-'+('0000'+m[2]).slice(-4):'';}
 function specimenMatchesQuery(m,q){q=String(q==null?'':q).trim().toLowerCase();if(!q)return true;var id=specimenIdQuery(q);if(id)return (m.id||'')===id;var b=m._sb||(m._sb=specimenSearchBlob(m));return b.indexOf(q)>=0;}
 function specimenSpinMatches(m,spin){var has=!!(m&&((m.spin&&m.spin.stem)||(m.spins&&m.spins.length)));if(spin==='yes')return has;if(spin==='no')return !has;return true;}
+/* The UV filter (guard #241). Reads the structured `uv` block only (never the prose): yes = fluoresces === true; no = tested and nothing answered
+   (fluoresces === false); untested = no `uv` block at all, or one whose result is null (nothing asserted). Any other selection means no filter. */
+function specimenMatchesUv(m,sel){var u=m&&m.uv&&typeof m.uv==='object'?m.uv:null;if(sel==='yes')return !!u&&u.fluoresces===true;if(sel==='no')return !!u&&u.fluoresces===false;if(sel==='untested')return !u||u.fluoresces===null||u.fluoresces===undefined;return true;}
 /* Which ticked minerals a specimen must carry. mode 'all' = EVERY ticked mineral; anything else, a missing argument included, = ANY of them —
    what the filter has always meant — so a caller that passes no mode keeps its behaviour. (Guard #234.) */
 function specimenSpeciesMatches(m,sel,mode){if(!sel||!sel.length)return true;var sp=m.species||[],i;if(mode==='all'){for(i=0;i<sel.length;i++){if(sp.indexOf(sel[i])<0)return false;}return true;}for(i=0;i<sel.length;i++){if(sp.indexOf(sel[i])>=0)return true;}return false;}
@@ -1976,7 +2007,7 @@ function speciesMatch(m,sel){return specimenSpeciesMatches(m,sel,S.spMode);}
 /* ------------------------------------------------------------------ state */
 /* guard #234 (Randy's feedback, 2026-10-15). S.spMode: how ticked minerals combine -- 'any' (default; the rock carries at least one) or 'all' (it carries
    every one). S.sortTouched: the visitor has chosen a sort themselves, so a view change never overrides it. */
-var S={q:'',sort:'idDesc',view:'grid',lvl:0,spin:'',filterOpen:false,spMode:'any',sortTouched:false,f:{subtype:[],provenance:[],species:[],state:[]}};
+var S={q:'',sort:'idDesc',view:'grid',lvl:0,spin:'',uv:'',filterOpen:false,spMode:'any',sortTouched:false,f:{subtype:[],provenance:[],species:[],state:[]}};
 /* The sort a visitor who never touched the sort control sees: a Table opens on Mineral (its headings), the Gallery on Newest. */
 function defaultSortFor(view){return view==='table'?'species':'idDesc';}
 var LEVELS=[300,200,150,110];
@@ -1994,6 +2025,7 @@ function filtered(){
     if(f.state.length&&f.state.indexOf(specimenStateKey(m))<0)return false;
     if(f.species.length&&!specimenSpeciesMatches(m,f.species,S.spMode))return false;
     if(!specimenSpinMatches(m,S.spin))return false;
+    if(!specimenMatchesUv(m,S.uv))return false;
     if(!specimenMatchesQuery(m,S.q))return false;
     return true;
   });
@@ -2034,7 +2066,7 @@ function speciesCountsUnderAll(out){
   var pool=minData().filter(function(m){return (!f.subtype.length||f.subtype.indexOf(m.subtype)>=0)&&(!f.provenance.length||f.provenance.indexOf(provOf(m))>=0)&&(!f.state.length||f.state.indexOf(stateOf(m))>=0);});
   return out.map(function(o){var want=sel.indexOf(o[0])>=0?sel:sel.concat([o[0]]);return [o[0],o[1],pool.filter(function(m){return specimenSpeciesMatches(m,want,'all');}).length];});
 }
-function filtersActive(){var f=S.f;return !!((S.q||'').trim()||S.spin||f.subtype.length||f.provenance.length||f.species.length||f.state.length);}
+function filtersActive(){var f=S.f;return !!((S.q||'').trim()||S.spin||S.uv||f.subtype.length||f.provenance.length||f.species.length||f.state.length);}
 
 /* ------------------------------------------------------------------ filter UI */
 function msLabel(prop,label){var sel=S.f[PROP2KEY[prop]].length;return esc(label)+(sel?' <span class="cnt">'+sel+'</span>':'');}
@@ -2112,12 +2144,13 @@ function refreshFilterBar(){
   document.querySelectorAll('.pubms-mode-btn').forEach(function(b){var on=b.getAttribute('data-spmode')===S.spMode;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on?'true':'false');});
   var c=document.getElementById('pf-clear');if(c)c.style.display=filtersActive()?'':'none';
   var sp=document.getElementById('pf-spin');if(sp&&sp.value!==S.spin)sp.value=S.spin;
+  var uvs=document.getElementById('pf-uv');if(uvs&&uvs.value!==S.uv)uvs.value=S.uv;
   var so=document.getElementById('pf-sort');if(so&&so.value!==S.sort)so.value=S.sort;
   var sx=document.getElementById('pf-search-x');if(sx)sx.style.display=(S.q||'').length?'':'none';
   var btn=document.getElementById('pf-mobile-toggle');
   if(btn){var n=filterSelectionCount();btn.innerHTML='Filters'+(n?' <span class="cnt">'+n+'</span>':'');btn.setAttribute('aria-label','Filters'+(n?', '+n+' active':''));}
 }
-function filterSelectionCount(){var f=S.f;return f.subtype.length+f.provenance.length+f.species.length+f.state.length+(S.spin?1:0);}
+function filterSelectionCount(){var f=S.f;return f.subtype.length+f.provenance.length+f.species.length+f.state.length+(S.spin?1:0)+(S.uv?1:0);}
 function toggleFilterPanel(){
   S.filterOpen=!S.filterOpen;
   var shell=document.querySelector('.pf-shell'),btn=document.getElementById('pf-mobile-toggle');
@@ -2135,6 +2168,7 @@ function filterBarHTML(){
   var so=sorts.map(function(x){return '<option value="'+x[0]+'"'+(S.sort===x[0]?' selected':'')+'>'+x[1]+'</option>';}).join('');
   var spins=SPIN_FILTER_OPTIONS;
   var spo=spins.map(function(o){return '<option value="'+o[0]+'"'+(S.spin===o[0]?' selected':'')+'>'+o[1]+'</option>';}).join('');
+  var uvo=UV_FILTER_OPTIONS.map(function(o){return '<option value="'+o[0]+'"'+(S.uv===o[0]?' selected':'')+'>'+o[1]+'</option>';}).join('');
   var n=filterSelectionCount();
   return '<div class="pf-shell'+(S.filterOpen?' open':'')+'">'
     +'<div class="pf-search-row">'
@@ -2146,12 +2180,13 @@ function filterBarHTML(){
     +'<div class="pf-advanced" id="pf-advanced">'
     +msHTML('sub','Type')+msHTML('species','Mineral')+msHTML('state','Locality')
     +'<select class="pf-sel" id="pf-spin" aria-label="360\u00b0 spin filter" title="Show only specimens with (or without) a 360\u00b0 spin" onchange="S.spin=this.value;renderContent();refreshFilterBar()">'+spo+'</select>'
+    +'<select class="pf-sel" id="pf-uv" aria-label="UV fluorescence filter" title="Filter by ultraviolet fluorescence: fluoresces, tested with no response, or not tested" onchange="S.uv=this.value;renderContent();refreshFilterBar()">'+uvo+'</select>'
     +'<select class="pf-sel" id="pf-sort" aria-label="Sort" onchange="S.sort=this.value;S.sortTouched=true;renderContent()">'+so+'</select>'
     +'<button class="pf-clear" id="pf-clear" onclick="clearFilters()" style="display:'+(filtersActive()?'':'none')+'">Clear</button>'
     +'</div></div>';
 }
 function onSearch(v){S.q=v;renderContent();var c=document.getElementById('pf-clear');if(c)c.style.display=filtersActive()?'':'none';var x=document.getElementById('pf-search-x');if(x)x.style.display=(v||'').length?'':'none';}
-function clearFilters(){S.q='';S.spin='';S.spMode='any';S.f={subtype:[],provenance:[],species:[],state:[]};var s=document.getElementById('pf-search');if(s)s.value='';var sp=document.getElementById('pf-spin');if(sp)sp.value='';var x=document.getElementById('pf-search-x');if(x)x.style.display='none';renderContent();refreshFilterBar();}
+function clearFilters(){S.q='';S.spin='';S.uv='';S.spMode='any';S.f={subtype:[],provenance:[],species:[],state:[]};var s=document.getElementById('pf-search');if(s)s.value='';var sp=document.getElementById('pf-spin');if(sp)sp.value='';var uvs=document.getElementById('pf-uv');if(uvs)uvs.value='';var x=document.getElementById('pf-search-x');if(x)x.style.display='none';renderContent();refreshFilterBar();}
 document.addEventListener('click',function(e){if(!e.target.closest('.pubms'))document.querySelectorAll('.pubms.open').forEach(function(x){x.classList.remove('open');});});
 
 /* ------------------------------------------------------------------ render */
@@ -2257,7 +2292,7 @@ function fadeTileImgs(root){var imgs=root.querySelectorAll('.gtile-img');
 function newestM(){var M=minData().slice();M.sort(function(a,b){return a.id<b.id?1:(a.id>b.id?-1:0);});return M[0]||null;}
 function isDefaultView(){
   var f=S.f;
-  return S.sort==='idDesc' && S.view==='grid' && !(S.q||'').trim() && !S.spin
+  return S.sort==='idDesc' && S.view==='grid' && !(S.q||'').trim() && !S.spin && !S.uv
       && !f.subtype.length && !f.provenance.length && !f.species.length && !f.state.length;
 }
 function featuredHTML(){
