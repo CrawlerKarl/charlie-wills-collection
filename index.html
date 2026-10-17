@@ -422,18 +422,48 @@ button.min-glance-tile{cursor:pointer;-webkit-tap-highlight-color:transparent}
 .min-facts-list{margin:0;padding-left:1.2em;color:var(--t1);font-size:0.92rem;line-height:1.5}
 .min-facts-list li+li{margin-top:6px}
 @media(prefers-reduced-motion:reduce){.min-sec-flash{animation:none;box-shadow:0 0 0 2px var(--gold)}}   /* no pulse: a still ring for the 1.4 s the class stays on; it sits after the keyframes so it wins at equal specificity */
-/* scale reference — guard #243: the chip under the 360° chip (shown only with a scaled rotation or the 3D view), the bar top-centre */
+/* scale reference — guard #243: the chip (a rail button since guard #244; the loose rules stay for a host without the rail), the bar bottom-centre above the position label */
 .min-scale-chip{display:none;position:absolute;top:44px;left:8px;z-index:3;align-items:center;background:rgba(0,0,0,0.65);color:#fff;border:1px solid transparent;border-radius:11px;padding:4px 10px;font-size:0.72rem;font-weight:700;line-height:1.2;min-height:26px;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent}
 .min-stage.min-spin-on.min-has-scale .min-scale-chip,.min-stage.min-3d-on .min-scale-chip{display:inline-flex}
 .min-scale-chip::after{content:'';position:absolute;inset:-8px}
 .min-scale-chip[aria-pressed="true"]{background:rgba(56,189,248,0.92);color:#04202c}
 @media(hover:hover){.min-scale-chip:hover{border-color:var(--gold)}}
-.min-scale-bar{position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:3;display:flex;flex-direction:column;align-items:center;gap:3px;padding:5px 9px 4px;border-radius:9px;background:rgba(3,7,18,0.72);color:#fff;pointer-events:none}
+.min-scale-bar{position:absolute;bottom:42px;left:50%;transform:translateX(-50%);z-index:3;display:flex;flex-direction:column;align-items:center;gap:3px;padding:5px 9px 4px;border-radius:9px;background:rgba(3,7,18,0.72);color:#fff;pointer-events:none}
 .min-scale-bar[hidden]{display:none}
 .min-scale-rule{display:flex;align-items:flex-end;height:9px;box-sizing:border-box;border-bottom:2px solid #fff;border-left:2px solid #fff;border-right:2px solid #fff}
 .min-scale-rule i{flex:1 1 0;height:5px;border-left:1px solid rgba(255,255,255,0.8)}
 .min-scale-rule i:first-child{border-left:0}
 .min-scale-lbl{font-size:0.68rem;font-weight:700;letter-spacing:0.03em;line-height:1;white-space:nowrap}
+/* ---- stage rail — guard #244: top-left, row 1 the view switch (Photos | 360° | 3D) with play/pause, row 2 Scale + cm|in ----
+   Every rule is prefixed .min-stage .min-rail so it beats the #232 .rm-unit toolbar rules (light theme included) and the
+   loose #243 chip rules whatever their order. A host adds min-has-rail to its stage when it draws a rail. */
+.min-stage .min-rail{position:absolute;top:8px;left:8px;z-index:3;display:flex;flex-direction:column;align-items:flex-start;gap:6px;pointer-events:none}
+.min-stage .min-rail-row{display:flex;align-items:center;gap:6px}
+.min-stage .min-rail-measure{display:none}
+.min-stage.min-spin-on.min-has-scale .min-rail-measure,.min-stage.min-3d-on .min-rail-measure{display:flex}
+.min-stage .min-rail .min-seg,.min-stage .min-rail .min-rail-btn,.min-stage .min-rail .min-scale-chip{pointer-events:auto;position:static;background:rgba(3,7,18,0.72);border:1px solid rgba(255,255,255,0.16);border-radius:999px;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);-webkit-tap-highlight-color:transparent}
+.min-stage .min-rail .min-seg{display:inline-flex;align-items:stretch;overflow:hidden}
+.min-stage .min-rail .min-seg-b,.min-stage .min-rail .min-rail-btn,.min-stage .min-rail .min-scale-chip{-webkit-appearance:none;appearance:none;display:inline-flex;align-items:center;margin:0;min-height:30px;min-width:0;padding:0 11px;color:#fff;font:inherit;font-family:inherit;font-size:0.74rem;font-weight:700;line-height:1;letter-spacing:0;white-space:nowrap;cursor:pointer;box-shadow:none;transition:background .15s ease,color .15s ease}
+.min-stage .min-rail .min-seg-b{border:0;border-radius:0;background:transparent}
+.min-stage .min-rail .min-seg-b+.min-seg-b{border-left:1px solid rgba(255,255,255,0.16)}
+.min-stage .min-rail .min-seg-b::after,.min-stage .min-rail .min-scale-chip::after{content:none}
+.min-stage .min-rail .min-seg-b[aria-pressed="true"],.min-stage .min-rail .min-scale-chip[aria-pressed="true"]{background:rgba(255,255,255,0.92);color:#0b0f17;box-shadow:none}
+.min-stage .min-rail .min-rail-360[aria-pressed="true"]{background:rgba(245,158,11,0.92);color:#1a1205}
+.min-stage .min-rail .min-rail-3d[aria-pressed="true"]{background:rgba(56,189,248,0.92);color:#04202c}
+.min-stage .min-rail .min-rail-view .min-seg-b[aria-pressed="true"]{cursor:default}
+.min-stage .min-rail .min-rail-play{min-width:36px;justify-content:center;padding:0 9px;font-size:0.68rem}
+.min-stage .min-rail .min-rail-play[hidden]{display:none}
+.min-stage .min-rail .min-rail-play[disabled]{cursor:default;color:rgba(255,255,255,0.7)}
+.min-stage .min-rail .min-rail-units{display:none}
+.min-stage .min-rail .min-scale-chip[aria-pressed="true"]+.min-rail-units{display:inline-flex}
+.min-stage .min-rail .min-seg-b:focus-visible,.min-stage .min-rail .min-rail-btn:focus-visible,.min-stage .min-rail .min-scale-chip:focus-visible{outline:2px solid var(--gold);outline-offset:-3px}
+.min-stage .min-rail .min-rail-btn:active,.min-stage .min-rail .min-scale-chip:active{transform:scale(.95);transition:transform .08s ease-out}
+@media(prefers-reduced-motion:reduce){.min-stage .min-rail .min-rail-btn:active,.min-stage .min-rail .min-scale-chip:active{transform:none;transition:none}}
+@media(hover:hover){.min-stage .min-rail .min-seg-b[aria-pressed="false"]:hover,.min-stage .min-rail .min-rail-btn:not([disabled]):hover,.min-stage .min-rail .min-scale-chip[aria-pressed="false"]:hover{background:rgba(255,255,255,0.16);color:#fff;border-color:rgba(255,255,255,0.16)}}
+@media(max-width:600px),(pointer:coarse){.min-stage .min-rail .min-seg-b,.min-stage .min-rail .min-rail-btn,.min-stage .min-rail .min-scale-chip{min-height:34px;font-size:0.78rem;padding:0 12px}.min-stage .min-rail .min-rail-play{min-width:40px}}
+/* the rotation and 3D views own the whole stage for dragging: no side arrows there (the rail's Photos segment leads back) */
+.min-stage.min-has-rail.min-spin-on .min-nav,.min-stage.min-has-rail.min-3d-on .min-nav{display:none}
+.modal.fs-on .min-scale-bar{bottom:calc(56px + env(safe-area-inset-bottom,0))}
 /* ---- end shared mineral viewer CSS ----------------------------------------------------- */
 /* ---- shared thumb strip CSS — guard #219 · DO NOT EDIT ONE COPY ------------
    Byte-identical in the dashboard <style>, Scripts/private_rocks/friends_viewer.css and the
