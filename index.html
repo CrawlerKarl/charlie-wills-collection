@@ -386,17 +386,43 @@ img.rv{opacity:0;transition:opacity .22s ease-out}   /* the shared image reveal 
 img.rv.rv-on{opacity:1}
 @media(prefers-reduced-motion:reduce){img.rv{opacity:1;transition:none}}
 /* units toggle — guard #232: the two-segment Metric | Standard control in the page header (markup from unitsToggleHTML(); each shell sets
-   the pressed segment in an inline script before first paint). 44px segments; gold = pressed, the .vtbtn.on look. Phone: the header wraps,
-   so the control drops under the title beside the theme button instead of squeezing the name into a sliver. */
-.rm-units{display:inline-flex;flex:0 0 auto;margin-left:auto;border:1px solid var(--bdr);border-radius:10px;background:var(--card2);overflow:hidden}
+   the pressed segment in an inline script before first paint). Guard #247 (owner 2026-10-20) redrew it as the bar's segmented control: a padded
+   track whose pressed segment is a lifted pill with its own radius, so the gold no longer runs into the track's clipped corner. Phone: the header
+   wraps, so the control drops under the title beside the theme button instead of squeezing the name into a sliver. */
+.rm-units{display:inline-flex;flex:0 0 auto;margin-left:auto;gap:2px;padding:3px;border:1px solid var(--bdr);border-radius:12px;background:var(--card2)}
 .rm-units+.theme-btn{margin-left:0}
-.rm-unit{-webkit-appearance:none;appearance:none;margin:0;min-width:44px;min-height:44px;padding:0 14px;border:0;border-radius:0;background:transparent;color:var(--t2);font:inherit;font-size:0.85rem;font-weight:600;line-height:1;cursor:pointer}
-.rm-unit+.rm-unit{border-left:1px solid var(--bdr)}
-.rm-unit[aria-pressed="true"]{background:rgba(245,158,11,0.14);color:var(--gold);box-shadow:inset 0 0 0 1px var(--gold)}
+.rm-unit{-webkit-appearance:none;appearance:none;position:relative;margin:0;min-width:44px;min-height:36px;padding:0 14px;border:0;border-radius:9px;background:transparent;color:var(--t2);font:inherit;font-size:0.85rem;font-weight:650;line-height:1;cursor:pointer;transition:background-color .15s ease,color .15s ease}
+.rm-unit::after{content:'';position:absolute;inset:-4px 0}   /* a 44px hit area: 36px segment + the track's 3px padding + its 1px border */
+.rm-unit+.rm-unit{border-left:0}
+.rm-unit[aria-pressed="true"]{background:rgba(245,158,11,0.16);color:var(--gold);box-shadow:0 1px 4px rgba(0,0,0,0.28),inset 0 0 0 1px rgba(245,158,11,0.38)}
 @media(hover:hover){.rm-unit[aria-pressed="false"]:hover{color:var(--gold)}}
 .rm-unit:focus-visible{outline:2px solid var(--gold);outline-offset:-3px}
 [data-theme="light"] .rm-unit[aria-pressed="true"]{background:rgba(217,119,6,0.12);color:#9a3412}
 @media(max-width:720px){.site-hdr .hdr-txt{flex:1 1 calc(100% - 60px)}.site-hdr .rm-units{margin-left:0}.site-hdr .rm-units+.theme-btn{margin-left:auto}}
+/* display dock — guard #247 (owner 2026-10-20: "the controls … stay visible as you scroll down"): each viewer's pinned search bar carries a
+   .pf-dock with a second unitsToggleHTML() and a theme button, hidden until an IntersectionObserver on .site-hdr puts html.rm-hdr-gone (the
+   header has scrolled away). Desktop: the dock takes a third column beside the count + layout switch, so the bar grows no taller. Phone: no
+   width is left in the bar, so the dock becomes a slim fixed strip (mark + name + controls) and the bar pins under it. The header keeps its own
+   toggle (guard #232); the two copies stay in step because unitsSet() presses every .rm-unit and toggleTheme() flips the root. */
+.pf-dock{display:none;grid-area:dock;align-items:center;gap:8px;justify-self:end}
+.pf-dock-brand{display:none}
+.pf-dock .rm-units{margin-left:0}
+.pf-dock .theme-btn{margin-left:0;width:44px;height:44px;flex:0 0 auto}
+html.rm-hdr-gone .pf-dock{display:flex;animation:pfDockIn .18s ease-out}
+@keyframes pfDockIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+@media(min-width:601px){html.rm-hdr-gone .pf-shell{grid-template-columns:minmax(0,1fr) auto auto;grid-template-areas:"search count dock" "adv adv adv"}}
+@media(min-width:601px) and (max-width:1180px){html.rm-hdr-gone .pf-shell>.tc-hd .tt{display:none}}
+@media(max-width:600px){
+.pf-dock{position:fixed;top:0;left:0;right:0;z-index:35;justify-self:auto;gap:8px;padding:calc(6px + env(safe-area-inset-top,0px)) max(12px,env(safe-area-inset-right,0px)) 6px max(12px,env(safe-area-inset-left,0px));background:var(--bg);border-bottom:1px solid var(--bdr);box-shadow:0 6px 12px -10px rgba(0,0,0,0.45)}
+.pf-dock-brand{display:flex;align-items:center;gap:8px;min-width:0;margin-right:auto;color:var(--t1);font-size:0.9rem;font-weight:750;line-height:1.2}
+.pf-dock-brand>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pf-dock-mark{flex:0 0 28px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:8px;background:linear-gradient(135deg,#2dd4bf,#0f766e)}
+.pf-dock-mark svg{width:18px;height:18px}
+.pf-dock .rm-unit{min-height:36px;padding:0 11px;font-size:0.8rem}
+html.rm-hdr-gone .pf-shell{top:calc(56px + env(safe-area-inset-top,0px))}
+}
+@media(max-width:430px){.pf-dock-brand>span:last-child{display:none}}   /* a 375px phone left the name as "Rock & Mine…": the mark alone reads cleaner */
+@media(prefers-reduced-motion:reduce){html.rm-hdr-gone .pf-dock{animation:none}}
 /* glance grid — guard #233 (markup from glanceHTML()): layer one of the specimen screen, one tile per section that has something to say, directly under the badges. A tile with a target is a button: a click scrolls to that section (glanceJump) and flashes it, and never opens its dropdown. Two columns on a phone; the Did-you-know tile spans both. */
 .min-glance{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));grid-auto-flow:dense;gap:9px;margin:2px 0 14px}
 .min-glance-tile{-webkit-appearance:none;appearance:none;display:block;min-width:0;min-height:44px;margin:0;padding:10px 12px;text-align:left;font:inherit;color:var(--t1);background:var(--card2);border:1px solid var(--bdr);border-radius:10px}
@@ -2350,6 +2376,7 @@ function filterBarHTML(){
     +'<button class="pf-mobile-toggle" id="pf-mobile-toggle" type="button" aria-label="Filters'+(n?', '+n+' active':'')+'" aria-expanded="'+(S.filterOpen?'true':'false')+'" aria-controls="pf-advanced" onclick="toggleFilterPanel()">Filters'+(n?' <span class="cnt">'+n+'</span>':'')+'</button>'
     +'</div>'
     +countRowHTML()
+    +pfDockHTML()
     +'<div class="pf-advanced" id="pf-advanced">'
     +msHTML('sub','Type')+msHTML('species','Mineral')+msHTML('state','Locality')
     +'<select class="pf-sel" id="pf-spin" aria-label="360\u00b0 spin filter" title="Show only specimens with (or without) a 360\u00b0 spin" onchange="S.spin=this.value;renderContent();refreshFilterBar()">'+spo+'</select>'
@@ -3036,6 +3063,17 @@ function fsAwareClose(){if(isFullscreen())exitFullscreen();else closeModal();}
 /* ------------------------------------------------------------------ theme + boot */
 function toggleTheme(){var d=document.documentElement.getAttribute('data-theme')==='light'?'dark':'light';document.documentElement.setAttribute('data-theme',d);document.querySelector('meta[name=theme-color]').setAttribute('content',d==='light'?'#f6f7f9':'#090d14');try{localStorage.setItem('cwTheme',d);}catch(e){}}
 (function(){try{var t=localStorage.getItem('cwTheme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}})();
+/* Guard #247: the display dock — a second units toggle + theme button inside the pinned bar, shown (CSS) once the header has scrolled away. */
+function pfDockHTML() {
+  return '<div class="pf-dock" role="group" aria-label="Display settings"><span class="pf-dock-brand" aria-hidden="true"><span class="pf-dock-mark"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M8 4h16l5 8-13 16L3 12z" fill="#04201c" opacity=".25"/><path d="M8 4h16l5 8-13 16L3 12z" fill="none" stroke="#04201c" stroke-width="1.5"/><path d="M8 4h16l5 8H3z" fill="#eafffb" opacity=".85"/></svg></span><span>Rock &amp; Mineral Collection</span></span>'
+    + unitsToggleHTML() + '<button class="theme-btn" type="button" onclick="toggleTheme()" title="Toggle light / dark" aria-label="Toggle theme">◑</button></div>';
+}
+(function pfDockWatch() {   /* html.rm-hdr-gone while the site header is above the viewport */
+  if (typeof document === 'undefined' || !('IntersectionObserver' in window)) return;
+  var hdr = document.querySelector('.site-hdr');
+  if (!hdr) { document.addEventListener('DOMContentLoaded', pfDockWatch); return; }
+  new IntersectionObserver(function (es) { var e = es[es.length - 1]; document.documentElement.classList.toggle('rm-hdr-gone', !e.isIntersecting && e.boundingClientRect.bottom <= 0); }).observe(hdr);
+})();
 if(document.readyState!=='loading')render();else document.addEventListener('DOMContentLoaded',render);
 </script>
 </body>
